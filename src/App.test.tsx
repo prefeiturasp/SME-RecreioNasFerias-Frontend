@@ -1,24 +1,25 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import App from './App'
 
-vi.mock('./assets/hero.png', () => ({ default: 'hero-stub.png' }))
-
 describe('App', () => {
-  it('renderiza o título principal', () => {
+  it('renderiza a página inicial', () => {
     render(<App />)
 
-    expect(screen.getByRole('heading', { name: /get started/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /bem-vindo/i }),
+    ).toBeInTheDocument()
   })
 
-  it('incrementa o contador ao clicar no botão', async () => {
+  it('navega para a página de inscrição', async () => {
     const user = userEvent.setup()
     render(<App />)
 
-    const button = screen.getByRole('button', { name: /count is 0/i })
-    await user.click(button)
+    await user.click(screen.getByRole('link', { name: /inscrição/i }))
 
-    expect(screen.getByRole('button', { name: /count is 1/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /^inscrição$/i }),
+    ).toBeInTheDocument()
   })
 })
