@@ -10,11 +10,14 @@
 }
 
 html {
+  font-size: 16px;
+  height: 100%;
   -webkit-text-size-adjust: 100%;
 }
 
 body {
-  min-height: 100svh;
+  height: 100svh;
+  overflow: hidden;
   line-height: 1.5;
 }
 
@@ -51,17 +54,26 @@ button {
 
 :root {
   --font-family: 'Roboto', sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
 
   --color-text: #42474a;
   --color-text-heading: #42474a;
   --color-background: #ffffff;
   --color-border: #e0e0e0;
-  --color-accent: #1976d2;
+  --color-input-border: #dadada;
+  --color-primary: #312885;
+  --color-accent: var(--color-primary);
+
+  --breakpoint-tablet: 64rem;
+  --breakpoint-mobile: 48rem;
 }
 
 body {
   font-family: var(--font-family);
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
   font-size: 1rem;
   color: var(--color-text);
   background-color: var(--color-background);
@@ -70,7 +82,8 @@ body {
 }
 
 #root {
-  min-height: 100svh;
+  height: 100%;
+  overflow: hidden;
 }
 
 h1,
@@ -79,6 +92,6 @@ h3,
 h4,
 h5,
 h6 {
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
   color: var(--color-text-heading);
 }
