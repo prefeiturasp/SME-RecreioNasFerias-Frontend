@@ -64,6 +64,7 @@ button {
   --color-background: #ffffff;
   --color-border: #e0e0e0;
   --color-input-border: #dadada;
+  --color-surface-muted: #f5f5f5;
   --color-primary: #312885;
   --color-accent: var(--color-primary);
 

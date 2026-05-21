@@ -1,9 +1,17 @@
+import { type FormEvent, useState } from 'react'
+
+import {
+  attemptLogin,
+  LoginAccessDeniedError,
+} from './attemptLogin'
+import { buildAccessDeniedMessage } from './messages'
 import {
   ForgotPassword,
   FormAcesso,
   FormField,
   LogoContainer,
   Main,
+  MessageError,
   PartnerLogo,
   SectionForm,
   SectionImage,
@@ -14,6 +22,36 @@ import logoImg from '../../assets/logo-recreio.png'
 import logoSMEImg from '../../assets/logo-sme.png'
 
 export default function Home() {
+  const [accessDeniedUserName, setAccessDeniedUserName] = useState<
+    string | null
+  >(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  function clearAccessError() {
+    setAccessDeniedUserName(null)
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setAccessDeniedUserName(null)
+
+    const formData = new FormData(event.currentTarget)
+    const usuario = String(formData.get('usuario') ?? '').trim()
+    const senha = String(formData.get('senha') ?? '')
+
+    setIsSubmitting(true)
+
+    try {
+      await attemptLogin({ usuario, senha })
+    } catch (error) {
+      if (error instanceof LoginAccessDeniedError) {
+        setAccessDeniedUserName(error.userName)
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <Main>
       <SectionImage aria-hidden />
@@ -28,7 +66,7 @@ export default function Home() {
           </h3>
         </LogoContainer>
 
-        <FormAcesso>
+        <FormAcesso onSubmit={handleSubmit}>
           <FormField>
             <label htmlFor="usuario">Usuário</label>
             <input
@@ -36,6 +74,8 @@ export default function Home() {
               id="usuario"
               name="usuario"
               autoComplete="username"
+              disabled={isSubmitting}
+              onChange={clearAccessError}
             />
           </FormField>
 
@@ -46,10 +86,20 @@ export default function Home() {
               id="senha"
               name="senha"
               autoComplete="current-password"
+              disabled={isSubmitting}
+              onChange={clearAccessError}
             />
           </FormField>
 
-          <SubmitButton type="submit">Acessar</SubmitButton>
+          <SubmitButton type="submit" disabled={isSubmitting}>
+            Acessar
+          </SubmitButton>
+
+          {accessDeniedUserName && (
+            <MessageError role="alert">
+              <p>{buildAccessDeniedMessage(accessDeniedUserName)}</p>
+            </MessageError>
+          )}
 
           <ForgotPassword>
             <a href="#recuperar-senha">Esqueci minha senha</a>

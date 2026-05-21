@@ -1,6 +1,9 @@
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Home from './index'
+import { LoginAccessDeniedError } from './attemptLogin'
+import { buildAccessDeniedMessage } from './messages'
 
 vi.mock('../../assets/logo-recreio.png', () => ({
   default: 'logo-recreio-stub.png',
@@ -14,7 +17,35 @@ vi.mock('../../assets/background-home.jpg', () => ({
   default: 'background-home-stub.jpg',
 }))
 
+const { attemptLoginMock } = vi.hoisted(() => ({
+  attemptLoginMock: vi.fn(),
+}))
+
+vi.mock('./attemptLogin', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./attemptLogin')>()
+
+  return {
+    ...actual,
+    attemptLogin: attemptLoginMock,
+  }
+})
+
+describe('buildAccessDeniedMessage', () => {
+  it('inclui o nome do usuário na mensagem', () => {
+    expect(buildAccessDeniedMessage('Maria')).toContain('Olá Maria!')
+  })
+
+  it('usa fallback quando o nome está vazio', () => {
+    expect(buildAccessDeniedMessage('   ')).toContain('Olá usuário!')
+  })
+})
+
 describe('Home', () => {
+  beforeEach(() => {
+    attemptLoginMock.mockReset()
+    attemptLoginMock.mockResolvedValue(undefined)
+  })
+
   it('renderiza a mensagem de boas-vindas', () => {
     render(<Home />)
 
@@ -45,6 +76,46 @@ describe('Home', () => {
     expect(screen.getByLabelText(/usuário/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /acessar/i })).toBeInTheDocument()
+  })
+
+  it('não exibe mensagem de erro antes da tentativa de login', () => {
+    render(<Home />)
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('exibe mensagem de erro quando o login retorna acesso negado', async () => {
+    const user = userEvent.setup()
+    attemptLoginMock.mockRejectedValueOnce(new LoginAccessDeniedError('João'))
+
+    render(<Home />)
+
+    await user.type(screen.getByLabelText(/usuário/i), 'João')
+    await user.type(screen.getByLabelText(/senha/i), '123456')
+    await user.click(screen.getByRole('button', { name: /acessar/i }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(/olá joão!/i)
+    })
+  })
+
+  it('oculta a mensagem de erro ao editar os campos', async () => {
+    const user = userEvent.setup()
+    attemptLoginMock.mockRejectedValueOnce(new LoginAccessDeniedError('João'))
+
+    render(<Home />)
+
+    await user.type(screen.getByLabelText(/usuário/i), 'João')
+    await user.type(screen.getByLabelText(/senha/i), '123456')
+    await user.click(screen.getByRole('button', { name: /acessar/i }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+    })
+
+    await user.type(screen.getByLabelText(/usuário/i), 'a')
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
   it('associa labels aos inputs corretamente', () => {

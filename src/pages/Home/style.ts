@@ -153,6 +153,11 @@ export const SubmitButton = styled.button`
   font-size: 1rem;
   font-weight: var(--font-weight-bold);
   cursor: pointer;
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
 `
 
 export const ForgotPassword = styled.p`
@@ -187,5 +192,18 @@ export const PartnerLogo = styled.div`
       height: auto;
       max-height: 3.75rem;
     }
+  }
+`
+
+export const MessageError = styled.div`
+  background-color: var(--color-surface-muted);
+  padding: 1rem;
+  border-radius: 0.25rem;
+
+  > p {
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-regular);
+    color: var(--color-text);
+    line-height: 1.4;
   }
 `
