@@ -17,6 +17,8 @@ export default mergeConfig(
       include: ['src/**/*.test.{ts,tsx}'],
       coverage: {
         provider: 'v8',
+        all: true,
+        include: ['src/**/*.{ts,tsx}'],
         reporter: ['text', 'lcov', 'html'],
         reportsDirectory: './coverage',
         exclude: [
@@ -28,6 +30,12 @@ export default mergeConfig(
           'vitest.config.ts',
           'eslint.config.js',
         ],
+        thresholds: {
+          lines: 81,
+          statements: 81,
+          branches: 81,
+          functions: 81,
+        },
       },
     },
   }),

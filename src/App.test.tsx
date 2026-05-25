@@ -22,4 +22,16 @@ describe('App', () => {
       screen.getByRole('heading', { name: /^inscrição$/i }),
     ).toBeInTheDocument()
   })
+
+  it('volta para a página inicial pelo menu', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('link', { name: /inscrição/i }))
+    await user.click(screen.getByRole('link', { name: /início/i }))
+
+    expect(
+      screen.getByRole('heading', { name: /bem-vindo/i }),
+    ).toBeInTheDocument()
+  })
 })
