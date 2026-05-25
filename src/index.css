@@ -13,11 +13,6 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
-body {
-  min-height: 100svh;
-  line-height: 1.5;
-}
-
 img,
 picture,
 video,
@@ -60,6 +55,8 @@ button {
 }
 
 body {
+  min-height: 100svh;
+  line-height: 1.5;
   font-family: var(--font-family);
   font-weight: 400;
   font-size: 1rem;

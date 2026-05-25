@@ -30,4 +30,26 @@ describe('Header', () => {
       '/inscricao',
     )
   })
+
+  it('destaca o link da página inicial na rota raiz', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Header />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('link', { name: /início/i })).toHaveClass('active')
+  })
+
+  it('destaca o link de inscrição na rota /inscricao', () => {
+    render(
+      <MemoryRouter initialEntries={['/inscricao']}>
+        <Header />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('link', { name: /inscrição/i })).toHaveClass(
+      'active',
+    )
+  })
 })
