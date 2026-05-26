@@ -1,8 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import Home from './index'
 import { LoginAccessDeniedError } from './attemptLogin'
+import Home from './index'
 import { buildAccessDeniedMessage } from './messages'
 
 vi.mock('../../assets/logo-recreio.png', () => ({
