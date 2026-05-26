@@ -106,6 +106,15 @@ export const LogoContainer = styled.div`
   }
 `
 
+/** Título de destaque reutilizável (ex.: testes de estilo e blocos semânticos). */
+export const Heading = styled.h3`
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  line-height: 1.3;
+`
+
 export const FormAcesso = styled.form`
   width: 100%;
   max-width: 22.5rem;
