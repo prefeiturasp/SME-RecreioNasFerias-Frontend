@@ -1,4 +1,4 @@
-import { useState, type FormEventHandler } from 'react'
+import { useState, type SubmitEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import {
@@ -43,12 +43,16 @@ export default function Home() {
     setLoginErrorMessage(null)
   }
 
-  const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
+  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
+    void submitLogin(event.currentTarget)
+  }
+
+  async function submitLogin(form: HTMLFormElement) {
     setAccessDeniedUserName(null)
     setLoginErrorMessage(null)
 
-    const formData = new FormData(event.currentTarget)
+    const formData = new FormData(form)
     const usuario = getFormFieldValue(formData, 'usuario').trim()
     const senha = getFormFieldValue(formData, 'senha')
 
