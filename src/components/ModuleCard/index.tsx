@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react'
 import { CardModulo } from './style'
 
-type ModuleCardProps = {
+type ModuleCardProps = Readonly<{
   nome: string
   icone: ReactNode
-}
+}>
 
 export function ModuleCard({ nome, icone }: ModuleCardProps) {
   return (

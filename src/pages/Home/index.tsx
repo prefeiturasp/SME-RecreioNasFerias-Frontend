@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from 'react'
+import { useState, type FormEventHandler } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import {
@@ -23,6 +23,11 @@ import {
 import logoImg from '../../assets/logo-recreio.png'
 import logoSMEImg from '../../assets/logo-sme.png'
 
+function getFormFieldValue(formData: FormData, fieldName: string): string {
+  const value = formData.get(fieldName)
+  return typeof value === 'string' ? value : ''
+}
+
 export default function Home() {
   const navigate = useNavigate()
   const [accessDeniedUserName, setAccessDeniedUserName] = useState<
@@ -38,14 +43,14 @@ export default function Home() {
     setLoginErrorMessage(null)
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
     setAccessDeniedUserName(null)
     setLoginErrorMessage(null)
 
     const formData = new FormData(event.currentTarget)
-    const usuario = String(formData.get('usuario') ?? '').trim()
-    const senha = String(formData.get('senha') ?? '')
+    const usuario = getFormFieldValue(formData, 'usuario').trim()
+    const senha = getFormFieldValue(formData, 'senha')
 
     setIsSubmitting(true)
 
