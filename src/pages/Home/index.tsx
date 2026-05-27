@@ -1,8 +1,10 @@
 import { type FormEvent, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import {
   attemptLogin,
   LoginAccessDeniedError,
+  LoginFailedError,
 } from './attemptLogin'
 import { buildAccessDeniedMessage } from './messages'
 import {
@@ -22,18 +24,24 @@ import logoImg from '../../assets/logo-recreio.png'
 import logoSMEImg from '../../assets/logo-sme.png'
 
 export default function Home() {
+  const navigate = useNavigate()
   const [accessDeniedUserName, setAccessDeniedUserName] = useState<
     string | null
   >(null)
+  const [loginErrorMessage, setLoginErrorMessage] = useState<string | null>(
+    null,
+  )
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  function clearAccessError() {
+  function clearFormFeedback() {
     setAccessDeniedUserName(null)
+    setLoginErrorMessage(null)
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setAccessDeniedUserName(null)
+    setLoginErrorMessage(null)
 
     const formData = new FormData(event.currentTarget)
     const usuario = String(formData.get('usuario') ?? '').trim()
@@ -43,9 +51,14 @@ export default function Home() {
 
     try {
       await attemptLogin({ usuario, senha })
+      navigate('/main')
     } catch (error) {
       if (error instanceof LoginAccessDeniedError) {
         setAccessDeniedUserName(error.userName)
+        setLoginErrorMessage(null)
+      } else if (error instanceof LoginFailedError) {
+        setLoginErrorMessage(error.userMessage)
+        setAccessDeniedUserName(null)
       }
     } finally {
       setIsSubmitting(false)
@@ -75,7 +88,7 @@ export default function Home() {
               name="usuario"
               autoComplete="username"
               disabled={isSubmitting}
-              onChange={clearAccessError}
+              onChange={clearFormFeedback}
             />
           </FormField>
 
@@ -87,7 +100,7 @@ export default function Home() {
               name="senha"
               autoComplete="current-password"
               disabled={isSubmitting}
-              onChange={clearAccessError}
+              onChange={clearFormFeedback}
             />
           </FormField>
 
@@ -95,9 +108,13 @@ export default function Home() {
             Acessar
           </SubmitButton>
 
-          {accessDeniedUserName && (
+          {(accessDeniedUserName || loginErrorMessage) && (
             <MessageError role="alert">
-              <p>{buildAccessDeniedMessage(accessDeniedUserName)}</p>
+              <p>
+                {accessDeniedUserName
+                  ? buildAccessDeniedMessage(accessDeniedUserName)
+                  : loginErrorMessage}
+              </p>
             </MessageError>
           )}
 

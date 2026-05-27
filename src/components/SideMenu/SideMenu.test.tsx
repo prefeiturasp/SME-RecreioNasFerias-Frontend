@@ -148,6 +148,79 @@ describe('SideMenu', () => {
     })
   })
 
+  it('ignora transitionend de propriedades diferentes de width', async () => {
+    vi.useFakeTimers()
+    render(<SideMenu />)
+
+    fireEvent.click(screen.getByRole('button', { name: /fechar menu/i }))
+    fireEvent.click(screen.getByRole('button', { name: /abrir menu/i }))
+
+    const aside = document.querySelector('aside')
+    expect(aside).not.toBeNull()
+
+    await act(() => {
+      aside!.dispatchEvent(
+        new TransitionEvent('transitionend', {
+          bubbles: true,
+          propertyName: 'opacity',
+        }),
+      )
+    })
+
+    expect(
+      screen.queryByRole('heading', {
+        name: /sistema de gestão.*do recreio nas férias/i,
+      }),
+    ).not.toBeInTheDocument()
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300)
+    })
+
+    expect(
+      screen.getByRole('heading', {
+        name: /sistema de gestão.*do recreio nas férias/i,
+      }),
+    ).toBeInTheDocument()
+  })
+
+  it('ignora transitionend disparado em elemento diferente do aside', async () => {
+    vi.useFakeTimers()
+    render(<SideMenu />)
+
+    fireEvent.click(screen.getByRole('button', { name: /fechar menu/i }))
+    fireEvent.click(screen.getByRole('button', { name: /abrir menu/i }))
+
+    const aside = document.querySelector('aside')
+    const filho = document.createElement('div')
+    aside?.appendChild(filho)
+
+    await act(() => {
+      filho.dispatchEvent(
+        new TransitionEvent('transitionend', {
+          bubbles: true,
+          propertyName: 'width',
+        }),
+      )
+    })
+
+    expect(
+      screen.queryByRole('heading', {
+        name: /sistema de gestão.*do recreio nas férias/i,
+      }),
+    ).not.toBeInTheDocument()
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300)
+    })
+
+    expect(
+      screen.getByRole('heading', {
+        name: /sistema de gestão.*do recreio nas férias/i,
+      }),
+    ).toBeInTheDocument()
+  })
+
   it('mantém a lista de itens dentro da área de navegação', () => {
     render(<SideMenu />)
 

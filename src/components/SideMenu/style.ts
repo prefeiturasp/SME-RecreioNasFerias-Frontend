@@ -4,7 +4,7 @@ export const Aside = styled.aside<{ $isOpen: boolean }>`
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  width: ${({ $isOpen }) => ($isOpen ? '20%' : '3.5rem')};
+  width: ${({ $isOpen }) => ($isOpen ? '18%' : '3.5rem')};
   min-width: ${({ $isOpen }) => ($isOpen ? '12rem' : '3.5rem')};
   height: 100vh;
   background-color: #1d0a55;
@@ -44,7 +44,7 @@ export const MenuHeader = styled.div`
   justify-content: space-between;
   gap: 0.5rem;
   width: 100%;
-  height: 88px;
+  height: 118px;
   background-color: #312885;
   padding: 16px 8px;
   border-radius: 0 0 4px 4px;

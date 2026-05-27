@@ -7,7 +7,7 @@ import {
   CronogramasIcon,
   InscricoesIcon,
   MenuIcon,
-} from './icons'
+} from '../icons'
 import {
   Aside,
   MenuCloseButton,

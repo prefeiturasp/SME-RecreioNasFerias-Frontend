@@ -104,3 +104,66 @@ export function ChevronDownIcon() {
     </svg>
   )
 }
+
+export function IconeSair() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 46 46" fill="none" aria-hidden="true">
+      <path d="M23 7v17" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+      <path
+        d="M14.5 12.6a16 16 0 1 0 17 0"
+        stroke="currentColor"
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+export function IconeInicio() {
+  return (
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3l9-8z" />
+    </svg>
+  )
+}
+
+export function IconeModuloCronogramas() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <rect x="6" y="2" width="8" height="6" rx="1" fill="currentColor" />
+      <rect x="2" y="10" width="8" height="6" rx="1" fill="currentColor" />
+      <rect x="10" y="10" width="8" height="6" rx="1" fill="currentColor" />
+      <rect x="9.1" y="3.4" width="1.8" height="3.2" rx="0.4" fill="white" />
+    </svg>
+  )
+}
+
+export function IconeModuloInscricoes() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="9" y="3" width="6" height="4" rx="0.8" stroke="currentColor" strokeWidth="2" />
+      <rect x="3" y="15" width="6" height="5" rx="0.8" stroke="currentColor" strokeWidth="2" />
+      <rect x="15" y="15" width="6" height="5" rx="0.8" stroke="currentColor" strokeWidth="2" />
+      <path d="M12 7v4M6 15v-2h12v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+export function IconeModuloConfiguracoes() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="5" y="5.2" width="2.2" height="2.2" rx="0.4" fill="currentColor" />
+      <rect x="5" y="10.9" width="2.2" height="2.2" rx="0.4" fill="currentColor" />
+      <rect x="5" y="16.6" width="2.2" height="2.2" rx="0.4" fill="currentColor" />
+      <path d="M7.2 12h4.2" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+      <path
+        d="M11.4 5.5h1.6c3.6 0 6.5 2.9 6.5 6.5s-2.9 6.5-6.5 6.5h-1.6"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+      <path d="M13.2 8.4l4 3.6-4 3.6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}

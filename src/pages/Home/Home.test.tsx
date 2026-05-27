@@ -1,7 +1,10 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { LoginAccessDeniedError } from './attemptLogin'
+import {
+  LoginAccessDeniedError,
+  LoginFailedError,
+} from './attemptLogin'
 import Home from './index'
 import { buildAccessDeniedMessage } from './messages'
 
@@ -20,6 +23,19 @@ vi.mock('../../assets/background-home.jpg', () => ({
 const { attemptLoginMock } = vi.hoisted(() => ({
   attemptLoginMock: vi.fn(),
 }))
+
+const { navegarMock } = vi.hoisted(() => ({
+  navegarMock: vi.fn(),
+}))
+
+vi.mock('react-router-dom', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router-dom')>()
+
+  return {
+    ...actual,
+    useNavigate: () => navegarMock,
+  }
+})
 
 vi.mock('./attemptLogin', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./attemptLogin')>()
@@ -44,6 +60,7 @@ describe('Home', () => {
   beforeEach(() => {
     attemptLoginMock.mockReset()
     attemptLoginMock.mockResolvedValue(undefined)
+    navegarMock.mockReset()
   })
 
   it('renderiza a mensagem de boas-vindas', () => {
@@ -118,6 +135,25 @@ describe('Home', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
+  it('exibe alerta com a mensagem retornada pelo backend', async () => {
+    const user = userEvent.setup()
+    attemptLoginMock.mockRejectedValueOnce(
+      new LoginFailedError('The read operation timed out'),
+    )
+
+    render(<Home />)
+
+    await user.type(screen.getByLabelText(/usuário/i), 'Maria')
+    await user.type(screen.getByLabelText(/senha/i), '123456')
+    await user.click(screen.getByRole('button', { name: /acessar/i }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'The read operation timed out',
+      )
+    })
+  })
+
   it('associa labels aos inputs corretamente', () => {
     render(<Home />)
 
@@ -152,5 +188,35 @@ describe('Home', () => {
     expect(
       container.querySelector('section[aria-hidden="true"]'),
     ).toBeInTheDocument()
+  })
+
+  it('não exibe alerta quando ocorre erro desconhecido no login', async () => {
+    const user = userEvent.setup()
+    attemptLoginMock.mockRejectedValueOnce(new Error('erro inesperado'))
+
+    render(<Home />)
+
+    await user.type(screen.getByLabelText(/usuário/i), 'Maria')
+    await user.type(screen.getByLabelText(/senha/i), '123456')
+    await user.click(screen.getByRole('button', { name: /acessar/i }))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
+  })
+
+  it('redireciona para /main quando o login é bem-sucedido', async () => {
+    const user = userEvent.setup()
+    attemptLoginMock.mockResolvedValueOnce(undefined)
+
+    render(<Home />)
+
+    await user.type(screen.getByLabelText(/usuário/i), 'Maria')
+    await user.type(screen.getByLabelText(/senha/i), '123456')
+    await user.click(screen.getByRole('button', { name: /acessar/i }))
+
+    await waitFor(() => {
+      expect(navegarMock).toHaveBeenCalledWith('/main')
+    })
   })
 })
