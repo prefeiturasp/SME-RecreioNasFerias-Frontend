@@ -3,8 +3,11 @@ FROM node:24-alpine AS dev
 
 WORKDIR /app
 
+COPY docker/npm-ci-retry.sh /usr/local/bin/npm-ci-retry.sh
+RUN chmod +x /usr/local/bin/npm-ci-retry.sh
+
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm-ci-retry.sh
 
 COPY . .
 
@@ -17,8 +20,11 @@ FROM node:24-alpine AS build
 
 WORKDIR /app
 
+COPY docker/npm-ci-retry.sh /usr/local/bin/npm-ci-retry.sh
+RUN chmod +x /usr/local/bin/npm-ci-retry.sh
+
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm-ci-retry.sh
 
 COPY . .
 RUN npm run build

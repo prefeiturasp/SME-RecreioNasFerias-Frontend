@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 describe('main', () => {
@@ -23,12 +23,12 @@ describe('main', () => {
     root.id = 'root'
     document.body.appendChild(root)
 
-    await import('./main')
+    await act(async () => {
+      await import('./main')
+    })
 
     await waitFor(() => {
-      expect(
-        screen.getByRole('heading', { name: /bem-vindo/i }),
-      ).toBeInTheDocument()
+      expect(screen.getByText(/bem-vindo\(a\) ao/i)).toBeInTheDocument()
     })
   })
 })
