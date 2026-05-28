@@ -15,12 +15,6 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
-body {
-  height: 100svh;
-  overflow: hidden;
-  line-height: 1.5;
-}
-
 img,
 picture,
 video,
@@ -92,7 +86,9 @@ button {
 }
 
 body {
+  height: 100svh;
   min-height: 100svh;
+  overflow: hidden;
   line-height: 1.5;
   font-family: var(--font-family);
   font-weight: var(--font-weight-regular);
