@@ -6,7 +6,11 @@ import {
 } from './sessaoInvalida'
 import { obterTokenAutenticacao } from './storage'
 
-const requisicoesGetEmAndamento = new Map<string, Promise<Response>>()
+type RequisicaoGetEmAndamento = {
+  promessa: Promise<Response>
+}
+
+const requisicoesGetEmAndamento = new Map<string, RequisicaoGetEmAndamento>()
 
 function chaveRequisicaoGet(path: string): string {
   return `GET ${path}`
@@ -19,7 +23,7 @@ async function executarRequisicao(
   const headers = new Headers(init.headers)
   const token = obterTokenAutenticacao()
 
-  if (token) {
+  if (token !== null && token.length > 0) {
     headers.set('Authorization', `Bearer ${token}`)
   }
 
@@ -37,6 +41,19 @@ async function executarRequisicao(
   return response
 }
 
+async function aguardarRequisicaoGetEmAndamento(
+  chave: string,
+): Promise<Response> {
+  const requisicaoEmAndamento = requisicoesGetEmAndamento.get(chave)
+
+  if (requisicaoEmAndamento === undefined) {
+    throw new Error(`Requisição GET em andamento não encontrada: ${chave}`)
+  }
+
+  const response = await requisicaoEmAndamento.promessa
+  return response.clone()
+}
+
 export async function requisicaoAutenticada(
   path: string,
   init: RequestInit = {},
@@ -48,18 +65,16 @@ export async function requisicaoAutenticada(
   }
 
   const chave = chaveRequisicaoGet(path)
-  const requisicaoEmAndamento = requisicoesGetEmAndamento.get(chave)
 
-  if (requisicaoEmAndamento) {
-    const response = await requisicaoEmAndamento
-    return response.clone()
+  if (requisicoesGetEmAndamento.has(chave)) {
+    return aguardarRequisicaoGetEmAndamento(chave)
   }
 
-  const novaRequisicao = executarRequisicao(path, init).finally(() => {
+  const promessa = executarRequisicao(path, init).finally(() => {
     requisicoesGetEmAndamento.delete(chave)
   })
 
-  requisicoesGetEmAndamento.set(chave, novaRequisicao)
+  requisicoesGetEmAndamento.set(chave, { promessa })
 
-  return novaRequisicao
+  return promessa
 }

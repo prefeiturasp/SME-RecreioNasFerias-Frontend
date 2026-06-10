@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState, type SubmitEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import IconeSetaVoltar from '../../assets/icone-seta-voltar.png'
 import { Cabecalho } from '../../components/Cabecalho'
@@ -63,6 +63,11 @@ const CAMPOS_NUMERICOS_DESABILITADOS = [
   },
 ] as const
 
+function obterCampoTextoFormulario(dados: FormData, nomeCampo: string): string {
+  const valor = dados.get(nomeCampo)
+  return typeof valor === 'string' ? valor : ''
+}
+
 export default function PaginaCadastrarNovaEdicaoPrograma() {
   const navigate = useNavigate()
   const [mensagemErro, setMensagemErro] = useState<string | null>(null)
@@ -70,7 +75,7 @@ export default function PaginaCadastrarNovaEdicaoPrograma() {
 
   const voltarParaEdicoes = () => navigate('/edicoes-programa')
 
-  const salvarNovaEdicao = (evento: FormEvent<HTMLFormElement>) => {
+  const salvarNovaEdicao = (evento: SubmitEvent<HTMLFormElement>) => {
     evento.preventDefault()
     void submeterNovaEdicao(evento.currentTarget)
   }
@@ -80,11 +85,14 @@ export default function PaginaCadastrarNovaEdicaoPrograma() {
 
     const dados = new FormData(form)
     const dadosCadastro = {
-      nome: String(dados.get('NomeDaEdicao') ?? ''),
-      dataInicioEdicao: String(dados.get('DataInicioEdicao') ?? ''),
-      dataFimEdicao: String(dados.get('DataFimEdicao') ?? ''),
-      dataInicioInscricoes: String(dados.get('DataInicioInscricoes') ?? ''),
-      dataFimInscricoes: String(dados.get('DataFimInscricoes') ?? ''),
+      nome: obterCampoTextoFormulario(dados, 'NomeDaEdicao'),
+      dataInicioEdicao: obterCampoTextoFormulario(dados, 'DataInicioEdicao'),
+      dataFimEdicao: obterCampoTextoFormulario(dados, 'DataFimEdicao'),
+      dataInicioInscricoes: obterCampoTextoFormulario(
+        dados,
+        'DataInicioInscricoes',
+      ),
+      dataFimInscricoes: obterCampoTextoFormulario(dados, 'DataFimInscricoes'),
     }
 
     const mensagemValidacao = validarCadastroEdicao(dadosCadastro)

@@ -7,7 +7,7 @@ type ProvedorEstadoMenuLateralProps = {
 
 export function ProvedorEstadoMenuLateral({
   children,
-}: ProvedorEstadoMenuLateralProps) {
+}: Readonly<ProvedorEstadoMenuLateralProps>) {
   const [menuAberto, setMenuAberto] = useState(false)
 
   const abrirMenu = useCallback(() => {

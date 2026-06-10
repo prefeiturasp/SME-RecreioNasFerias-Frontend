@@ -19,7 +19,7 @@ export function CampoDataFormulario({
   name,
   rotuloAcessivel,
   placeholder,
-}: CampoDataFormularioProps) {
+}: Readonly<CampoDataFormularioProps>) {
   return (
     <CampoData>
       <input
@@ -55,7 +55,7 @@ export function GrupoPeriodoData({
   idCampoFim,
   nomeCampoFim,
   rotuloAcessivelFim,
-}: GrupoPeriodoDataProps) {
+}: Readonly<GrupoPeriodoDataProps>) {
   return (
     <CampoDataComRotulo>
       <label htmlFor={idCampoInicio}>{rotulo}</label>

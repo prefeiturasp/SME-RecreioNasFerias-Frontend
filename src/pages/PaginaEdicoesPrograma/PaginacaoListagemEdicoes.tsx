@@ -30,7 +30,7 @@ export function PaginacaoListagemEdicoes({
   itensPorPagina,
   onMudarPagina,
   onMudarItensPorPagina,
-}: PaginacaoListagemEdicoesProps) {
+}: Readonly<PaginacaoListagemEdicoesProps>) {
   const paginasVisiveis = montarPaginasVisiveis(paginaAtual, totalPaginas)
 
   return (
@@ -46,11 +46,11 @@ export function PaginacaoListagemEdicoes({
         </BotaoNavegacaoPagina>
 
         <ListaPaginas>
-          {paginasVisiveis.map((item, index) => {
-            if (item === 'ellipsis') {
+          {paginasVisiveis.map((item) => {
+            if (item.tipo === 'ellipsis') {
               return (
                 <IndicadorReticenciasPagina
-                  key={`ellipsis-${index}`}
+                  key={item.chave}
                   aria-hidden="true"
                 >
                   ...
@@ -58,19 +58,18 @@ export function PaginacaoListagemEdicoes({
               )
             }
 
-            const pagina = item
-            const ativa = pagina === paginaAtual
+            const ativa = item.numero === paginaAtual
 
             return (
               <BotaoPaginaNumerica
-                key={pagina}
+                key={item.chave}
                 type="button"
                 $ativa={ativa}
-                aria-label={`Página ${pagina}`}
+                aria-label={`Página ${item.numero}`}
                 aria-current={ativa ? 'page' : undefined}
-                onClick={() => onMudarPagina(pagina)}
+                onClick={() => onMudarPagina(item.numero)}
               >
-                {pagina}
+                {item.numero}
               </BotaoPaginaNumerica>
             )
           })}

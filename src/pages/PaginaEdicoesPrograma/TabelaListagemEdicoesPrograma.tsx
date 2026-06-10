@@ -95,7 +95,7 @@ export function TabelaListagemEdicoesPrograma({
   onMudarPagina,
 
   onMudarItensPorPagina,
-}: TabelaListagemEdicoesProgramaProps) {
+}: Readonly<TabelaListagemEdicoesProgramaProps>) {
   const [colunaOrdenacao, setColunaOrdenacao] =
     useState<ColunaOrdenacao>('nome')
 

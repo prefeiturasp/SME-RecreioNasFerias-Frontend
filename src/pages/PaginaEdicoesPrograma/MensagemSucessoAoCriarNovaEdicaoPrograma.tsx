@@ -15,7 +15,7 @@ type MensagemSucessoAoCriarNovaEdicaoProgramaProps = {
 export function MensagemSucessoAoCriarNovaEdicaoPrograma({
   visivel,
   onFechar,
-}: MensagemSucessoAoCriarNovaEdicaoProgramaProps) {
+}: Readonly<MensagemSucessoAoCriarNovaEdicaoProgramaProps>) {
   useEffect(() => {
     if (!visivel) return
 
@@ -26,7 +26,7 @@ export function MensagemSucessoAoCriarNovaEdicaoPrograma({
   if (!visivel) return null
 
   return (
-    <ContainerMensagemSucesso role="status" aria-live="polite">
+    <ContainerMensagemSucesso aria-live="polite">
       <p>Edição do Programa cadastrado com sucesso!</p>
       <BotaoFecharMensagemSucesso
         type="button"
