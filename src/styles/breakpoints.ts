@@ -1,6 +1,6 @@
 export const breakpoints = {
-  mobile: '48rem', /* 768px */
-  tablet: '64rem', /* 1024px */
+  mobile: '48rem' /* 768px */,
+  tablet: '64rem' /* 1024px */,
 } as const
 
 export const media = {
