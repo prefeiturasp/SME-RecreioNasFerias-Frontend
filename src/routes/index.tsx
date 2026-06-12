@@ -1,18 +1,36 @@
 import { Route, Routes } from 'react-router-dom'
-import { ProtectedRoute } from '../components/ProtectedRoute'
-import Home from '../pages/Home'
-import Main from '../pages/Main'
+import { RotaProtegida } from '../components/RotaProtegida'
+import PaginaCadastrarNovaEdicaoPrograma from '../pages/PaginaCadastrarNovaEdicaoPrograma'
+import PaginaEdicoesPrograma from '../pages/PaginaEdicoesPrograma'
+import PaginaInicial from '../pages/PaginaInicial'
+import PaginaLogin from '../pages/PaginaLogin'
 
-export function AppRoutes() {
+export function RotasAplicacao() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<PaginaLogin />} />
       <Route
-        path="/main"
+        path="/inicio"
         element={
-          <ProtectedRoute>
-            <Main />
-          </ProtectedRoute>
+          <RotaProtegida>
+            <PaginaInicial />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/edicoes-programa"
+        element={
+          <RotaProtegida>
+            <PaginaEdicoesPrograma />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/cadastrar-nova-edicao-programa"
+        element={
+          <RotaProtegida>
+            <PaginaCadastrarNovaEdicaoPrograma />
+          </RotaProtegida>
         }
       />
     </Routes>

@@ -1,13 +1,18 @@
 import { BrowserRouter } from 'react-router-dom'
-import { AppRoutes } from '../routes'
+import { VerificadorSessaoAutenticacao } from '../components/VerificadorSessaoAutenticacao'
+import { ProvedorEstadoMenuLateral } from '../contexts/EstadoMenuLateralContext'
+import { RotasAplicacao } from '../routes'
 import { Layout } from './style'
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Layout>
-        <AppRoutes />
-      </Layout>
+      <VerificadorSessaoAutenticacao />
+      <ProvedorEstadoMenuLateral>
+        <Layout>
+          <RotasAplicacao />
+        </Layout>
+      </ProvedorEstadoMenuLateral>
     </BrowserRouter>
   )
 }
