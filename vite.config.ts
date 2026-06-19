@@ -1,0 +1,53 @@
+/// <reference types="vitest/config" />
+import path from 'node:path'
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  server: {
+    host: true,
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
+    watch: {
+      // Necessário para detectar alterações via volume no Docker (Windows)
+      usePolling: process.env.CHOKIDAR_USEPOLLING === 'true',
+    },
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/setupTests.ts'],
+    include: ['src/**/*.test.{ts,tsx}'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{ts,tsx}'],
+      reporter: ['text', 'lcov', 'html'],
+      reportsDirectory: './coverage',
+      exclude: [
+        'src/**/*.test.{ts,tsx}',
+        'src/setupTests.ts',
+        '**/*.d.ts',
+        'vite.config.ts',
+        'eslint.config.js',
+      ],
+      thresholds: {
+        lines: 81,
+        statements: 81,
+        branches: 81,
+        functions: 81,
+      },
+    },
+  },
+})
