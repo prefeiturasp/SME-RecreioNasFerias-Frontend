@@ -9,6 +9,7 @@ import type {
   EdicaoPrograma,
   ListagemEdicoesPrograma,
   ParametrosListagemEdicoesPrograma,
+  QuantidadesEdicaoPrograma,
 } from './types'
 
 export class ErroListagemEdicoesPrograma extends Error {
@@ -31,6 +32,16 @@ export class ErroCadastroEdicaoPrograma extends Error {
   }
 }
 
+export class ErroObterEdicaoPrograma extends Error {
+  readonly mensagemUsuario: string
+
+  constructor(mensagemUsuario: string) {
+    super('OBTER_EDICAO_FAILED')
+    this.name = 'ErroObterEdicaoPrograma'
+    this.mensagemUsuario = mensagemUsuario
+  }
+}
+
 export class ErroAtualizacaoEdicaoPrograma extends Error {
   readonly mensagemUsuario: string
 
@@ -41,7 +52,10 @@ export class ErroAtualizacaoEdicaoPrograma extends Error {
   }
 }
 
-function montarPayloadEdicao(dados: DadosCadastroEdicaoPrograma) {
+function montarPayloadEdicao(
+  dados: DadosCadastroEdicaoPrograma,
+  quantidades: QuantidadesEdicaoPrograma = QUANTIDADES_MOCK_CADASTRO_EDICAO,
+) {
   return {
     nome: dados.nome,
     periodoEdicao: {
@@ -52,7 +66,7 @@ function montarPayloadEdicao(dados: DadosCadastroEdicaoPrograma) {
       de: dados.dataInicioInscricoes,
       ate: dados.dataFimInscricoes,
     },
-    ...QUANTIDADES_MOCK_CADASTRO_EDICAO,
+    ...quantidades,
   }
 }
 
@@ -116,16 +130,39 @@ export async function cadastrarEdicaoPrograma(
   return edicao
 }
 
+export async function obterEdicaoPrograma(id: string): Promise<EdicaoPrograma> {
+  const response = await requisicaoAutenticada(`/api/edicoes/${id}/`, {
+    method: 'GET',
+  })
+
+  if (!response.ok) {
+    const mensagem = await extrairMensagemDeErroDaResposta(response)
+    throw new ErroObterEdicaoPrograma(
+      mensagem || 'Não foi possível carregar a edição do programa.',
+    )
+  }
+
+  const resposta = await response.json()
+  const edicao = interpretarRespostaEdicaoPrograma(resposta)
+
+  if (!edicao) {
+    throw new ErroObterEdicaoPrograma('Resposta de consulta inválida.')
+  }
+
+  return edicao
+}
+
 export async function atualizarEdicaoPrograma(
   id: string,
   dados: DadosCadastroEdicaoPrograma,
+  quantidades: QuantidadesEdicaoPrograma,
 ): Promise<EdicaoPrograma> {
   const response = await requisicaoAutenticada(`/api/edicoes/${id}/`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(montarPayloadEdicao(dados)),
+    body: JSON.stringify(montarPayloadEdicao(dados, quantidades)),
   })
 
   if (!response.ok) {

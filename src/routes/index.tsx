@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 import { RotaProtegida } from '../components/RotaProtegida'
 import PaginaCadastrarNovaEdicaoPrograma from '../pages/PaginaCadastrarNovaEdicaoPrograma'
+import PaginaEditarEdicaoPrograma from '../pages/PaginaEditarEdicaoPrograma'
 import PaginaEdicoesPrograma from '../pages/PaginaEdicoesPrograma'
 import PaginaInicial from '../pages/PaginaInicial'
 import PaginaLogin from '../pages/PaginaLogin'
@@ -30,6 +31,14 @@ export function RotasAplicacao() {
         element={
           <RotaProtegida>
             <PaginaCadastrarNovaEdicaoPrograma />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/editar-edicao-programa/:idEdicao"
+        element={
+          <RotaProtegida>
+            <PaginaEditarEdicaoPrograma />
           </RotaProtegida>
         }
       />

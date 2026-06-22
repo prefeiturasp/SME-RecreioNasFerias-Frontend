@@ -152,6 +152,9 @@ export default function PaginaEdicoesPrograma() {
                 itensPorPagina={itensPorPagina}
                 onMudarPagina={setPaginaAtual}
                 onMudarItensPorPagina={mudarItensPorPagina}
+                onEditarEdicao={(idEdicao) =>
+                  navigate(`/editar-edicao-programa/${idEdicao}`)
+                }
               />
             </ListagemEdicoesPrograma>
           </section>

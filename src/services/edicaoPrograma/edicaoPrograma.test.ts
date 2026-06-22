@@ -14,6 +14,8 @@ const edicaoExemplo = {
   dataFimInscricoes: '2026-01-26',
   quantidadeInscritos: 100,
   quantidadeAtendimentoEfetivo: 100,
+  quantidadePasseios: 0,
+  quantidadeApresentacoes: 0,
 }
 
 describe('edicaoPrograma storage', () => {

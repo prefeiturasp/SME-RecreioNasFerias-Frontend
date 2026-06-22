@@ -24,6 +24,10 @@ const edicaoExemplo: EdicaoPrograma = {
   quantidadeInscritos: 100,
 
   quantidadeAtendimentoEfetivo: 100,
+
+  quantidadePasseios: 0,
+
+  quantidadeApresentacoes: 0,
 }
 
 const propsPaginacaoPadrao = {
@@ -36,6 +40,8 @@ const propsPaginacaoPadrao = {
   onMudarPagina: vi.fn(),
 
   onMudarItensPorPagina: vi.fn(),
+
+  onEditarEdicao: vi.fn(),
 }
 
 describe('TabelaListagemEdicoesPrograma', () => {
@@ -94,12 +100,33 @@ describe('TabelaListagemEdicoesPrograma', () => {
     expect(screen.getByText('26/12/2026 - 26/01/2026')).toBeInTheDocument()
 
     expect(
-      screen.getByRole('button', { name: /visualizar edição fevereiro 2026/i }),
+      screen.getByRole('button', { name: /editar edição fevereiro 2026/i }),
     ).toBeInTheDocument()
 
     expect(
+      screen.queryByRole('button', {
+        name: /visualizar edição fevereiro 2026/i,
+      }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('notifica clique no botão de editar', async () => {
+    const usuario = userEvent.setup()
+    const onEditarEdicao = vi.fn()
+
+    render(
+      <TabelaListagemEdicoesPrograma
+        edicoes={[edicaoExemplo]}
+        {...propsPaginacaoPadrao}
+        onEditarEdicao={onEditarEdicao}
+      />,
+    )
+
+    await usuario.click(
       screen.getByRole('button', { name: /editar edição fevereiro 2026/i }),
-    ).toBeInTheDocument()
+    )
+
+    expect(onEditarEdicao).toHaveBeenCalledWith('1')
   })
 
   it('exibe paginação e notifica mudanças de página', async () => {
@@ -115,6 +142,7 @@ describe('TabelaListagemEdicoesPrograma', () => {
         itensPorPagina={10}
         onMudarPagina={onMudarPagina}
         onMudarItensPorPagina={vi.fn()}
+        onEditarEdicao={vi.fn()}
       />,
     )
 
