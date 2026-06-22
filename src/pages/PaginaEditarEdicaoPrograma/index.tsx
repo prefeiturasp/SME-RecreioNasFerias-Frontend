@@ -272,7 +272,7 @@ export default function PaginaEditarEdicaoPrograma() {
             </CabecalhoAreaInternaConteudo>
 
             {estaCarregando && (
-              <p role="status">Carregando edição do programa...</p>
+              <output>Carregando edição do programa...</output>
             )}
 
             {!estaCarregando && mensagemErro && !edicao && (
