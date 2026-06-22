@@ -82,14 +82,14 @@ export const CorpoTabelaEdicoes = styled.tbody`
 `
 
 export const CelulaAcoesEdicao = styled.td`
-  text-align: right;
+  text-align: center;
   white-space: nowrap;
 `
 
 export const GrupoAcoesEdicao = styled.div`
   display: inline-flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 0.5rem;
 `
 

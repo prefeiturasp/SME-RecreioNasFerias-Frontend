@@ -12,6 +12,8 @@ type EdicaoProgramaApi = {
   periodoInscricoes: PeriodoApi
   quantidadeInscritos: number | null
   quantidadeAtendimentoEfetivo: number | null
+  quantidadePasseios?: number | null
+  quantidadeApresentacoes?: number | null
 }
 
 function ehPeriodoValido(valor: unknown): valor is PeriodoApi {
@@ -49,6 +51,8 @@ function mapearEdicaoPrograma(edicao: EdicaoProgramaApi): EdicaoPrograma {
     dataFimInscricoes: edicao.periodoInscricoes.ate,
     quantidadeInscritos: edicao.quantidadeInscritos ?? 0,
     quantidadeAtendimentoEfetivo: edicao.quantidadeAtendimentoEfetivo ?? 0,
+    quantidadePasseios: edicao.quantidadePasseios ?? 0,
+    quantidadeApresentacoes: edicao.quantidadeApresentacoes ?? 0,
   }
 }
 

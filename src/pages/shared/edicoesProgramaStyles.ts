@@ -37,15 +37,26 @@ const estilosBotaoPreenchido = css`
   background-color: var(--color-brand-dark);
   color: var(--color-background);
 
-  &:hover {
+  &:hover:not(:disabled) {
     background-color: var(--color-brand-dark-hover);
     box-shadow: var(--shadow-button-primary-hover);
   }
 
-  &:active {
+  &:active:not(:disabled) {
     background-color: var(--color-brand-dark-active);
     transform: scale(0.98);
     box-shadow: none;
+  }
+
+  &:disabled {
+    background-color: var(--color-button-primary-disabled-bg);
+    border-color: var(--color-button-primary-disabled-border);
+    color: var(--color-background);
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+    pointer-events: none;
+    opacity: 1;
   }
 `
 

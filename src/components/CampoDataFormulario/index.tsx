@@ -12,6 +12,7 @@ type CampoDataFormularioProps = {
   name: string
   rotuloAcessivel: string
   placeholder: 'De' | 'Até'
+  valor?: string
 }
 
 export function CampoDataFormulario({
@@ -19,6 +20,7 @@ export function CampoDataFormulario({
   name,
   rotuloAcessivel,
   placeholder,
+  valor,
 }: Readonly<CampoDataFormularioProps>) {
   return (
     <CampoData>
@@ -28,6 +30,7 @@ export function CampoDataFormulario({
         name={name}
         required
         aria-label={rotuloAcessivel}
+        defaultValue={valor}
       />
       <PlaceholderData aria-hidden="true">{placeholder}</PlaceholderData>
       <IconeCalendarioData aria-hidden="true">
@@ -45,6 +48,8 @@ type GrupoPeriodoDataProps = {
   idCampoFim: string
   nomeCampoFim: string
   rotuloAcessivelFim: string
+  valorCampoInicio?: string
+  valorCampoFim?: string
 }
 
 export function GrupoPeriodoData({
@@ -55,6 +60,8 @@ export function GrupoPeriodoData({
   idCampoFim,
   nomeCampoFim,
   rotuloAcessivelFim,
+  valorCampoInicio,
+  valorCampoFim,
 }: Readonly<GrupoPeriodoDataProps>) {
   return (
     <CampoDataComRotulo>
@@ -65,12 +72,14 @@ export function GrupoPeriodoData({
           name={nomeCampoInicio}
           rotuloAcessivel={rotuloAcessivelInicio}
           placeholder="De"
+          valor={valorCampoInicio}
         />
         <CampoDataFormulario
           id={idCampoFim}
           name={nomeCampoFim}
           rotuloAcessivel={rotuloAcessivelFim}
           placeholder="Até"
+          valor={valorCampoFim}
         />
       </GrupoCamposData>
     </CampoDataComRotulo>

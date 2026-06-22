@@ -61,46 +61,58 @@ const edicoesExemplo: EdicaoPrograma[] = [
 
     dataFimInscricoes: '2025-12-31',
 
-    quantidadeInscritos: 50,
+      quantidadeInscritos: 50,
 
-    quantidadeAtendimentoEfetivo: 40,
-  },
+      quantidadeAtendimentoEfetivo: 40,
 
-  {
-    id: '2',
+      quantidadePasseios: 0,
 
-    nome: 'Fevereiro 2026',
+      quantidadeApresentacoes: 0,
+    },
 
-    dataInicioEdicao: '2026-01-26',
+    {
+      id: '2',
 
-    dataFimEdicao: '2026-02-26',
+      nome: 'Fevereiro 2026',
 
-    dataInicioInscricoes: '2025-12-26',
+      dataInicioEdicao: '2026-01-26',
 
-    dataFimInscricoes: '2026-01-26',
+      dataFimEdicao: '2026-02-26',
 
-    quantidadeInscritos: 100,
+      dataInicioInscricoes: '2025-12-26',
 
-    quantidadeAtendimentoEfetivo: 100,
-  },
+      dataFimInscricoes: '2026-01-26',
 
-  {
-    id: '3',
+      quantidadeInscritos: 100,
 
-    nome: 'Março 2026',
+      quantidadeAtendimentoEfetivo: 100,
 
-    dataInicioEdicao: '2026-03-01',
+      quantidadePasseios: 0,
 
-    dataFimEdicao: '2026-03-31',
+      quantidadeApresentacoes: 0,
+    },
 
-    dataInicioInscricoes: '2026-02-01',
+    {
+      id: '3',
 
-    dataFimInscricoes: '2026-02-28',
+      nome: 'Março 2026',
 
-    quantidadeInscritos: 200,
+      dataInicioEdicao: '2026-03-01',
 
-    quantidadeAtendimentoEfetivo: 180,
-  },
+      dataFimEdicao: '2026-03-31',
+
+      dataInicioInscricoes: '2026-02-01',
+
+      dataFimInscricoes: '2026-02-28',
+
+      quantidadeInscritos: 200,
+
+      quantidadeAtendimentoEfetivo: 180,
+
+      quantidadePasseios: 0,
+
+      quantidadeApresentacoes: 0,
+    },
 ]
 
 describe('PaginaEdicoesPrograma', () => {

@@ -1,4 +1,4 @@
-import { useState, type SubmitEvent } from 'react'
+import { useCallback, useState, type SubmitEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import IconeSetaVoltar from '../../assets/icone-seta-voltar.png'
 import { Cabecalho } from '../../components/Cabecalho'
@@ -10,7 +10,8 @@ import {
   ErroCadastroEdicaoPrograma,
 } from '../../services/edicaoPrograma/api'
 import { QUANTIDADES_MOCK_CADASTRO_EDICAO } from '../../services/edicaoPrograma/mocks'
-import { validarCadastroEdicao } from '../../services/edicaoPrograma/validarCadastroEdicao'
+import type { DadosCadastroEdicaoPrograma } from '../../services/edicaoPrograma/types'
+import { validarCadastroEdicao, formularioCadastroEstaPreenchido } from '../../services/edicaoPrograma/validarCadastroEdicao'
 import type { EstadoNavegacaoEdicoesPrograma } from '../PaginaEdicoesPrograma/types'
 import {
   AreaConteudo,
@@ -68,12 +69,39 @@ function obterCampoTextoFormulario(dados: FormData, nomeCampo: string): string {
   return typeof valor === 'string' ? valor : ''
 }
 
+function obterDadosCadastroFormulario(
+  form: HTMLFormElement,
+): DadosCadastroEdicaoPrograma {
+  const dados = new FormData(form)
+
+  return {
+    nome: obterCampoTextoFormulario(dados, 'NomeDaEdicao'),
+    dataInicioEdicao: obterCampoTextoFormulario(dados, 'DataInicioEdicao'),
+    dataFimEdicao: obterCampoTextoFormulario(dados, 'DataFimEdicao'),
+    dataInicioInscricoes: obterCampoTextoFormulario(
+      dados,
+      'DataInicioInscricoes',
+    ),
+    dataFimInscricoes: obterCampoTextoFormulario(dados, 'DataFimInscricoes'),
+  }
+}
+
 export default function PaginaCadastrarNovaEdicaoPrograma() {
   const navigate = useNavigate()
   const [mensagemErro, setMensagemErro] = useState<string | null>(null)
   const [estaSalvando, setEstaSalvando] = useState(false)
+  const [formularioPreenchido, setFormularioPreenchido] = useState(false)
 
   const voltarParaEdicoes = () => navigate('/edicoes-programa')
+
+  const detectarPreenchimentoFormulario = useCallback(
+    (form: HTMLFormElement) => {
+      setFormularioPreenchido(
+        formularioCadastroEstaPreenchido(obterDadosCadastroFormulario(form)),
+      )
+    },
+    [],
+  )
 
   const salvarNovaEdicao = (evento: SubmitEvent<HTMLFormElement>) => {
     evento.preventDefault()
@@ -83,17 +111,7 @@ export default function PaginaCadastrarNovaEdicaoPrograma() {
   async function submeterNovaEdicao(form: HTMLFormElement) {
     setMensagemErro(null)
 
-    const dados = new FormData(form)
-    const dadosCadastro = {
-      nome: obterCampoTextoFormulario(dados, 'NomeDaEdicao'),
-      dataInicioEdicao: obterCampoTextoFormulario(dados, 'DataInicioEdicao'),
-      dataFimEdicao: obterCampoTextoFormulario(dados, 'DataFimEdicao'),
-      dataInicioInscricoes: obterCampoTextoFormulario(
-        dados,
-        'DataInicioInscricoes',
-      ),
-      dataFimInscricoes: obterCampoTextoFormulario(dados, 'DataFimInscricoes'),
-    }
+    const dadosCadastro = obterDadosCadastroFormulario(form)
 
     const mensagemValidacao = validarCadastroEdicao(dadosCadastro)
     if (mensagemValidacao) {
@@ -141,7 +159,12 @@ export default function PaginaCadastrarNovaEdicaoPrograma() {
                 </BotaoVoltar>
               </div>
             </CabecalhoAreaInternaConteudo>
-            <FormularioCadastroNovaEdicao onSubmit={salvarNovaEdicao}>
+            <FormularioCadastroNovaEdicao
+              onSubmit={salvarNovaEdicao}
+              onChange={(evento) =>
+                detectarPreenchimentoFormulario(evento.currentTarget)
+              }
+            >
               {mensagemErro && (
                 <MensagemErroFormulario role="alert">
                   {mensagemErro}
@@ -216,7 +239,10 @@ export default function PaginaCadastrarNovaEdicaoPrograma() {
                 >
                   Cancelar
                 </BotaoCancelarFormulario>
-                <BotaoSalvarFormulario type="submit" disabled={estaSalvando}>
+                <BotaoSalvarFormulario
+                  type="submit"
+                  disabled={estaSalvando || !formularioPreenchido}
+                >
                   Salvar
                 </BotaoSalvarFormulario>
               </LinhaDeControlesFormularioCadastroNovaEdicao>

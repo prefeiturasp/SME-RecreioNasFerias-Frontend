@@ -71,14 +71,14 @@ export function MenuLateral() {
     }
 
     aside?.addEventListener('transitionend', handleTransitionEnd)
-    const fallbackTimer = window.setTimeout(
+    const fallbackTimer = globalThis.setTimeout(
       exibirConteudo,
       MENU_TRANSITION_MS + 50,
     )
 
     return () => {
       aside?.removeEventListener('transitionend', handleTransitionEnd)
-      window.clearTimeout(fallbackTimer)
+      globalThis.clearTimeout(fallbackTimer)
     }
   }, [menuAberto])
 

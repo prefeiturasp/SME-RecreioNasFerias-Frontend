@@ -6,7 +6,9 @@ import {
   ErroAtualizacaoEdicaoPrograma,
   ErroCadastroEdicaoPrograma,
   ErroListagemEdicoesPrograma,
+  ErroObterEdicaoPrograma,
   listarEdicoesPrograma,
+  obterEdicaoPrograma,
 } from './api'
 import { QUANTIDADES_MOCK_CADASTRO_EDICAO } from './mocks'
 
@@ -77,6 +79,8 @@ describe('cadastrarEdicaoPrograma', () => {
       dataFimInscricoes: '2026-06-20',
       quantidadeInscritos: 0,
       quantidadeAtendimentoEfetivo: 0,
+      quantidadePasseios: 0,
+      quantidadeApresentacoes: 0,
     })
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
@@ -160,6 +164,92 @@ describe('cadastrarEdicaoPrograma', () => {
   })
 })
 
+const quantidadesEdicaoExemplo = {
+  quantidadeInscritos: 12,
+  quantidadeAtendimentoEfetivo: 10,
+  quantidadePasseios: 3,
+  quantidadeApresentacoes: 2,
+} as const
+
+describe('obterEdicaoPrograma', () => {
+  const idEdicao = '11111111-1111-1111-1111-111111111111'
+
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('busca edição pelo id e mapeia a resposta da API', async () => {
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '1234567',
+      nome: 'Usuário Teste',
+      descricaoCargo: 'Cargo Teste',
+    })
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        id: idEdicao,
+        nome: 'Janeiro 2026',
+        periodoEdicao: { de: '2026-01-01', ate: '2026-01-31' },
+        periodoInscricoes: { de: '2025-12-01', ate: '2025-12-31' },
+        quantidadeInscritos: 50,
+        quantidadeAtendimentoEfetivo: 40,
+        quantidadePasseios: 5,
+        quantidadeApresentacoes: 2,
+      }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(obterEdicaoPrograma(idEdicao)).resolves.toEqual({
+      id: idEdicao,
+      nome: 'Janeiro 2026',
+      dataInicioEdicao: '2026-01-01',
+      dataFimEdicao: '2026-01-31',
+      dataInicioInscricoes: '2025-12-01',
+      dataFimInscricoes: '2025-12-31',
+      quantidadeInscritos: 50,
+      quantidadeAtendimentoEfetivo: 40,
+      quantidadePasseios: 5,
+      quantidadeApresentacoes: 2,
+    })
+
+    const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe(`/api/edicoes/${idEdicao}/`)
+    expect(options.method).toBe('GET')
+  })
+
+  it('lança erro quando a API retorna falha na consulta', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      text: async () => JSON.stringify({ detail: 'Edição não encontrada.' }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(obterEdicaoPrograma(idEdicao)).rejects.toBeInstanceOf(
+      ErroObterEdicaoPrograma,
+    )
+    await expect(obterEdicaoPrograma(idEdicao)).rejects.toMatchObject({
+      mensagemUsuario: 'Edição não encontrada.',
+    })
+  })
+
+  it('lança erro quando a resposta de consulta é inválida', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ nome: 'sem id' }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(obterEdicaoPrograma(idEdicao)).rejects.toMatchObject({
+      mensagemUsuario: 'Resposta de consulta inválida.',
+    })
+  })
+})
+
 describe('atualizarEdicaoPrograma', () => {
   const idEdicao = '22222222-2222-2222-2222-222222222222'
 
@@ -183,7 +273,11 @@ describe('atualizarEdicaoPrograma', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(
-      atualizarEdicaoPrograma(idEdicao, dadosEdicaoExemplo),
+      atualizarEdicaoPrograma(
+        idEdicao,
+        dadosEdicaoExemplo,
+        quantidadesEdicaoExemplo,
+      ),
     ).resolves.toEqual({
       id: idEdicao,
       nome: 'Edição Julho 2026',
@@ -193,6 +287,8 @@ describe('atualizarEdicaoPrograma', () => {
       dataFimInscricoes: '2026-06-20',
       quantidadeInscritos: 0,
       quantidadeAtendimentoEfetivo: 0,
+      quantidadePasseios: 0,
+      quantidadeApresentacoes: 0,
     })
 
     const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit]
@@ -207,7 +303,7 @@ describe('atualizarEdicaoPrograma', () => {
         nome: 'Edição Julho 2026',
         periodoEdicao: { de: '2026-07-01', ate: '2026-07-31' },
         periodoInscricoes: { de: '2026-06-01', ate: '2026-06-20' },
-        ...QUANTIDADES_MOCK_CADASTRO_EDICAO,
+        ...quantidadesEdicaoExemplo,
       }),
     )
   })
@@ -221,10 +317,18 @@ describe('atualizarEdicaoPrograma', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(
-      atualizarEdicaoPrograma(idEdicao, dadosEdicaoExemplo),
+      atualizarEdicaoPrograma(
+        idEdicao,
+        dadosEdicaoExemplo,
+        quantidadesEdicaoExemplo,
+      ),
     ).rejects.toBeInstanceOf(ErroAtualizacaoEdicaoPrograma)
     await expect(
-      atualizarEdicaoPrograma(idEdicao, dadosEdicaoExemplo),
+      atualizarEdicaoPrograma(
+        idEdicao,
+        dadosEdicaoExemplo,
+        quantidadesEdicaoExemplo,
+      ),
     ).rejects.toMatchObject({
       mensagemUsuario: 'Edição não encontrada.',
     })
@@ -239,7 +343,11 @@ describe('atualizarEdicaoPrograma', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(
-      atualizarEdicaoPrograma(idEdicao, dadosEdicaoExemplo),
+      atualizarEdicaoPrograma(
+        idEdicao,
+        dadosEdicaoExemplo,
+        quantidadesEdicaoExemplo,
+      ),
     ).rejects.toMatchObject({
       mensagemUsuario: 'Resposta de atualização inválida.',
     })
@@ -277,6 +385,8 @@ describe('listarEdicoesPrograma', () => {
           dataFimInscricoes: '2025-12-31',
           quantidadeInscritos: 50,
           quantidadeAtendimentoEfetivo: 40,
+          quantidadePasseios: 0,
+          quantidadeApresentacoes: 0,
         },
       ],
       pagina: 1,
