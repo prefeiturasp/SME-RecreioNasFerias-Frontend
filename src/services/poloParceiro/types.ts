@@ -61,6 +61,11 @@ export const FILTROS_LISTAGEM_POLOS_PARCEIROS_INICIAIS: FiltrosListagemPolosParc
     nomePoloOuOsc: '',
   }
 
+export const PARAMETROS_LISTAGEM_POLOS_PARCEIROS_INICIAIS: ParametrosListagemPolosParceiros =
+  {
+    ...FILTROS_LISTAGEM_POLOS_PARCEIROS_INICIAIS,
+  }
+
 export type DadosCadastroPoloParceiro = {
   tipo: string
   nomeOsc: string

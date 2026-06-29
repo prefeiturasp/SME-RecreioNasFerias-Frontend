@@ -1,12 +1,13 @@
 import { requisicaoAutenticada } from '../autenticacao'
 import { interpretarRespostaPoloParceiroDetalhado } from './interpretarRespostaPoloParceiroDetalhado'
 import { interpretarRespostaListagemPolosParceirosPaginada } from './interpretarRespostaListagemPolosParceiros'
-import type {
-  DadosCadastroPoloParceiro,
-  ListagemPolosParceiros,
-  ParametrosListagemPolosParceiros,
-  PoloParceiro,
-  PoloParceiroDetalhado,
+import {
+  PARAMETROS_LISTAGEM_POLOS_PARCEIROS_INICIAIS,
+  type DadosCadastroPoloParceiro,
+  type ListagemPolosParceiros,
+  type ParametrosListagemPolosParceiros,
+  type PoloParceiro,
+  type PoloParceiroDetalhado,
 } from './types'
 
 export class ErroListagemPolosParceiros extends Error {
@@ -131,7 +132,7 @@ export async function listarPolosParceiros(
     dre = '',
     tipoUe = '',
     nomePoloOuOsc = '',
-  }: ParametrosListagemPolosParceiros = {},
+  }: ParametrosListagemPolosParceiros = PARAMETROS_LISTAGEM_POLOS_PARCEIROS_INICIAIS,
 ): Promise<ListagemPolosParceiros> {
   const parametros = new URLSearchParams({
     page: String(pagina),
