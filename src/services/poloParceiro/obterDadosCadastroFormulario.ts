@@ -2,8 +2,12 @@ import {
   aplicarMascaraCep,
   aplicarMascaraTelefone,
 } from '../../utils/mascarasEntrada'
-import type { DadosCadastroPoloParceiro, PoloParceiroDetalhado } from './types'
-import { STATUS_POLO_PARCEIRO_PADRAO, type StatusPoloParceiro } from './types'
+import {
+  STATUS_POLO_PARCEIRO_PADRAO,
+  type DadosCadastroPoloParceiro,
+  type PoloParceiroDetalhado,
+  type StatusPoloParceiro,
+} from './types'
 
 const TIPO_POLO_PARCEIRO_PADRAO = 'Parceiro'
 

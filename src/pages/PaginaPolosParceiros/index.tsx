@@ -8,9 +8,9 @@ import { IndicadorCarregamento } from '../../components/IndicadorCarregamento'
 import { MapaVisual } from '../../components/MapaVisual'
 import { MenuLateral } from '../../components/MenuLateral'
 import { listarPolosParceiros } from '../../services/poloParceiro/api'
-import type { FiltrosListagemPolosParceiros } from '../../services/poloParceiro/types'
 import {
   FILTROS_LISTAGEM_POLOS_PARCEIROS_INICIAIS,
+  type FiltrosListagemPolosParceiros,
   type PoloParceiro,
 } from '../../services/poloParceiro/types'
 

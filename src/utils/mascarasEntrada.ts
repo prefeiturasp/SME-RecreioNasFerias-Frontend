@@ -1,5 +1,5 @@
 export function extrairDigitos(valor: string): string {
-  return valor.replace(/\D/g, '')
+  return valor.replaceAll(/\D/g, '')
 }
 
 export function aplicarMascaraCep(valor: string): string {

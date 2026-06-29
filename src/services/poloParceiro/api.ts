@@ -131,11 +131,7 @@ export async function listarPolosParceiros(
     dre = '',
     tipoUe = '',
     nomePoloOuOsc = '',
-  }: ParametrosListagemPolosParceiros = {
-    dre: '',
-    tipoUe: '',
-    nomePoloOuOsc: '',
-  },
+  }: ParametrosListagemPolosParceiros = {},
 ): Promise<ListagemPolosParceiros> {
   const parametros = new URLSearchParams({
     page: String(pagina),

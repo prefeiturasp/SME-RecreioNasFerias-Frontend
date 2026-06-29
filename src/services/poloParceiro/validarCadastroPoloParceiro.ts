@@ -1,5 +1,7 @@
-import type { DadosCadastroPoloParceiro } from './types'
-import { OPCOES_STATUS_POLO_PARCEIRO } from './types'
+import {
+  OPCOES_STATUS_POLO_PARCEIRO,
+  type DadosCadastroPoloParceiro,
+} from './types'
 import { extrairDigitos } from '../../utils/mascarasEntrada'
 
 const CAMPOS_OBRIGATORIOS: (keyof DadosCadastroPoloParceiro)[] = [
@@ -27,6 +29,28 @@ function cepEstaPreenchido(valor: string): boolean {
 function telefoneEstaPreenchido(valor: string): boolean {
   const quantidadeDigitos = extrairDigitos(valor).length
   return quantidadeDigitos === 10 || quantidadeDigitos === 11
+}
+
+function emailPoloEstaValido(email: string): boolean {
+  const indiceArroba = email.indexOf('@')
+
+  if (indiceArroba <= 0 || indiceArroba !== email.lastIndexOf('@')) {
+    return false
+  }
+
+  const parteLocal = email.slice(0, indiceArroba)
+  const parteDominio = email.slice(indiceArroba + 1)
+  const indicePonto = parteDominio.lastIndexOf('.')
+
+  if (indicePonto <= 0 || indicePonto === parteDominio.length - 1) {
+    return false
+  }
+
+  return (
+    parteLocal.length > 0 &&
+    !parteLocal.includes(' ') &&
+    !parteDominio.includes(' ')
+  )
 }
 
 export function formularioCadastroEstaPreenchido(
@@ -60,7 +84,7 @@ export function validarCadastroPoloParceiro(
   }
 
   const email = dados.emailPolo.trim()
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!emailPoloEstaValido(email)) {
     return 'Informe um e-mail válido para o polo.'
   }
 
