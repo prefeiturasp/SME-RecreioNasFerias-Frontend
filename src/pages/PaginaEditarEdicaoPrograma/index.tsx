@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import IconeSetaVoltar from '../../assets/icone-seta-voltar.png'
 import { Cabecalho } from '../../components/Cabecalho'
 import { GrupoPeriodoData } from '../../components/CampoDataFormulario'
+import { IndicadorCarregamento } from '../../components/IndicadorCarregamento'
 import { MapaVisual } from '../../components/MapaVisual'
 import { MenuLateral } from '../../components/MenuLateral'
 import {
@@ -272,7 +273,7 @@ export default function PaginaEditarEdicaoPrograma() {
             </CabecalhoAreaInternaConteudo>
 
             {estaCarregando && (
-              <output>Carregando edição do programa...</output>
+              <IndicadorCarregamento mensagem="Carregando edição do programa..." />
             )}
 
             {!estaCarregando && mensagemErro && !edicao && (

@@ -19,6 +19,11 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
       },
+      '/sme-integracao-api': {
+        target: 'https://hom-smeintegracaoapi.sme.prefeitura.sp.gov.br',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/sme-integracao-api/, ''),
+      },
     },
     watch: {
       // Necessário para detectar alterações via volume no Docker (Windows)

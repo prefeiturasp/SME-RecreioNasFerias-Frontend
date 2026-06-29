@@ -160,6 +160,25 @@ export function ConfiguracoesIcon() {
   )
 }
 
+export function IconeFiltro() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M3 5h14M5 10h10M8 15h4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 export function ChevronDownIcon() {
   return (
     <svg

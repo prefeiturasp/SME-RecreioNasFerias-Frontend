@@ -4,6 +4,7 @@ dist-ssr
 .git
 .gitignore
 *.log
+.env
 .env*.local
 .vscode
 .idea
