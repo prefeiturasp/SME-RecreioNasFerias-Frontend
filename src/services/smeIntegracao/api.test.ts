@@ -11,6 +11,7 @@ describe('listarDresNomeAbreviacao', () => {
   const originalApiKey = import.meta.env.VITE_SME_INTEGRACAO_API_KEY
 
   beforeEach(() => {
+    delete globalThis.__ENV__
     import.meta.env.VITE_SME_INTEGRACAO_API_KEY =
       '7eee2750-89f4-4928-bb4e-52bad9a85efd'
   })
@@ -57,6 +58,27 @@ describe('listarDresNomeAbreviacao', () => {
     )
   })
 
+  it('prioriza chave da API configurada em runtime', async () => {
+    import.meta.env.VITE_SME_INTEGRACAO_API_KEY = 'chave-build'
+    globalThis.__ENV__ = {
+      VITE_SME_INTEGRACAO_API_KEY: 'chave-runtime',
+    }
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => [],
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await listarDresNomeAbreviacao()
+
+    const [, options] = fetchMock.mock.calls[0] as [string, RequestInit]
+    const headers = options.headers as Record<string, string>
+
+    expect(headers['x-api-eol-key']).toBe('chave-runtime')
+  })
+
   it('lança erro quando a chave da API não está configurada', async () => {
     import.meta.env.VITE_SME_INTEGRACAO_API_KEY = ''
 
@@ -94,6 +116,7 @@ describe('listarDresNomeAbreviacao', () => {
   })
 
   afterEach(() => {
+    delete globalThis.__ENV__
     import.meta.env.VITE_SME_INTEGRACAO_API_KEY = originalApiKey
   })
 })

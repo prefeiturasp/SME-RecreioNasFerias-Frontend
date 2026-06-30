@@ -1,5 +1,7 @@
+import { obterApiBaseUrl } from '../../config/variaveisAmbiente'
+
 export function construirUrlApi(path: string): string {
-  const configuredBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').trim()
+  const configuredBaseUrl = obterApiBaseUrl()
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
 
   if (!configuredBaseUrl) {

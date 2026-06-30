@@ -32,9 +32,16 @@ RUN npm run build
 # --- Produção (Nginx servindo dist/) ---
 FROM nginx:alpine AS production
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html
+RUN apk add --no-cache gettext
+
+WORKDIR /usr/share/nginx/html
+
+COPY --from=build /app/dist .
+COPY configuracoes/default.conf /etc/nginx/conf.d/default.conf
+COPY startup.sh /
+
+RUN chmod +x /startup.sh
 
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/startup.sh"]
