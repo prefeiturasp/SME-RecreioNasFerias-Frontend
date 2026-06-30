@@ -49,9 +49,9 @@ type TabelaListagemEdicoesProgramaProps = {
 }
 
 const COLUNAS_ORDENAVEIS: { id: ColunaOrdenacao; rotulo: string }[] = [
-  { id: 'nome', rotulo: 'Nome da Edição' },
+  { id: 'nome', rotulo: 'Nome da Edição do Programa' },
 
-  { id: 'periodoEdicao', rotulo: 'Período da Edição' },
+  { id: 'periodoEdicao', rotulo: 'Período da Edição do Programa' },
 
   { id: 'periodoInscricoes', rotulo: 'Período das Inscrições' },
 

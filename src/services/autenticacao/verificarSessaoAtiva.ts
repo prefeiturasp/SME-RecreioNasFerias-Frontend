@@ -29,7 +29,7 @@ export async function verificarSessaoAtiva(): Promise<boolean> {
       method: 'GET',
     })
 
-    if (respostaIndicaSessaoInvalida(response)) {
+    if (await respostaIndicaSessaoInvalida(response)) {
       return false
     }
 

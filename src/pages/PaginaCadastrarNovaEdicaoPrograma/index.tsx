@@ -172,16 +172,16 @@ export default function PaginaCadastrarNovaEdicaoPrograma() {
               )}
               <LinhaFormularioCadastroNovaEdicao>
                 <InputTextoFormularioCadastroNovaEdicao>
-                  <label htmlFor="NomeDaEdicao">Nome da Edição</label>
+                  <label htmlFor="NomeDaEdicao">Nome da Edição do Programa</label>
                   <input
                     type="text"
                     name="NomeDaEdicao"
                     id="NomeDaEdicao"
-                    placeholder="Digite o Nome da Edição"
+                    placeholder="Digite o Nome da Edição do Programa"
                   />
                 </InputTextoFormularioCadastroNovaEdicao>
                 <GrupoPeriodoData
-                  rotulo="Período da Edição"
+                  rotulo="Período da Edição do Programa"
                   idCampoInicio="DataInicioEdicao"
                   nomeCampoInicio="DataInicioEdicao"
                   rotuloAcessivelInicio="Data de início da edição"
