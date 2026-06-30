@@ -5,9 +5,8 @@ export type ConfiguracaoRuntime = {
 }
 
 declare global {
-  interface Window {
-    __ENV__?: ConfiguracaoRuntime
-  }
+  // eslint-disable-next-line no-var
+  var __ENV__: ConfiguracaoRuntime | undefined
 }
 
 type NomeVariavelAmbiente = keyof ConfiguracaoRuntime
@@ -22,7 +21,7 @@ function valorRuntimeValido(valor: string): boolean {
 }
 
 function obterValorVariavelAmbiente(nome: NomeVariavelAmbiente): string {
-  const runtime = window.__ENV__?.[nome]
+  const runtime = globalThis.__ENV__?.[nome]
   if (typeof runtime === 'string' && valorRuntimeValido(runtime)) {
     return runtime.trim()
   }

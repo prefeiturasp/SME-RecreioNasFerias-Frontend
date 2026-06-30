@@ -3,7 +3,7 @@ import { construirUrlApi } from './construirUrlApi'
 
 describe('construirUrlApi', () => {
   afterEach(() => {
-    delete window.__ENV__
+    delete globalThis.__ENV__
   })
 
   it('retorna rota relativa quando VITE_API_BASE_URL não está configurada', () => {
@@ -29,7 +29,7 @@ describe('construirUrlApi', () => {
 
   it('prioriza base configurada em runtime', () => {
     import.meta.env.VITE_API_BASE_URL = 'https://build.exemplo.com'
-    window.__ENV__ = {
+    globalThis.__ENV__ = {
       VITE_API_BASE_URL: 'https://runtime.exemplo.com',
     }
 

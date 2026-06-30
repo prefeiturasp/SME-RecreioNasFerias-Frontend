@@ -4,7 +4,7 @@ import { construirUrlSmeIntegracaoApi } from './construirUrlSmeIntegracaoApi'
 
 describe('construirUrlSmeIntegracaoApi', () => {
   afterEach(() => {
-    delete window.__ENV__
+    delete globalThis.__ENV__
     vi.unstubAllEnvs()
   })
 
@@ -33,7 +33,7 @@ describe('construirUrlSmeIntegracaoApi', () => {
 
   it('usa base URL de runtime fora do modo desenvolvimento', () => {
     vi.stubEnv('DEV', false)
-    window.__ENV__ = {
+    globalThis.__ENV__ = {
       VITE_SME_INTEGRACAO_API_BASE_URL:
         'https://hom-smeintegracaoapi.sme.prefeitura.sp.gov.br',
     }

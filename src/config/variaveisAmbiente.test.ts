@@ -15,14 +15,14 @@ describe('variaveisAmbiente', () => {
   }
 
   beforeEach(() => {
-    delete window.__ENV__
+    delete globalThis.__ENV__
     import.meta.env.VITE_API_BASE_URL = ''
     import.meta.env.VITE_SME_INTEGRACAO_API_BASE_URL = ''
     import.meta.env.VITE_SME_INTEGRACAO_API_KEY = ''
   })
 
   afterEach(() => {
-    delete window.__ENV__
+    delete globalThis.__ENV__
     import.meta.env.VITE_API_BASE_URL = originalEnv.VITE_API_BASE_URL
     import.meta.env.VITE_SME_INTEGRACAO_API_BASE_URL =
       originalEnv.VITE_SME_INTEGRACAO_API_BASE_URL
@@ -32,7 +32,7 @@ describe('variaveisAmbiente', () => {
 
   it('prioriza valores de runtime sobre o build', () => {
     import.meta.env.VITE_API_BASE_URL = 'https://build.exemplo.com'
-    window.__ENV__ = {
+    globalThis.__ENV__ = {
       VITE_API_BASE_URL: 'https://runtime.exemplo.com',
     }
 
@@ -40,7 +40,7 @@ describe('variaveisAmbiente', () => {
   })
 
   it('usa valores do build quando runtime não foi substituído', () => {
-    window.__ENV__ = {
+    globalThis.__ENV__ = {
       VITE_API_BASE_URL: '${VITE_API_BASE_URL}',
       VITE_SME_INTEGRACAO_API_BASE_URL: '${VITE_SME_INTEGRACAO_API_BASE_URL}',
       VITE_SME_INTEGRACAO_API_KEY: '${VITE_SME_INTEGRACAO_API_KEY}',

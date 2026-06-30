@@ -11,7 +11,7 @@ describe('listarDresNomeAbreviacao', () => {
   const originalApiKey = import.meta.env.VITE_SME_INTEGRACAO_API_KEY
 
   beforeEach(() => {
-    delete window.__ENV__
+    delete globalThis.__ENV__
     import.meta.env.VITE_SME_INTEGRACAO_API_KEY =
       '7eee2750-89f4-4928-bb4e-52bad9a85efd'
   })
@@ -60,7 +60,7 @@ describe('listarDresNomeAbreviacao', () => {
 
   it('prioriza chave da API configurada em runtime', async () => {
     import.meta.env.VITE_SME_INTEGRACAO_API_KEY = 'chave-build'
-    window.__ENV__ = {
+    globalThis.__ENV__ = {
       VITE_SME_INTEGRACAO_API_KEY: 'chave-runtime',
     }
 
@@ -116,7 +116,7 @@ describe('listarDresNomeAbreviacao', () => {
   })
 
   afterEach(() => {
-    delete window.__ENV__
+    delete globalThis.__ENV__
     import.meta.env.VITE_SME_INTEGRACAO_API_KEY = originalApiKey
   })
 })
