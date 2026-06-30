@@ -1,47 +1,17 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { construirUrlSmeIntegracaoApi } from './construirUrlSmeIntegracaoApi'
 
 describe('construirUrlSmeIntegracaoApi', () => {
-  afterEach(() => {
-    delete globalThis.__ENV__
-    vi.unstubAllEnvs()
-  })
-
-  it('usa proxy local quando VITE_SME_INTEGRACAO_API_BASE_URL não está configurada', () => {
-    const original = import.meta.env.VITE_SME_INTEGRACAO_API_BASE_URL
-    import.meta.env.VITE_SME_INTEGRACAO_API_BASE_URL = ''
-
+  it('usa rota relativa para o proxy da SME Integração', () => {
     expect(
       construirUrlSmeIntegracaoApi('/api/abrangencia/nome-abreviacao-dres'),
     ).toBe('/sme-integracao-api/api/abrangencia/nome-abreviacao-dres')
-
-    import.meta.env.VITE_SME_INTEGRACAO_API_BASE_URL = original
   })
 
-  it('usa proxy local em desenvolvimento mesmo com base URL configurada', () => {
-    const original = import.meta.env.VITE_SME_INTEGRACAO_API_BASE_URL
-    import.meta.env.VITE_SME_INTEGRACAO_API_BASE_URL =
-      'https://hom-smeintegracaoapi.sme.prefeitura.sp.gov.br/'
-
-    expect(
-      construirUrlSmeIntegracaoApi('/api/abrangencia/nome-abreviacao-dres'),
-    ).toBe('/sme-integracao-api/api/abrangencia/nome-abreviacao-dres')
-
-    import.meta.env.VITE_SME_INTEGRACAO_API_BASE_URL = original
-  })
-
-  it('usa base URL de runtime fora do modo desenvolvimento', () => {
-    vi.stubEnv('DEV', false)
-    globalThis.__ENV__ = {
-      VITE_SME_INTEGRACAO_API_BASE_URL:
-        'https://hom-smeintegracaoapi.sme.prefeitura.sp.gov.br',
-    }
-
-    expect(
-      construirUrlSmeIntegracaoApi('/api/abrangencia/nome-abreviacao-dres'),
-    ).toBe(
-      'https://hom-smeintegracaoapi.sme.prefeitura.sp.gov.br/api/abrangencia/nome-abreviacao-dres',
+  it('normaliza path sem barra inicial', () => {
+    expect(construirUrlSmeIntegracaoApi('api/escolas/tiposEscolas')).toBe(
+      '/sme-integracao-api/api/escolas/tiposEscolas',
     )
   })
 })
