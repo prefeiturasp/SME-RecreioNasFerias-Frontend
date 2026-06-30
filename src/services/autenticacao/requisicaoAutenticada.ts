@@ -32,7 +32,7 @@ async function executarRequisicao(
     headers,
   })
 
-  if (respostaIndicaSessaoInvalida(response)) {
+  if (await respostaIndicaSessaoInvalida(response)) {
     notificarSessaoInvalida()
   } else if (response.ok) {
     marcarSessaoVerificada()
