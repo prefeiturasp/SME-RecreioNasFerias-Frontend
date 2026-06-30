@@ -1,3 +1,5 @@
+import { obterSmeIntegracaoApiBaseUrl } from '../../config/variaveisAmbiente'
+
 export function construirUrlSmeIntegracaoApi(path: string): string {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
 
@@ -5,9 +7,7 @@ export function construirUrlSmeIntegracaoApi(path: string): string {
     return `/sme-integracao-api${normalizedPath}`
   }
 
-  const configuredBaseUrl = (
-    import.meta.env.VITE_SME_INTEGRACAO_API_BASE_URL ?? ''
-  ).trim()
+  const configuredBaseUrl = obterSmeIntegracaoApiBaseUrl()
 
   if (!configuredBaseUrl) {
     return `/sme-integracao-api${normalizedPath}`

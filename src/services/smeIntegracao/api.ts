@@ -1,3 +1,4 @@
+import { obterSmeIntegracaoApiKey } from '../../config/variaveisAmbiente'
 import { construirUrlSmeIntegracaoApi } from './construirUrlSmeIntegracaoApi'
 import { interpretarRespostaDresNomeAbreviacao } from './interpretarRespostaDresNomeAbreviacao'
 import { interpretarRespostaTiposEscolas } from './interpretarRespostaTiposEscolas'
@@ -24,7 +25,7 @@ export class ErroListagemTiposEscolas extends Error {
 }
 
 function obterChaveApiSmeIntegracao(): string {
-  return (import.meta.env.VITE_SME_INTEGRACAO_API_KEY ?? '').trim()
+  return obterSmeIntegracaoApiKey()
 }
 
 export async function listarDresNomeAbreviacao(): Promise<DreNomeAbreviacao[]> {
