@@ -37,7 +37,7 @@ RUN apk add --no-cache gettext
 WORKDIR /usr/share/nginx/html
 
 COPY --from=build /app/dist .
-COPY configuracoes/default.conf /etc/nginx/conf.d/default.conf
+COPY configuracoes/default.conf.template /etc/nginx/templates/default.conf.template
 COPY startup.sh /
 
 RUN chmod +x /startup.sh
