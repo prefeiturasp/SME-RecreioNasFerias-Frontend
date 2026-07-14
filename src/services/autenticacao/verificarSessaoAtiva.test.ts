@@ -103,7 +103,8 @@ describe('verificarSessaoAtiva', () => {
       descricaoCargo: 'Cargo Teste',
     })
 
-    const { MENSAGEM_TOKEN_INVALIDO_OU_EXPIRADO } = await import('./sessaoInvalida')
+    const { MENSAGEM_TOKEN_INVALIDO_OU_EXPIRADO } =
+      await import('./sessaoInvalida')
     const corpo = JSON.stringify({
       detail: MENSAGEM_TOKEN_INVALIDO_OU_EXPIRADO,
     })

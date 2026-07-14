@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState, type SubmitEvent } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type SubmitEvent,
+} from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import IconeSetaVoltar from '../../assets/icone-seta-voltar.png'
 import { Cabecalho } from '../../components/Cabecalho'
@@ -174,17 +180,14 @@ export default function PaginaEditarEdicaoPrograma() {
     setFormularioAlterado(false)
   }, [edicao])
 
-  const detectarAlteracaoFormulario = useCallback(
-    (form: HTMLFormElement) => {
-      if (!valoresIniciaisRef.current) return
+  const detectarAlteracaoFormulario = useCallback((form: HTMLFormElement) => {
+    if (!valoresIniciaisRef.current) return
 
-      const dadosAtuais = obterDadosEditaveisFormulario(form)
-      setFormularioAlterado(
-        !dadosEditaveisSaoIguais(dadosAtuais, valoresIniciaisRef.current),
-      )
-    },
-    [],
-  )
+    const dadosAtuais = obterDadosEditaveisFormulario(form)
+    setFormularioAlterado(
+      !dadosEditaveisSaoIguais(dadosAtuais, valoresIniciaisRef.current),
+    )
+  }, [])
 
   const salvarEdicao = (evento: SubmitEvent<HTMLFormElement>) => {
     evento.preventDefault()

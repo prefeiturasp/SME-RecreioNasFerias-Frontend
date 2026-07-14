@@ -56,19 +56,17 @@ function emailPoloEstaValido(email: string): boolean {
 export function formularioCadastroEstaPreenchido(
   dados: DadosCadastroPoloParceiro,
 ): boolean {
-  return (
-    CAMPOS_OBRIGATORIOS.every((campo) => {
-      if (campo === 'cep') {
-        return cepEstaPreenchido(dados.cep)
-      }
+  return CAMPOS_OBRIGATORIOS.every((campo) => {
+    if (campo === 'cep') {
+      return cepEstaPreenchido(dados.cep)
+    }
 
-      if (campo === 'telefonePolo') {
-        return telefoneEstaPreenchido(dados.telefonePolo)
-      }
+    if (campo === 'telefonePolo') {
+      return telefoneEstaPreenchido(dados.telefonePolo)
+    }
 
-      return campoEstaPreenchido(dados[campo])
-    })
-  )
+    return campoEstaPreenchido(dados[campo])
+  })
 }
 
 export function validarCadastroPoloParceiro(

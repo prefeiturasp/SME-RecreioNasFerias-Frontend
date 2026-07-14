@@ -7,10 +7,7 @@ import {
   respostaIndicaSessaoInvalida,
 } from './sessaoInvalida'
 
-function criarRespostaComCorpo(
-  status: number,
-  corpo: string,
-): Response {
+function criarRespostaComCorpo(status: number, corpo: string): Response {
   return {
     status,
     clone: () =>

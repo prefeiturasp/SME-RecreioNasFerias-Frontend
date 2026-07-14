@@ -159,7 +159,9 @@ export function MenuLateral() {
                         <li key={subitem.caminho}>
                           <SubitemMenu
                             to={subitem.caminho}
-                            $ativo={location.pathname.startsWith(subitem.caminho)}
+                            $ativo={location.pathname.startsWith(
+                              subitem.caminho,
+                            )}
                           >
                             {subitem.rotulo}
                           </SubitemMenu>

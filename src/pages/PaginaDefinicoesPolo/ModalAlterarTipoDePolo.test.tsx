@@ -38,11 +38,7 @@ describe('ModalAlterarTipoDePolo', () => {
     const onFechar = vi.fn()
 
     render(
-      <ModalAlterarTipoDePolo
-        aberto
-        onFechar={onFechar}
-        onAlterar={vi.fn()}
-      />,
+      <ModalAlterarTipoDePolo aberto onFechar={onFechar} onAlterar={vi.fn()} />,
     )
 
     await usuario.keyboard('{Escape}')
@@ -73,11 +69,7 @@ describe('ModalAlterarTipoDePolo', () => {
     const onFechar = vi.fn()
 
     render(
-      <ModalAlterarTipoDePolo
-        aberto
-        onFechar={onFechar}
-        onAlterar={vi.fn()}
-      />,
+      <ModalAlterarTipoDePolo aberto onFechar={onFechar} onAlterar={vi.fn()} />,
     )
 
     const dialog = screen.getByRole('dialog')
@@ -159,8 +151,6 @@ describe('ModalAlterarTipoDePolo', () => {
       />,
     )
 
-    expect(
-      screen.getByRole('button', { name: /alterando/i }),
-    ).toBeDisabled()
+    expect(screen.getByRole('button', { name: /alterando/i })).toBeDisabled()
   })
 })

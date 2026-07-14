@@ -163,7 +163,9 @@ export async function sincronizarUnidadesDiretas(): Promise<ResultadoSincronizac
     motivoIgnorada:
       typeof dados.motivoIgnorada === 'string' ? dados.motivoIgnorada : null,
     ultimaExecucaoEm:
-      typeof dados.ultimaExecucaoEm === 'string' ? dados.ultimaExecucaoEm : null,
+      typeof dados.ultimaExecucaoEm === 'string'
+        ? dados.ultimaExecucaoEm
+        : null,
   }
 }
 

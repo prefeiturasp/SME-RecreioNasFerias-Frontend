@@ -5,7 +5,6 @@ export type ConfiguracaoRuntime = {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var __ENV__: ConfiguracaoRuntime | undefined
 }
 

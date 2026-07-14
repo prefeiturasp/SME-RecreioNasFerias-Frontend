@@ -34,7 +34,9 @@ describe('ModalConfirmacaoSalvarEdicaoPrograma', () => {
     expect(
       screen.getByRole('button', { name: /^cancelar$/i }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^salvar$/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /^salvar$/i }),
+    ).toBeInTheDocument()
   })
 
   it('notifica confirmação e cancelamento', async () => {

@@ -11,7 +11,10 @@ import {
 } from '../../services/edicaoPrograma/api'
 import { QUANTIDADES_MOCK_CADASTRO_EDICAO } from '../../services/edicaoPrograma/mocks'
 import type { DadosCadastroEdicaoPrograma } from '../../services/edicaoPrograma/types'
-import { validarCadastroEdicao, formularioCadastroEstaPreenchido } from '../../services/edicaoPrograma/validarCadastroEdicao'
+import {
+  validarCadastroEdicao,
+  formularioCadastroEstaPreenchido,
+} from '../../services/edicaoPrograma/validarCadastroEdicao'
 import type { EstadoNavegacaoEdicoesPrograma } from '../PaginaEdicoesPrograma/types'
 import {
   AreaConteudo,
@@ -172,7 +175,9 @@ export default function PaginaCadastrarNovaEdicaoPrograma() {
               )}
               <LinhaFormularioCadastroNovaEdicao>
                 <InputTextoFormularioCadastroNovaEdicao>
-                  <label htmlFor="NomeDaEdicao">Nome da Edição do Programa</label>
+                  <label htmlFor="NomeDaEdicao">
+                    Nome da Edição do Programa
+                  </label>
                   <input
                     type="text"
                     name="NomeDaEdicao"

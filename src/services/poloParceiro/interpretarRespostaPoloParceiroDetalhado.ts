@@ -1,7 +1,9 @@
 import type { PoloParceiroDetalhado, StatusPoloParceiro } from './types'
 import { OPCOES_STATUS_POLO_PARCEIRO } from './types'
 
-function ehStatusPoloParceiroValido(status: string): status is StatusPoloParceiro {
+function ehStatusPoloParceiroValido(
+  status: string,
+): status is StatusPoloParceiro {
   return OPCOES_STATUS_POLO_PARCEIRO.some((opcao) => opcao.valor === status)
 }
 

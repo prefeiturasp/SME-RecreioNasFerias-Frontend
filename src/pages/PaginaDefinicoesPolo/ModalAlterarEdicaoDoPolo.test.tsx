@@ -71,7 +71,9 @@ describe('ModalAlterarEdicaoDoPolo', () => {
     )
 
     expect(screen.getByRole('dialog')).toBeInTheDocument()
-    expect(await screen.findByLabelText(/selecione o nome da edição/i)).toBeInTheDocument()
+    expect(
+      await screen.findByLabelText(/selecione o nome da edição/i),
+    ).toBeInTheDocument()
 
     expect(screen.getByRole('option', { name: '-' })).toBeInTheDocument()
     expect(

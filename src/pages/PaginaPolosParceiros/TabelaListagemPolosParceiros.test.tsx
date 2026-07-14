@@ -26,10 +26,7 @@ const propsPaginacaoPadrao = {
 describe('TabelaListagemPolosParceiros', () => {
   it('exibe mensagem de listagem vazia', () => {
     render(
-      <TabelaListagemPolosParceiros
-        polos={[]}
-        {...propsPaginacaoPadrao}
-      />,
+      <TabelaListagemPolosParceiros polos={[]} {...propsPaginacaoPadrao} />,
     )
 
     expect(screen.getByText(/resultados da pesquisa/i)).toBeInTheDocument()

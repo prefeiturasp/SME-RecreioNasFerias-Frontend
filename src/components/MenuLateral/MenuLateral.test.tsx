@@ -136,7 +136,9 @@ describe('MenuLateral', () => {
     renderMenuLateral()
     await abrirMenuCompleto(usuario)
 
-    await usuario.click(screen.getByRole('link', { name: /cadastro de edições/i }))
+    await usuario.click(
+      screen.getByRole('link', { name: /cadastro de edições/i }),
+    )
 
     expect(screen.getByText(/página edições do programa/i)).toBeInTheDocument()
   })
@@ -146,7 +148,9 @@ describe('MenuLateral', () => {
     renderMenuLateral()
     await abrirMenuCompleto(usuario)
 
-    await usuario.click(screen.getByRole('link', { name: /definições de polo/i }))
+    await usuario.click(
+      screen.getByRole('link', { name: /definições de polo/i }),
+    )
 
     expect(screen.getByText(/página definições de polo/i)).toBeInTheDocument()
   })
@@ -168,9 +172,10 @@ describe('MenuLateral', () => {
     renderMenuLateral('/polos-parceiros')
     await abrirMenuCompleto(usuario)
 
-    expect(
-      screen.getByRole('button', { name: /cadastros/i }),
-    ).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('button', { name: /cadastros/i })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
     expect(
       screen.getByRole('link', { name: /cadastro de polos parceiros/i }),
     ).toBeInTheDocument()
@@ -199,7 +204,9 @@ describe('MenuLateral', () => {
     renderMenuLateral()
     await abrirMenuCompleto(usuario)
 
-    await usuario.click(screen.getByRole('link', { name: /cadastro de edições/i }))
+    await usuario.click(
+      screen.getByRole('link', { name: /cadastro de edições/i }),
+    )
 
     expect(
       screen.getByRole('heading', {
@@ -252,7 +259,9 @@ describe('MenuLateral', () => {
     expect(
       screen.getByRole('button', { name: /fechar menu/i }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /cadastros/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /cadastros/i }),
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('img', { name: /prefeitura de são paulo/i }),
     ).toBeInTheDocument()

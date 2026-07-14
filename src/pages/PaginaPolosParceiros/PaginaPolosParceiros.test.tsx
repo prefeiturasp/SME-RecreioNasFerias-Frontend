@@ -146,14 +146,18 @@ describe('PaginaPolosParceiros', () => {
       screen.getByRole('button', { name: /adicionar polo parceiro/i }),
     ).toBeInTheDocument()
 
-    expect(await screen.findByText(/resultados da pesquisa/i)).toBeInTheDocument()
+    expect(
+      await screen.findByText(/resultados da pesquisa/i),
+    ).toBeInTheDocument()
 
     await waitFor(() => {
       expect(screen.getByRole('table')).toBeInTheDocument()
     })
 
     expect(screen.getByRole('cell', { name: /butanta/i })).toBeInTheDocument()
-    expect(screen.getByRole('cell', { name: /cantinho feliz/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('cell', { name: /cantinho feliz/i }),
+    ).toBeInTheDocument()
   })
 
   it('aplica filtros ao clicar em filtrar', async () => {

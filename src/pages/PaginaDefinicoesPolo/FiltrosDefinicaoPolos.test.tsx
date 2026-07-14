@@ -189,9 +189,15 @@ describe('FiltrosDefinicaoPolos', () => {
         name: /diretoria regional de educacao butanta/i,
       }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /cei diret/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /^parceira$/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /^direta$/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('option', { name: /cei diret/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('option', { name: /^parceira$/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('option', { name: /^direta$/i }),
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('option', { name: /janeiro 2025/i }),
     ).toBeInTheDocument()
