@@ -19,7 +19,7 @@ vi.mock('../services/poloParceiro/api', () => ({
   cadastrarPoloParceiro: vi.fn(),
   obterPoloParceiro: vi.fn().mockResolvedValue({
     id: '11111111-1111-1111-1111-111111111111',
-    tipo: 'Parceiro',
+    tipo: 'Pendente',
     nomeOsc: 'OSC Teste',
     nomePolo: 'Polo Teste',
     dre: 'DIRETORIA REGIONAL DE EDUCACAO BUTANTA',
@@ -39,6 +39,32 @@ vi.mock('../services/poloParceiro/api', () => ({
 vi.mock('../services/smeIntegracao/api', () => ({
   listarDresNomeAbreviacao: vi.fn().mockResolvedValue([]),
   listarTiposEscolas: vi.fn().mockResolvedValue([]),
+}))
+
+vi.mock('../services/definicaoPolo/api', () => ({
+  listarDefinicoesPolo: vi.fn().mockResolvedValue({
+    polos: [],
+    pagina: 1,
+    tamanhoPagina: 10,
+    total: 0,
+    totalPaginas: 0,
+  }),
+  sincronizarUnidadesDiretas: vi.fn().mockResolvedValue({
+    totalConsultados: 0,
+    totalNovos: 0,
+    totalJaExistentes: 0,
+    executada: false,
+    motivoIgnorada: 'ja_executada_hoje',
+    ultimaExecucaoEm: null,
+  }),
+  atualizarDefinicoesPoloEmLote: vi.fn(),
+  listarOpcoesFiltroDefinicaoPolos: vi.fn().mockResolvedValue({
+    dres: [],
+    tiposUe: [],
+    gestoes: [],
+    nomesEdicao: [],
+    tiposPolo: [],
+  }),
 }))
 
 describe('RotasAplicacao', () => {
@@ -172,7 +198,7 @@ describe('RotasAplicacao', () => {
     expect(
       screen.getByRole('heading', { name: /cadastrar polo parceiro/i }),
     ).toBeInTheDocument()
-    expect(await screen.findByLabelText(/^tipo$/i)).toHaveValue('Parceiro')
+    expect(await screen.findByLabelText(/^tipo$/i)).toHaveValue('Pendente')
     expect(screen.getByText(/informações gerais/i)).toBeInTheDocument()
   })
 
@@ -218,9 +244,9 @@ describe('RotasAplicacao', () => {
     const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
     expect(mapa).toHaveTextContent('Início')
     expect(mapa).toHaveTextContent('Cadastros')
-    expect(mapa).toHaveTextContent('Definições de Polo')
+    expect(mapa).toHaveTextContent('Definição de Polos')
     expect(
-      screen.getByRole('heading', { name: /definições de polo/i }),
+      screen.getByRole('heading', { name: /definição de polos/i }),
     ).toBeInTheDocument()
   })
 })

@@ -63,7 +63,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
 
 const poloCarregado = {
   id: '11111111-1111-1111-1111-111111111111',
-  tipo: 'Parceiro',
+  tipo: 'Pendente',
   nomeOsc: 'OSC Teste',
   nomePolo: 'Polo Teste',
   dre: 'DIRETORIA REGIONAL DE EDUCACAO BUTANTA',
@@ -143,7 +143,7 @@ describe('PaginaEditarPoloParceiro', () => {
 
     await aguardarFormularioCarregado()
 
-    expect(screen.getByLabelText(/^tipo$/i)).toHaveValue('Parceiro')
+    expect(screen.getByLabelText(/^tipo$/i)).toHaveValue('Pendente')
     expect(screen.getByLabelText(/^status$/i)).toHaveValue('ativo')
     expect(screen.getByLabelText(/nome da osc/i)).toHaveValue('OSC Teste')
     expect(screen.getByLabelText(/nome do polo/i)).toHaveValue('Polo Teste')

@@ -137,6 +137,7 @@ export async function listarPolosParceiros(
   const parametros = new URLSearchParams({
     page: String(pagina),
     pageSize: String(tamanhoPagina),
+    gestao: 'Parceira',
   })
 
   if (dre.trim()) {
@@ -152,7 +153,7 @@ export async function listarPolosParceiros(
   }
 
   const response = await requisicaoAutenticada(
-    `/api/polos-parceiros/?${parametros.toString()}`,
+    `/api/polos/?${parametros.toString()}`,
     {
       method: 'GET',
     },
@@ -178,7 +179,7 @@ export async function listarPolosParceiros(
 export async function cadastrarPoloParceiro(
   dados: DadosCadastroPoloParceiro,
 ): Promise<PoloParceiro> {
-  const response = await requisicaoAutenticada('/api/polos-parceiros/', {
+  const response = await requisicaoAutenticada('/api/polos/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -206,7 +207,7 @@ export async function cadastrarPoloParceiro(
 export async function obterPoloParceiro(
   id: string,
 ): Promise<PoloParceiroDetalhado> {
-  const response = await requisicaoAutenticada(`/api/polos-parceiros/${id}/`, {
+  const response = await requisicaoAutenticada(`/api/polos/${id}/`, {
     method: 'GET',
   })
 
@@ -231,7 +232,7 @@ export async function atualizarPoloParceiro(
   id: string,
   dados: DadosCadastroPoloParceiro,
 ): Promise<PoloParceiro> {
-  const response = await requisicaoAutenticada(`/api/polos-parceiros/${id}/`, {
+  const response = await requisicaoAutenticada(`/api/polos/${id}/`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',

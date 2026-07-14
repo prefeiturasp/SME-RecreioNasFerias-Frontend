@@ -167,7 +167,7 @@ describe('PaginaCadastrarPoloParceiro', () => {
     expect(screen.getByRole('heading', { name: /^endereço$/i })).toBeInTheDocument()
     expect(screen.getByText(/informações de contato/i)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /^observações$/i })).toBeInTheDocument()
-    expect(screen.getByLabelText(/^tipo$/i)).toHaveValue('Parceiro')
+    expect(screen.getByLabelText(/^tipo$/i)).toHaveValue('Pendente')
     expect(screen.getByRole('button', { name: /salvar/i })).toBeDisabled()
     expect(
       screen.getByRole('button', { name: /cancelar/i }),
@@ -260,7 +260,7 @@ describe('PaginaCadastrarPoloParceiro', () => {
 
     await waitFor(() => {
       expect(cadastrarPoloParceiroMock).toHaveBeenCalledWith({
-        tipo: 'Parceiro',
+        tipo: 'Pendente',
         nomeOsc: 'OSC Teste',
         nomePolo: 'Polo Teste',
         dre: 'DIRETORIA REGIONAL DE EDUCACAO BUTANTA',

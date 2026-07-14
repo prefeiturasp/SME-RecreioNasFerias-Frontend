@@ -119,6 +119,13 @@ export const SeletorCampoFiltroPolos = styled.div`
       outline-offset: 0;
       border-color: var(--color-brand-dark);
     }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+      background-color: var(--color-surface-muted, #f3f3f3);
+      color: var(--color-placeholder);
+    }
   }
 
   > select {

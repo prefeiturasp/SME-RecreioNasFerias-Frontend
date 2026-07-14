@@ -57,7 +57,7 @@ const NIVEIS_MAPA_VISUAL = [
   { rotulo: 'Cadastrar Polo Parceiro' },
 ] as const
 
-const TIPO_POLO_PARCEIRO = 'Parceiro'
+const TIPO_POLO_PARCEIRO = 'Pendente'
 
 export default function PaginaCadastrarPoloParceiro() {
   const navigate = useNavigate()
