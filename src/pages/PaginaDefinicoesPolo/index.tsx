@@ -173,10 +173,10 @@ export default function PaginaDefinicoesPolo() {
       setPolosSelecionados(new Set())
       setPolosParaAlterarEdicao([])
       await carregarPolos(paginaAtual, itensPorPagina, filtrosAplicados)
-    } catch (erro) {
+    } catch (error_) {
       const mensagem =
-        erro instanceof ErroAtualizacaoDefinicoesPolo
-          ? erro.mensagemUsuario
+        error_ instanceof ErroAtualizacaoDefinicoesPolo
+          ? error_.mensagemUsuario
           : 'Não foi possível alterar a edição dos polos selecionados.'
       setMensagemErroAlteracao(mensagem)
     } finally {
@@ -209,10 +209,10 @@ export default function PaginaDefinicoesPolo() {
       setPolosSelecionados(new Set())
       setPolosParaAlterarTipoPolo([])
       await carregarPolos(paginaAtual, itensPorPagina, filtrosAplicados)
-    } catch (erro) {
+    } catch (error_) {
       const mensagem =
-        erro instanceof ErroAtualizacaoDefinicoesPolo
-          ? erro.mensagemUsuario
+        error_ instanceof ErroAtualizacaoDefinicoesPolo
+          ? error_.mensagemUsuario
           : 'Não foi possível alterar o tipo dos polos selecionados.'
       setMensagemErroAlteracao(mensagem)
     } finally {

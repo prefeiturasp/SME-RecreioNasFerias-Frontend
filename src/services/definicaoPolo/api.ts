@@ -1,7 +1,7 @@
 import { requisicaoAutenticada } from '../autenticacao'
 import { interpretarRespostaListagemDefinicoesPolo } from './interpretarRespostaListagemDefinicoesPolo'
 import {
-  FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
+  PARAMETROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
   type ListagemDefinicaoPolos,
   type OpcoesFiltroDefinicaoPolos,
   type ParametrosListagemDefinicaoPolos,
@@ -171,9 +171,7 @@ export async function listarDefinicoesPolo({
   pagina = 1,
   tamanhoPagina = 10,
   ...filtros
-}: ParametrosListagemDefinicaoPolos = {
-  ...FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
-}): Promise<ListagemDefinicaoPolos> {
+}: ParametrosListagemDefinicaoPolos = PARAMETROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS): Promise<ListagemDefinicaoPolos> {
   const parametros = new URLSearchParams({
     page: String(pagina),
     pageSize: String(tamanhoPagina),

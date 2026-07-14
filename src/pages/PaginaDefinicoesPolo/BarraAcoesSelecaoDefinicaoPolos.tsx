@@ -36,6 +36,7 @@ export function BarraAcoesSelecaoDefinicaoPolos({
       <GrupoAcoesSelecao>
         <BotaoAcaoSelecao type="button" onClick={onAlterarEdicao}>
           <img src={iconeLapisEditar} alt="" aria-hidden="true" />
+          {' '}
           Alterar Edição
         </BotaoAcaoSelecao>
 
@@ -43,6 +44,7 @@ export function BarraAcoesSelecaoDefinicaoPolos({
 
         <BotaoAcaoSelecao type="button" onClick={onAlterarTipoPolo}>
           <img src={iconeLapisEditar} alt="" aria-hidden="true" />
+          {' '}
           Alterar Tipo de Polo
         </BotaoAcaoSelecao>
 
@@ -50,6 +52,7 @@ export function BarraAcoesSelecaoDefinicaoPolos({
 
         <BotaoAcaoSelecao type="button" onClick={onCancelar}>
           <CloseIcon />
+          {' '}
           Cancelar
         </BotaoAcaoSelecao>
       </GrupoAcoesSelecao>

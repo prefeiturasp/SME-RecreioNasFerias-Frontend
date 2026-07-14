@@ -56,3 +56,8 @@ export const FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS: FiltrosListagemDefinicao
     tipoPolo: '',
     gestao: '',
   }
+
+export const PARAMETROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS: ParametrosListagemDefinicaoPolos =
+  {
+    ...FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
+  }
