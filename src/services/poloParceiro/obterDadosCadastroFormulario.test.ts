@@ -8,7 +8,7 @@ import {
 import type { DadosCadastroPoloParceiro, PoloParceiroDetalhado } from './types'
 
 const dadosFormularioExemplo: DadosCadastroPoloParceiro = {
-  tipo: 'Parceiro',
+  tipo: 'Pendente',
   nomeOsc: 'OSC Teste',
   nomePolo: 'Polo Teste',
   dre: 'DRE Butantã',
@@ -25,7 +25,7 @@ const dadosFormularioExemplo: DadosCadastroPoloParceiro = {
 
 const poloDetalhadoExemplo: PoloParceiroDetalhado = {
   id: '11111111-1111-1111-1111-111111111111',
-  tipo: 'Parceiro',
+  tipo: 'Pendente',
   nomeOsc: 'OSC Teste',
   nomePolo: 'Polo Teste',
   dre: 'DRE Butantã',

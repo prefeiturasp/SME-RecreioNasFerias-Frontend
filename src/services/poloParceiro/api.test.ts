@@ -17,7 +17,7 @@ const respostaListagemExemplo = {
   results: [
     {
       id: '11111111-1111-1111-1111-111111111111',
-      tipo: 'Parceiro',
+      tipo: 'Pendente',
       nomeOsc: 'Cantinho Feliz',
       nomePolo: 'CEI DIRET ALOYSIO DE MENEZES PINTO NETO',
       dre: 'DRE Butantã',
@@ -39,7 +39,7 @@ const respostaListagemExemplo = {
 }
 
 const dadosCadastroExemplo: DadosCadastroPoloParceiro = {
-  tipo: 'Parceiro',
+  tipo: 'Pendente',
   nomeOsc: 'OSC Parceira Exemplo',
   nomePolo: 'Polo Centro',
   dre: 'DRE Butantã',
@@ -56,7 +56,7 @@ const dadosCadastroExemplo: DadosCadastroPoloParceiro = {
 
 const respostaCadastroExemplo = {
   id: '22222222-2222-2222-2222-222222222222',
-  tipo: 'Parceiro',
+  tipo: 'Pendente',
   nomeOsc: 'OSC Parceira Exemplo',
   nomePolo: 'Polo Centro',
   dre: 'DRE Butantã',
@@ -112,7 +112,7 @@ describe('listarPolosParceiros', () => {
     const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit]
     const headers = options.headers as Headers
 
-    expect(url).toBe('/api/polos-parceiros/?page=1&pageSize=10')
+    expect(url).toBe('/api/polos/?page=1&pageSize=10&gestao=Parceira')
     expect(options.method).toBe('GET')
     expect(headers.get('Authorization')).toBe('Bearer eyJ-token')
   })
@@ -135,7 +135,7 @@ describe('listarPolosParceiros', () => {
 
     const [url] = fetchMock.mock.calls[0] as [string]
     expect(url).toBe(
-      '/api/polos-parceiros/?page=2&pageSize=20&dre=DRE+Butant%C3%A3&tipoUe=CEI&nomePoloOuOsc=Centro',
+      '/api/polos/?page=2&pageSize=20&gestao=Parceira&dre=DRE+Butant%C3%A3&tipoUe=CEI&nomePoloOuOsc=Centro',
     )
   })
 
@@ -215,7 +215,7 @@ describe('cadastrarPoloParceiro', () => {
     const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit]
     const headers = options.headers as Headers
 
-    expect(url).toBe('/api/polos-parceiros/')
+    expect(url).toBe('/api/polos/')
     expect(options.method).toBe('POST')
     expect(headers.get('Authorization')).toBe('Bearer eyJ-token')
     expect(headers.get('Content-Type')).toBe('application/json')
@@ -298,7 +298,7 @@ describe('obterPoloParceiro', () => {
       obterPoloParceiro('22222222-2222-2222-2222-222222222222'),
     ).resolves.toEqual({
       id: '22222222-2222-2222-2222-222222222222',
-      tipo: 'Parceiro',
+      tipo: 'Pendente',
       nomeOsc: 'OSC Parceira Exemplo',
       nomePolo: 'Polo Centro',
       dre: 'DRE Butantã',
@@ -315,7 +315,7 @@ describe('obterPoloParceiro', () => {
 
     const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit]
     expect(url).toBe(
-      '/api/polos-parceiros/22222222-2222-2222-2222-222222222222/',
+      '/api/polos/22222222-2222-2222-2222-222222222222/',
     )
     expect(options.method).toBe('GET')
   })
@@ -398,7 +398,7 @@ describe('atualizarPoloParceiro', () => {
 
     const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit]
     expect(url).toBe(
-      '/api/polos-parceiros/22222222-2222-2222-2222-222222222222/',
+      '/api/polos/22222222-2222-2222-2222-222222222222/',
     )
     expect(options.method).toBe('PUT')
     expect(options.body).toBe(

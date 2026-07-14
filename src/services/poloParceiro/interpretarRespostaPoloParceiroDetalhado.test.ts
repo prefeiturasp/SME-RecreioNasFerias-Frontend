@@ -4,7 +4,7 @@ import { interpretarRespostaPoloParceiroDetalhado } from './interpretarRespostaP
 
 const poloDetalhadoExemplo = {
   id: '11111111-1111-1111-1111-111111111111',
-  tipo: 'Parceiro',
+  tipo: 'Pendente',
   nomeOsc: 'Cantinho Feliz',
   nomePolo: 'CEI DIRET ALOYSIO DE MENEZES PINTO NETO',
   dre: 'DRE Butantã',

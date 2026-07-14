@@ -9,7 +9,7 @@ import {
   type StatusPoloParceiro,
 } from './types'
 
-const TIPO_POLO_PARCEIRO_PADRAO = 'Parceiro'
+const TIPO_POLO_PARCEIRO_PADRAO = 'Pendente'
 
 function obterCampoTextoFormulario(dados: FormData, nomeCampo: string): string {
   const valor = dados.get(nomeCampo)
