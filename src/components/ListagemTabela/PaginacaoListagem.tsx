@@ -1,8 +1,4 @@
-import {
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from '../icons'
+import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '../icons'
 import { OPCOES_ITENS_POR_PAGINA } from './constantesPaginacao'
 import { montarPaginasVisiveis } from './montarPaginasVisiveis'
 import {
@@ -51,10 +47,7 @@ export function PaginacaoListagem({
           {paginasVisiveis.map((item) => {
             if (item.tipo === 'ellipsis') {
               return (
-                <IndicadorReticenciasPagina
-                  key={item.chave}
-                  aria-hidden="true"
-                >
+                <IndicadorReticenciasPagina key={item.chave} aria-hidden="true">
                   ...
                 </IndicadorReticenciasPagina>
               )

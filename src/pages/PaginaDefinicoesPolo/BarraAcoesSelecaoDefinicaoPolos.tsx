@@ -31,29 +31,27 @@ export function BarraAcoesSelecaoDefinicaoPolos({
 }: Readonly<BarraAcoesSelecaoDefinicaoPolosProps>) {
   return (
     <BarraAcoesSelecao aria-live="polite">
-      <ContagemSelecao>{formatarContagem(quantidadeSelecionada)}</ContagemSelecao>
+      <ContagemSelecao>
+        {formatarContagem(quantidadeSelecionada)}
+      </ContagemSelecao>
 
       <GrupoAcoesSelecao>
         <BotaoAcaoSelecao type="button" onClick={onAlterarEdicao}>
-          <img src={iconeLapisEditar} alt="" aria-hidden="true" />
-          {' '}
-          Alterar Edição
+          <img src={iconeLapisEditar} alt="" aria-hidden="true" /> Alterar
+          Edição
         </BotaoAcaoSelecao>
 
         <SeparadorAcaoSelecao aria-hidden="true" />
 
         <BotaoAcaoSelecao type="button" onClick={onAlterarTipoPolo}>
-          <img src={iconeLapisEditar} alt="" aria-hidden="true" />
-          {' '}
-          Alterar Tipo de Polo
+          <img src={iconeLapisEditar} alt="" aria-hidden="true" /> Alterar Tipo
+          de Polo
         </BotaoAcaoSelecao>
 
         <SeparadorAcaoSelecao aria-hidden="true" />
 
         <BotaoAcaoSelecao type="button" onClick={onCancelar}>
-          <CloseIcon />
-          {' '}
-          Cancelar
+          <CloseIcon /> Cancelar
         </BotaoAcaoSelecao>
       </GrupoAcoesSelecao>
     </BarraAcoesSelecao>

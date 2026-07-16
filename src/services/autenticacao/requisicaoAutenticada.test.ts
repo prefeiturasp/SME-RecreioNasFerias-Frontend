@@ -83,8 +83,10 @@ describe('requisicaoAutenticada', () => {
       descricaoCargo: 'Cargo Teste',
     })
 
-    const { registrarOuvinteSessaoInvalida, MENSAGEM_TOKEN_INVALIDO_OU_EXPIRADO } =
-      await import('./sessaoInvalida')
+    const {
+      registrarOuvinteSessaoInvalida,
+      MENSAGEM_TOKEN_INVALIDO_OU_EXPIRADO,
+    } = await import('./sessaoInvalida')
     registrarOuvinteSessaoInvalida(ouvinte)
 
     const corpo = JSON.stringify({

@@ -61,7 +61,9 @@ async function aguardarFormularioCarregado() {
   })
 }
 
-async function preencherFormularioCompleto(usuario: ReturnType<typeof userEvent.setup>) {
+async function preencherFormularioCompleto(
+  usuario: ReturnType<typeof userEvent.setup>,
+) {
   await aguardarFormularioCarregado()
 
   await usuario.type(screen.getByLabelText(/nome da osc/i), 'OSC Teste')
@@ -75,19 +77,13 @@ async function preencherFormularioCompleto(usuario: ReturnType<typeof userEvent.
     screen.getByLabelText(/quantidade máxima de alunos/i),
     '50',
   )
-  await usuario.type(
-    screen.getByPlaceholderText('00000-000'),
-    '01310100',
-  )
+  await usuario.type(screen.getByPlaceholderText('00000-000'), '01310100')
   await usuario.type(
     screen.getByPlaceholderText(/digite o endereço/i),
     'Av. Paulista, 1000',
   )
   await usuario.type(screen.getByLabelText(/nome do gestor/i), 'Gestor Teste')
-  await usuario.type(
-    screen.getByLabelText(/e-mail do polo/i),
-    'polo@teste.com',
-  )
+  await usuario.type(screen.getByLabelText(/e-mail do polo/i), 'polo@teste.com')
   await usuario.type(
     screen.getByPlaceholderText('(00) 00000-0000'),
     '11999999999',
@@ -164,9 +160,13 @@ describe('PaginaCadastrarPoloParceiro', () => {
     await aguardarFormularioCarregado()
 
     expect(screen.getByText(/informações gerais/i)).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /^endereço$/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /^endereço$/i }),
+    ).toBeInTheDocument()
     expect(screen.getByText(/informações de contato/i)).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /^observações$/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /^observações$/i }),
+    ).toBeInTheDocument()
     expect(screen.getByLabelText(/^tipo$/i)).toHaveValue('Pendente')
     expect(screen.getByRole('button', { name: /salvar/i })).toBeDisabled()
     expect(
@@ -202,10 +202,7 @@ describe('PaginaCadastrarPoloParceiro', () => {
       screen.getByLabelText(/quantidade máxima de alunos/i),
       '50',
     )
-    await usuario.type(
-      screen.getByPlaceholderText('00000-000'),
-      '01310100',
-    )
+    await usuario.type(screen.getByPlaceholderText('00000-000'), '01310100')
     await usuario.type(
       screen.getByPlaceholderText(/digite o endereço/i),
       'Av. Paulista, 1000',
@@ -235,10 +232,7 @@ describe('PaginaCadastrarPoloParceiro', () => {
     await aguardarFormularioCarregado()
 
     await usuario.type(screen.getByLabelText(/^cep$/i), '01310100')
-    await usuario.type(
-      screen.getByLabelText(/telefone do polo/i),
-      '1133334444',
-    )
+    await usuario.type(screen.getByLabelText(/telefone do polo/i), '1133334444')
 
     expect(screen.getByLabelText(/^cep$/i)).toHaveValue('01310-100')
     expect(screen.getByLabelText(/telefone do polo/i)).toHaveValue(
@@ -304,10 +298,7 @@ describe('PaginaCadastrarPoloParceiro', () => {
       screen.getByLabelText(/quantidade máxima de alunos/i),
       '50',
     )
-    await usuario.type(
-      screen.getByPlaceholderText('00000-000'),
-      '01310100',
-    )
+    await usuario.type(screen.getByPlaceholderText('00000-000'), '01310100')
     await usuario.type(
       screen.getByPlaceholderText(/digite o endereço/i),
       'Av. Paulista, 1000',
@@ -334,7 +325,9 @@ describe('PaginaCadastrarPoloParceiro', () => {
     const usuario = userEvent.setup()
 
     cadastrarPoloParceiroMock.mockRejectedValue(
-      new ErroCadastroPoloParceiro('Não foi possível cadastrar o polo parceiro.'),
+      new ErroCadastroPoloParceiro(
+        'Não foi possível cadastrar o polo parceiro.',
+      ),
     )
 
     render(

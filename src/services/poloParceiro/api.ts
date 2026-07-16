@@ -125,15 +125,13 @@ async function extrairMensagemDeErroDaResposta(
   return corpo
 }
 
-export async function listarPolosParceiros(
-  {
-    pagina = 1,
-    tamanhoPagina = 10,
-    dre = '',
-    tipoUe = '',
-    nomePoloOuOsc = '',
-  }: ParametrosListagemPolosParceiros = PARAMETROS_LISTAGEM_POLOS_PARCEIROS_INICIAIS,
-): Promise<ListagemPolosParceiros> {
+export async function listarPolosParceiros({
+  pagina = 1,
+  tamanhoPagina = 10,
+  dre = '',
+  tipoUe = '',
+  nomePoloOuOsc = '',
+}: ParametrosListagemPolosParceiros = PARAMETROS_LISTAGEM_POLOS_PARCEIROS_INICIAIS): Promise<ListagemPolosParceiros> {
   const parametros = new URLSearchParams({
     page: String(pagina),
     pageSize: String(tamanhoPagina),

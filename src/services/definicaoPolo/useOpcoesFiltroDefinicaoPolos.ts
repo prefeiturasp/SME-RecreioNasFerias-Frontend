@@ -12,7 +12,8 @@ const OPCOES_VAZIAS: OpcoesFiltroDefinicaoPolos = {
 }
 
 export function useOpcoesFiltroDefinicaoPolos() {
-  const [opcoes, setOpcoes] = useState<OpcoesFiltroDefinicaoPolos>(OPCOES_VAZIAS)
+  const [opcoes, setOpcoes] =
+    useState<OpcoesFiltroDefinicaoPolos>(OPCOES_VAZIAS)
   const [estaCarregando, setEstaCarregando] = useState(true)
 
   useEffect(() => {

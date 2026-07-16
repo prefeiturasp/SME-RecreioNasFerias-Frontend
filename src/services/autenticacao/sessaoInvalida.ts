@@ -2,8 +2,7 @@ import { estaAutenticado, limparSessaoAutenticacao } from './storage'
 
 const ouvintesSessaoInvalida = new Set<() => void>()
 
-export const MENSAGEM_TOKEN_INVALIDO_OU_EXPIRADO =
-  'Token inválido ou expirado.'
+export const MENSAGEM_TOKEN_INVALIDO_OU_EXPIRADO = 'Token inválido ou expirado.'
 
 async function corpoIndicaTokenInvalidoOuExpirado(
   response: Response,

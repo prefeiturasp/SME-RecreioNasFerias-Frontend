@@ -657,7 +657,9 @@ describe('PaginaDefinicoesPolo', () => {
       </MemoryRouter>,
     )
 
-    await usuario.click(screen.getByRole('button', { name: /voltar ao início/i }))
+    await usuario.click(
+      screen.getByRole('button', { name: /voltar ao início/i }),
+    )
 
     expect(navegarMock).toHaveBeenCalledWith('/inicio')
   })

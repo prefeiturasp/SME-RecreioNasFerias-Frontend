@@ -20,15 +20,12 @@ vi.mock('../../components/MapaVisual', () => ({
   MapaVisual: () => <nav aria-label="Mapa do site">Mapa visual</nav>,
 }))
 
-const {
-  obterEdicaoProgramaMock,
-  atualizarEdicaoProgramaMock,
-  navegarMock,
-} = vi.hoisted(() => ({
-  obterEdicaoProgramaMock: vi.fn(),
-  atualizarEdicaoProgramaMock: vi.fn(),
-  navegarMock: vi.fn(),
-}))
+const { obterEdicaoProgramaMock, atualizarEdicaoProgramaMock, navegarMock } =
+  vi.hoisted(() => ({
+    obterEdicaoProgramaMock: vi.fn(),
+    atualizarEdicaoProgramaMock: vi.fn(),
+    navegarMock: vi.fn(),
+  }))
 
 vi.mock('../../services/edicaoPrograma/api', async (importOriginal) => {
   const actual =
@@ -107,9 +104,9 @@ describe('PaginaEditarEdicaoPrograma', () => {
     expect(screen.getByLabelText(/data de fim da edição/i)).toHaveValue(
       '2026-06-20',
     )
-    expect(
-      screen.getByLabelText(/data de início das inscrições/i),
-    ).toHaveValue('2026-05-01')
+    expect(screen.getByLabelText(/data de início das inscrições/i)).toHaveValue(
+      '2026-05-01',
+    )
     expect(screen.getByLabelText(/data de fim das inscrições/i)).toHaveValue(
       '2026-05-31',
     )
@@ -120,9 +117,9 @@ describe('PaginaEditarEdicaoPrograma', () => {
   it('exibe campos numéricos bloqueados com valores da edição', async () => {
     renderizarPagina()
 
-    expect(await screen.findByLabelText(/quantidade de inscritos/i)).toHaveValue(
-      50,
-    )
+    expect(
+      await screen.findByLabelText(/quantidade de inscritos/i),
+    ).toHaveValue(50)
     expect(
       screen.getByLabelText(/quantidade de atendimento efetivo/i),
     ).toHaveValue(40)
@@ -133,7 +130,9 @@ describe('PaginaEditarEdicaoPrograma', () => {
   it('mantém o botão salvar desabilitado até detectar alteração', async () => {
     renderizarPagina()
 
-    expect(await screen.findByRole('button', { name: /salvar/i })).toBeDisabled()
+    expect(
+      await screen.findByRole('button', { name: /salvar/i }),
+    ).toBeDisabled()
   })
 
   it('habilita o botão salvar após alteração no formulário', async () => {
@@ -198,7 +197,9 @@ describe('PaginaEditarEdicaoPrograma', () => {
     await usuario.click(screen.getByRole('button', { name: /salvar/i }))
 
     const modal = await screen.findByRole('dialog')
-    await usuario.click(within(modal).getByRole('button', { name: /^cancelar$/i }))
+    await usuario.click(
+      within(modal).getByRole('button', { name: /^cancelar$/i }),
+    )
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(atualizarEdicaoProgramaMock).not.toHaveBeenCalled()
@@ -247,7 +248,9 @@ describe('PaginaEditarEdicaoPrograma', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Edição não encontrada.',
     )
-    expect(screen.queryByRole('button', { name: /salvar/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /salvar/i }),
+    ).not.toBeInTheDocument()
   })
 
   it('exibe mensagem de erro quando a atualização falha', async () => {

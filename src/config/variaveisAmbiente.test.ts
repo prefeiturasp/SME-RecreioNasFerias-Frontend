@@ -9,8 +9,8 @@ import {
 describe('variaveisAmbiente', () => {
   const originalEnv = {
     VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
-    VITE_SME_INTEGRACAO_API_BASE_URL:
-      import.meta.env.VITE_SME_INTEGRACAO_API_BASE_URL,
+    VITE_SME_INTEGRACAO_API_BASE_URL: import.meta.env
+      .VITE_SME_INTEGRACAO_API_BASE_URL,
     VITE_SME_INTEGRACAO_API_KEY: import.meta.env.VITE_SME_INTEGRACAO_API_KEY,
   }
 

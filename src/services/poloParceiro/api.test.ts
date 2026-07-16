@@ -314,9 +314,7 @@ describe('obterPoloParceiro', () => {
     })
 
     const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit]
-    expect(url).toBe(
-      '/api/polos/22222222-2222-2222-2222-222222222222/',
-    )
+    expect(url).toBe('/api/polos/22222222-2222-2222-2222-222222222222/')
     expect(options.method).toBe('GET')
   })
 
@@ -397,9 +395,7 @@ describe('atualizarPoloParceiro', () => {
     })
 
     const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit]
-    expect(url).toBe(
-      '/api/polos/22222222-2222-2222-2222-222222222222/',
-    )
+    expect(url).toBe('/api/polos/22222222-2222-2222-2222-222222222222/')
     expect(options.method).toBe('PUT')
     expect(options.body).toBe(
       JSON.stringify({

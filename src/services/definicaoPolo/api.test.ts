@@ -21,7 +21,6 @@ describe('definicaoPolo/api', () => {
     requisicaoAutenticadaMock.mockReset()
   })
 
-
   it('lista opções de filtro a partir do endpoint dedicado', async () => {
     requisicaoAutenticadaMock.mockResolvedValue(
       new Response(
@@ -245,9 +244,7 @@ describe('definicaoPolo/api', () => {
     })
 
     const [url] = requisicaoAutenticadaMock.mock.calls[0] ?? []
-    expect(url).toBe(
-      '/api/polos/?page=1&pageSize=10&tipoPolo=Polo+oficial',
-    )
+    expect(url).toBe('/api/polos/?page=1&pageSize=10&tipoPolo=Polo+oficial')
   })
 
   it('lança erro tipado quando a sincronização falha', async () => {
@@ -271,7 +268,10 @@ describe('definicaoPolo/api', () => {
 
     await expect(
       atualizarDefinicoesPoloEmLote({
-        ids: ['11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222'],
+        ids: [
+          '11111111-1111-1111-1111-111111111111',
+          '22222222-2222-2222-2222-222222222222',
+        ],
         nomeEdicao: 'Janeiro 2026',
       }),
     ).resolves.toEqual({ totalAtualizados: 2 })
