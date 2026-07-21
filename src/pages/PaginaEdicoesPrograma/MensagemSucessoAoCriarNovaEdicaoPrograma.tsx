@@ -19,8 +19,8 @@ export function MensagemSucessoAoCriarNovaEdicaoPrograma({
   useEffect(() => {
     if (!visivel) return
 
-    const temporizador = window.setTimeout(onFechar, TEMPO_EXIBICAO_MS)
-    return () => window.clearTimeout(temporizador)
+    const temporizador = globalThis.setTimeout(onFechar, TEMPO_EXIBICAO_MS)
+    return () => globalThis.clearTimeout(temporizador)
   }, [visivel, onFechar])
 
   if (!visivel) return null

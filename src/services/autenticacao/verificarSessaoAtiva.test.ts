@@ -95,6 +95,31 @@ describe('verificarSessaoAtiva', () => {
     await expect(verificarSessaoAtiva()).resolves.toBe(false)
   })
 
+  it('retorna false quando a API retorna 403 com token expirado', async () => {
+    definirSessaoAutenticacao({
+      token: 'eyJ-token-expirado',
+      rf: '1234567',
+      nome: 'Usuário Teste',
+      descricaoCargo: 'Cargo Teste',
+    })
+
+    const { MENSAGEM_TOKEN_INVALIDO_OU_EXPIRADO } =
+      await import('./sessaoInvalida')
+    const corpo = JSON.stringify({
+      detail: MENSAGEM_TOKEN_INVALIDO_OU_EXPIRADO,
+    })
+    const fetchMock = vi.fn().mockResolvedValue({
+      status: 403,
+      ok: false,
+      clone: () => ({
+        text: () => Promise.resolve(corpo),
+      }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(verificarSessaoAtiva()).resolves.toBe(false)
+  })
+
   it('mantém sessão quando ocorre falha de rede', async () => {
     definirSessaoAutenticacao({
       token: 'eyJ-token',

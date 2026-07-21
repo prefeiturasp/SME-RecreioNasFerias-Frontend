@@ -72,4 +72,38 @@ describe('requisicaoAutenticada', () => {
     expect(obterSessaoAutenticacao()).toBeNull()
     expect(ouvinte).toHaveBeenCalledTimes(1)
   })
+
+  it('desloga automaticamente quando a API retorna 403 com token expirado', async () => {
+    const ouvinte = vi.fn()
+
+    definirSessaoAutenticacao({
+      token: 'eyJ-token-expirado',
+      rf: '1234567',
+      nome: 'Usuário Teste',
+      descricaoCargo: 'Cargo Teste',
+    })
+
+    const {
+      registrarOuvinteSessaoInvalida,
+      MENSAGEM_TOKEN_INVALIDO_OU_EXPIRADO,
+    } = await import('./sessaoInvalida')
+    registrarOuvinteSessaoInvalida(ouvinte)
+
+    const corpo = JSON.stringify({
+      detail: MENSAGEM_TOKEN_INVALIDO_OU_EXPIRADO,
+    })
+    const fetchMock = vi.fn().mockResolvedValue({
+      status: 403,
+      ok: false,
+      clone: () => ({
+        text: () => Promise.resolve(corpo),
+      }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await requisicaoAutenticada('/api/edicoes/', { method: 'GET' })
+
+    expect(obterSessaoAutenticacao()).toBeNull()
+    expect(ouvinte).toHaveBeenCalledTimes(1)
+  })
 })

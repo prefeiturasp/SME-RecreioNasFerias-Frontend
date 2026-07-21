@@ -69,6 +69,10 @@ describe('PaginaCadastrarNovaEdicaoPrograma', () => {
       quantidadeInscritos: 0,
 
       quantidadeAtendimentoEfetivo: 0,
+
+      quantidadePasseios: 0,
+
+      quantidadeApresentacoes: 0,
     })
 
     navegarMock.mockReset()
@@ -89,11 +93,46 @@ describe('PaginaCadastrarNovaEdicaoPrograma', () => {
       screen.getByRole('navigation', { name: /mapa do site/i }),
     ).toBeInTheDocument()
 
-    expect(screen.getByRole('button', { name: /salvar/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /salvar/i })).toBeDisabled()
 
     expect(
       screen.getByRole('button', { name: /cancelar/i }),
     ).toBeInTheDocument()
+  })
+
+  it('mantém o botão salvar desabilitado até o formulário estar preenchido', async () => {
+    const usuario = userEvent.setup()
+
+    render(
+      <MemoryRouter>
+        <PaginaCadastrarNovaEdicaoPrograma />
+      </MemoryRouter>,
+    )
+
+    const botaoSalvar = screen.getByRole('button', { name: /salvar/i })
+    expect(botaoSalvar).toBeDisabled()
+
+    await usuario.type(screen.getByLabelText(/nome da edição/i), 'Edição Teste')
+    expect(botaoSalvar).toBeDisabled()
+
+    await usuario.type(
+      screen.getByLabelText(/data de início da edição/i),
+      '2026-06-10',
+    )
+    await usuario.type(
+      screen.getByLabelText(/data de fim da edição/i),
+      '2026-06-20',
+    )
+    await usuario.type(
+      screen.getByLabelText(/data de início das inscrições/i),
+      '2026-05-01',
+    )
+    await usuario.type(
+      screen.getByLabelText(/data de fim das inscrições/i),
+      '2026-05-31',
+    )
+
+    expect(botaoSalvar).toBeEnabled()
   })
 
   it('cadastra nova edição via API e redireciona para a listagem', async () => {

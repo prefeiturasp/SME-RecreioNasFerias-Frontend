@@ -25,6 +25,8 @@ describe('interpretarRespostaEdicaoPrograma', () => {
       dataFimInscricoes: '2025-12-31',
       quantidadeInscritos: 0,
       quantidadeAtendimentoEfetivo: 0,
+      quantidadePasseios: 0,
+      quantidadeApresentacoes: 0,
     })
   })
 
@@ -64,6 +66,8 @@ describe('interpretarRespostaListagemEdicoesPaginada', () => {
           dataFimInscricoes: '2025-12-31',
           quantidadeInscritos: 0,
           quantidadeAtendimentoEfetivo: 0,
+          quantidadePasseios: 0,
+          quantidadeApresentacoes: 0,
         },
       ],
       pagina: 2,
@@ -104,6 +108,8 @@ describe('interpretarRespostaListagemEdicoes', () => {
         dataFimInscricoes: '2025-12-31',
         quantidadeInscritos: 0,
         quantidadeAtendimentoEfetivo: 0,
+        quantidadePasseios: 0,
+        quantidadeApresentacoes: 0,
       },
     ])
   })
@@ -136,6 +142,8 @@ describe('interpretarRespostaListagemEdicoes', () => {
         dataFimInscricoes: '2026-01-31',
         quantidadeInscritos: 10,
         quantidadeAtendimentoEfetivo: 8,
+        quantidadePasseios: 0,
+        quantidadeApresentacoes: 0,
       },
     ])
   })

@@ -48,7 +48,7 @@ button {
 
 :root {
   --font-family: 'Roboto', sans-serif;
-  --font-family-baloo: 'Baloo', sans-serif;
+  --font-family-baloo: 'Baloo 2', sans-serif;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
@@ -71,6 +71,8 @@ button {
   --color-input-disabled-bg: #ededed;
   --color-button-outline-hover-bg: #f8f9fb;
   --color-button-outline-active-bg: #eef0f3;
+  --color-button-primary-disabled-bg: #7b7b97;
+  --color-button-primary-disabled-border: #7b7b97;
   --color-user-card-border: #d9d9d9;
   --color-logout-label: #929394;
   --shadow-header-bottom: 0 3px 12px 0 rgba(0, 0, 0, 0.12);

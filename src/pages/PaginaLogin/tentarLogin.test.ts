@@ -52,30 +52,23 @@ describe('tentarLogin', () => {
     })
   })
 
-  it('usa VITE_API_BASE_URL quando configurado', async () => {
-    const originalBaseUrl = import.meta.env.VITE_API_BASE_URL
+  it('usa rota relativa para o proxy do backend', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
       json: async () => respostaLoginExemplo,
     })
     vi.stubGlobal('fetch', fetchMock)
-    import.meta.env.VITE_API_BASE_URL = 'https://api.exemplo.com/'
 
     await expect(
       tentarLogin({ usuario: 'usuario.teste', senha: 'senha-segura' }),
     ).resolves.toBeUndefined()
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      'https://api.exemplo.com/api/auth/login/',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ login: 'usuario.teste', senha: 'senha-segura' }),
-      },
-    )
-
-    import.meta.env.VITE_API_BASE_URL = originalBaseUrl
+    expect(fetchMock).toHaveBeenCalledWith('/api/auth/login/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ login: 'usuario.teste', senha: 'senha-segura' }),
+    })
   })
 
   it('lança ErroAcessoNegadoLogin quando status é 403', async () => {

@@ -7,11 +7,17 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies and build output
 node_modules
 dist
 dist-ssr
 coverage
-*.local
+.vite
+
+# Environment variables (keep .env.example versioned as template)
+.env
+.env.local
+.env.*.local
 
 # Editor directories and files
 .vscode/*
@@ -19,8 +25,16 @@ coverage
 !.vscode/settings.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# TypeScript
+*.tsbuildinfo
+
+# Test and tooling artifacts
+test-results
+playwright-report

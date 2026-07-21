@@ -39,6 +39,24 @@ function renderMenuLateral(initialPath = '/inicio') {
               </>
             }
           />
+          <Route
+            path="/polos-parceiros"
+            element={
+              <>
+                <MenuLateral />
+                <div>Página Polos Parceiros</div>
+              </>
+            }
+          />
+          <Route
+            path="/definicoes-polo"
+            element={
+              <>
+                <MenuLateral />
+                <div>Página Definições de Polo</div>
+              </>
+            }
+          />
         </Routes>
       </MemoryRouter>
     </ProvedorEstadoMenuLateral>,
@@ -85,12 +103,23 @@ describe('MenuLateral', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('renderiza apenas o item Cadastros no menu', async () => {
+  it('renderiza o grupo Cadastros com subitens no menu', async () => {
     const usuario = userEvent.setup()
     renderMenuLateral()
     await abrirMenuCompleto(usuario)
 
-    expect(screen.getByRole('link', { name: /cadastros/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /cadastros/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: /cadastro de edições/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: /definições de polo/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: /cadastro de polos parceiros/i }),
+    ).toBeInTheDocument()
     expect(
       screen.queryByRole('link', { name: /cronogramas/i }),
     ).not.toBeInTheDocument()
@@ -102,14 +131,72 @@ describe('MenuLateral', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('navega para /edicoes-programa ao clicar em Cadastros', async () => {
+  it('navega para /edicoes-programa ao clicar em Cadastro de Edições', async () => {
     const usuario = userEvent.setup()
     renderMenuLateral()
     await abrirMenuCompleto(usuario)
 
-    await usuario.click(screen.getByRole('link', { name: /cadastros/i }))
+    await usuario.click(
+      screen.getByRole('link', { name: /cadastro de edições/i }),
+    )
 
     expect(screen.getByText(/página edições do programa/i)).toBeInTheDocument()
+  })
+
+  it('navega para /definicoes-polo ao clicar em Definições de Polo', async () => {
+    const usuario = userEvent.setup()
+    renderMenuLateral()
+    await abrirMenuCompleto(usuario)
+
+    await usuario.click(
+      screen.getByRole('link', { name: /definições de polo/i }),
+    )
+
+    expect(screen.getByText(/página definições de polo/i)).toBeInTheDocument()
+  })
+
+  it('navega para /polos-parceiros ao clicar em Cadastro de Polos Parceiros', async () => {
+    const usuario = userEvent.setup()
+    renderMenuLateral()
+    await abrirMenuCompleto(usuario)
+
+    await usuario.click(
+      screen.getByRole('link', { name: /cadastro de polos parceiros/i }),
+    )
+
+    expect(screen.getByText(/página polos parceiros/i)).toBeInTheDocument()
+  })
+
+  it('expande Cadastros automaticamente em rotas de cadastro', async () => {
+    const usuario = userEvent.setup()
+    renderMenuLateral('/polos-parceiros')
+    await abrirMenuCompleto(usuario)
+
+    expect(screen.getByRole('button', { name: /cadastros/i })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
+    expect(
+      screen.getByRole('link', { name: /cadastro de polos parceiros/i }),
+    ).toBeInTheDocument()
+  })
+
+  it('alterna a expansão de Cadastros ao clicar no cabeçalho', async () => {
+    const usuario = userEvent.setup()
+    renderMenuLateral('/inicio')
+    await abrirMenuCompleto(usuario)
+
+    const botaoCadastros = screen.getByRole('button', { name: /cadastros/i })
+    expect(botaoCadastros).toHaveAttribute('aria-expanded', 'true')
+
+    await usuario.click(botaoCadastros)
+    expect(botaoCadastros).toHaveAttribute('aria-expanded', 'false')
+    expect(
+      screen.queryByRole('link', { name: /cadastro de edições/i }),
+    ).not.toBeInTheDocument()
+
+    await usuario.click(botaoCadastros)
+    expect(botaoCadastros).toHaveAttribute('aria-expanded', 'true')
   })
 
   it('mantém o menu aberto após navegar para outra página', async () => {
@@ -117,7 +204,9 @@ describe('MenuLateral', () => {
     renderMenuLateral()
     await abrirMenuCompleto(usuario)
 
-    await usuario.click(screen.getByRole('link', { name: /cadastros/i }))
+    await usuario.click(
+      screen.getByRole('link', { name: /cadastro de edições/i }),
+    )
 
     expect(
       screen.getByRole('heading', {
@@ -170,7 +259,9 @@ describe('MenuLateral', () => {
     expect(
       screen.getByRole('button', { name: /fechar menu/i }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /cadastros/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /cadastros/i }),
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('img', { name: /prefeitura de são paulo/i }),
     ).toBeInTheDocument()
@@ -297,7 +388,7 @@ describe('MenuLateral', () => {
     await abrirMenuCompleto(usuario)
 
     const navegacao = screen.getByRole('navigation')
-    expect(within(navegacao).getByRole('list')).toBeInTheDocument()
-    expect(within(navegacao).getAllByRole('listitem')).toHaveLength(1)
+    expect(within(navegacao).getAllByRole('list')).toHaveLength(2)
+    expect(within(navegacao).getAllByRole('listitem')).toHaveLength(4)
   })
 })

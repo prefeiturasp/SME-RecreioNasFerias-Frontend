@@ -56,3 +56,15 @@ export function validarCadastroEdicao(
     )
   )
 }
+
+export function formularioCadastroEstaPreenchido(
+  dados: DadosCadastroEdicaoPrograma,
+): boolean {
+  return (
+    dados.nome.trim().length > 0 &&
+    dados.dataInicioEdicao.trim().length > 0 &&
+    dados.dataFimEdicao.trim().length > 0 &&
+    dados.dataInicioInscricoes.trim().length > 0 &&
+    dados.dataFimInscricoes.trim().length > 0
+  )
+}

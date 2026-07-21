@@ -6,6 +6,8 @@ import IconeSetaVoltar from '../../assets/icone-seta-voltar.png'
 
 import { Cabecalho } from '../../components/Cabecalho'
 
+import { IndicadorCarregamento } from '../../components/IndicadorCarregamento'
+
 import { MapaVisual } from '../../components/MapaVisual'
 
 import { MenuLateral } from '../../components/MenuLateral'
@@ -63,12 +65,16 @@ export default function PaginaEdicoesPrograma() {
 
   const [totalPaginas, setTotalPaginas] = useState(0)
 
+  const [estaCarregandoListagem, setEstaCarregandoListagem] = useState(true)
+
   const fecharMensagemSucesso = useCallback(() => {
     setMensagemSucessoVisivel(false)
   }, [])
 
   const carregarEdicoes = useCallback(
     (pagina: number, tamanhoPagina: number) => {
+      setEstaCarregandoListagem(true)
+
       void listarEdicoesPrograma({ pagina, tamanhoPagina })
         .then((listagem) => {
           setEdicoes(listagem.edicoes)
@@ -84,6 +90,9 @@ export default function PaginaEdicoesPrograma() {
           setEdicoes([])
 
           setTotalPaginas(0)
+        })
+        .finally(() => {
+          setEstaCarregandoListagem(false)
         })
     },
     [],
@@ -145,14 +154,21 @@ export default function PaginaEdicoesPrograma() {
             </CabecalhoAreaInternaConteudo>
 
             <ListagemEdicoesPrograma>
-              <TabelaListagemEdicoesPrograma
-                edicoes={edicoes}
-                paginaAtual={paginaAtual}
-                totalPaginas={totalPaginas}
-                itensPorPagina={itensPorPagina}
-                onMudarPagina={setPaginaAtual}
-                onMudarItensPorPagina={mudarItensPorPagina}
-              />
+              {estaCarregandoListagem ? (
+                <IndicadorCarregamento mensagem="Carregando edições do programa..." />
+              ) : (
+                <TabelaListagemEdicoesPrograma
+                  edicoes={edicoes}
+                  paginaAtual={paginaAtual}
+                  totalPaginas={totalPaginas}
+                  itensPorPagina={itensPorPagina}
+                  onMudarPagina={setPaginaAtual}
+                  onMudarItensPorPagina={mudarItensPorPagina}
+                  onEditarEdicao={(idEdicao) =>
+                    navigate(`/editar-edicao-programa/${idEdicao}`)
+                  }
+                />
+              )}
             </ListagemEdicoesPrograma>
           </section>
         </AreaConteudo>

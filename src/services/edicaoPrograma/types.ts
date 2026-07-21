@@ -7,7 +7,17 @@ export type EdicaoPrograma = {
   dataFimInscricoes: string
   quantidadeInscritos: number
   quantidadeAtendimentoEfetivo: number
+  quantidadePasseios: number
+  quantidadeApresentacoes: number
 }
+
+export type QuantidadesEdicaoPrograma = Pick<
+  EdicaoPrograma,
+  | 'quantidadeInscritos'
+  | 'quantidadeAtendimentoEfetivo'
+  | 'quantidadePasseios'
+  | 'quantidadeApresentacoes'
+>
 
 export type NovaEdicaoPrograma = Omit<EdicaoPrograma, 'id'>
 

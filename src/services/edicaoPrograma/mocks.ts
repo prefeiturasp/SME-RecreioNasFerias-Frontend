@@ -17,6 +17,8 @@ export const EDICOES_PROGRAMA_MOCK: EdicaoPrograma[] = [
     dataFimInscricoes: '2025-12-31',
     quantidadeInscritos: 50,
     quantidadeAtendimentoEfetivo: 40,
+    quantidadePasseios: 0,
+    quantidadeApresentacoes: 0,
   },
   {
     id: 'mock-edicao-fevereiro-2026',
@@ -27,6 +29,8 @@ export const EDICOES_PROGRAMA_MOCK: EdicaoPrograma[] = [
     dataFimInscricoes: '2026-01-26',
     quantidadeInscritos: 100,
     quantidadeAtendimentoEfetivo: 100,
+    quantidadePasseios: 0,
+    quantidadeApresentacoes: 0,
   },
   {
     id: 'mock-edicao-marco-2026',
@@ -37,5 +41,7 @@ export const EDICOES_PROGRAMA_MOCK: EdicaoPrograma[] = [
     dataFimInscricoes: '2026-02-28',
     quantidadeInscritos: 200,
     quantidadeAtendimentoEfetivo: 180,
+    quantidadePasseios: 0,
+    quantidadeApresentacoes: 0,
   },
 ]

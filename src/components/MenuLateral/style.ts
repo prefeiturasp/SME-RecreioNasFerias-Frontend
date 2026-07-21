@@ -78,61 +78,111 @@ export const ListaMenu = styled.ul`
   margin: 0;
 `
 
-export const CartaoItemMenu = styled(Link)`
-  position: relative;
+export const CartaoGrupoMenu = styled.div`
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
   width: 100%;
-  height: 96px;
-  padding: 4px;
   border-radius: 4px;
-  background-color: #3d358f;
-  color: #ffffff;
-  text-decoration: none;
+  background-color: #ffffff;
+  overflow: hidden;
+`
+
+export const CabecalhoGrupoMenu = styled.div`
+  display: flex;
+  align-items: center;
+  width: 100%;
+`
+
+export const BotaoCabecalhoGrupoMenu = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  min-height: 25px;
+  padding: 12px 8px;
+  color: #1d0a55;
+  text-align: left;
 
   &:focus-visible {
     outline: 2px solid #ffffff;
-    outline-offset: 2px;
+    outline-offset: -2px;
   }
 `
 
-export const IndicadorCartaoMenu = styled.span`
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  color: #b5c99a;
-
-  > svg {
-    width: 12px;
-    height: auto;
-  }
-`
-
-export const IconeCartaoMenu = styled.span`
+export const IconeCartaoMenu = styled.span<{ $icone: string }>`
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   width: 25px;
   height: 25px;
-  flex-shrink: 0;
-
-  > img {
-    width: 25px;
-    height: 25px;
-    object-fit: contain;
-  }
+  background-color: #1d0a55;
+  mask: url(${({ $icone }) => $icone}) center / contain no-repeat;
+  -webkit-mask: url(${({ $icone }) => $icone}) center / contain no-repeat;
 `
 
-export const RotuloCartaoMenu = styled.span`
-  font-family: 'Roboto', sans-serif;
+export const RotuloGrupoMenu = styled.span`
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-height: 25px;
+  font-family: var(--font-family);
   font-weight: 700;
   font-size: 14px;
   line-height: 1;
-  color: #ffffff;
+  color: #1d0a55;
+`
+
+export const IconeChevronGrupoMenu = styled.span<{ $expandido: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  color: #1d0a55;
+  transform: rotate(${({ $expandido }) => ($expandido ? '180deg' : '0deg')});
+  transition: transform 0.2s ease;
+
+  > svg {
+    width: 24px;
+    height: 24px;
+  }
+`
+
+export const ListaSubitensMenu = styled.ul`
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid #e5e5e5;
+`
+
+export const SubitemMenu = styled(Link)<{ $ativo?: boolean }>`
+  display: block;
+  padding: 12px 8px 12px 41px;
+  border-top: 1px solid #e5e5e5;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.2;
+  color: ${({ $ativo }) => ($ativo ? '#1d0a55' : '#6b6b6b')};
+  text-decoration: none;
+  background-color: ${({ $ativo }) => ($ativo ? '#f5f5f5' : 'transparent')};
+
+  &:first-child {
+    border-top: none;
+  }
+
+  &:hover {
+    background-color: #f5f5f5;
+    color: #1d0a55;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #1d0a55;
+    outline-offset: -2px;
+  }
 `
 
 export const RodapeLogoMenu = styled.div`

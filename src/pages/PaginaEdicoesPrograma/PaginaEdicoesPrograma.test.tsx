@@ -64,6 +64,10 @@ const edicoesExemplo: EdicaoPrograma[] = [
     quantidadeInscritos: 50,
 
     quantidadeAtendimentoEfetivo: 40,
+
+    quantidadePasseios: 0,
+
+    quantidadeApresentacoes: 0,
   },
 
   {
@@ -82,6 +86,10 @@ const edicoesExemplo: EdicaoPrograma[] = [
     quantidadeInscritos: 100,
 
     quantidadeAtendimentoEfetivo: 100,
+
+    quantidadePasseios: 0,
+
+    quantidadeApresentacoes: 0,
   },
 
   {
@@ -100,6 +108,10 @@ const edicoesExemplo: EdicaoPrograma[] = [
     quantidadeInscritos: 200,
 
     quantidadeAtendimentoEfetivo: 180,
+
+    quantidadePasseios: 0,
+
+    quantidadeApresentacoes: 0,
   },
 ]
 
@@ -110,6 +122,26 @@ describe('PaginaEdicoesPrograma', () => {
     listarEdicoesProgramaMock.mockResolvedValue(
       criarListagemMock(edicoesExemplo),
     )
+  })
+
+  it('exibe indicador de carregamento antes da listagem retornar', () => {
+    listarEdicoesProgramaMock.mockImplementation(
+      () =>
+        new Promise(() => {
+          /* pendente */
+        }),
+    )
+
+    render(
+      <MemoryRouter>
+        <PaginaEdicoesPrograma />
+      </MemoryRouter>,
+    )
+
+    expect(
+      screen.getByText(/carregando edições do programa/i),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 
   it('renderiza MenuLateral, Cabecalho e mapa visual', async () => {

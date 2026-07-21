@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  formularioCadastroEstaPreenchido,
   validarCadastroEdicao,
   validarInscricoesAntesDoInicioEdicao,
   validarPeriodoEdicao,
@@ -119,5 +120,41 @@ describe('validarCadastroEdicao', () => {
         dataFimInscricoes: '2026-05-31',
       }),
     ).toBeNull()
+  })
+})
+
+describe('formularioCadastroEstaPreenchido', () => {
+  it('retorna false quando algum campo editável está vazio', () => {
+    expect(
+      formularioCadastroEstaPreenchido({
+        nome: '',
+        dataInicioEdicao: '2026-06-01',
+        dataFimEdicao: '2026-06-30',
+        dataInicioInscricoes: '2026-05-01',
+        dataFimInscricoes: '2026-05-31',
+      }),
+    ).toBe(false)
+
+    expect(
+      formularioCadastroEstaPreenchido({
+        nome: 'Edição Teste',
+        dataInicioEdicao: '2026-06-01',
+        dataFimEdicao: '2026-06-30',
+        dataInicioInscricoes: '2026-05-01',
+        dataFimInscricoes: '',
+      }),
+    ).toBe(false)
+  })
+
+  it('retorna true quando todos os campos editáveis estão preenchidos', () => {
+    expect(
+      formularioCadastroEstaPreenchido({
+        nome: 'Edição Teste',
+        dataInicioEdicao: '2026-06-01',
+        dataFimEdicao: '2026-06-30',
+        dataInicioInscricoes: '2026-05-01',
+        dataFimInscricoes: '2026-05-31',
+      }),
+    ).toBe(true)
   })
 })

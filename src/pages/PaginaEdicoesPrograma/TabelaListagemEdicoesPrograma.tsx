@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 
-import { iconeLapisEditar, iconeOlho } from '../../assets'
+import { iconeLapisEditar } from '../../assets'
 
 import { IconeOrdenacaoTabela } from '../../components/icons'
 
@@ -44,12 +44,14 @@ type TabelaListagemEdicoesProgramaProps = {
   onMudarPagina: (pagina: number) => void
 
   onMudarItensPorPagina: (itensPorPagina: number) => void
+
+  onEditarEdicao: (idEdicao: string) => void
 }
 
 const COLUNAS_ORDENAVEIS: { id: ColunaOrdenacao; rotulo: string }[] = [
-  { id: 'nome', rotulo: 'Nome da Edição' },
+  { id: 'nome', rotulo: 'Nome da Edição do Programa' },
 
-  { id: 'periodoEdicao', rotulo: 'Período da Edição' },
+  { id: 'periodoEdicao', rotulo: 'Período da Edição do Programa' },
 
   { id: 'periodoInscricoes', rotulo: 'Período das Inscrições' },
 
@@ -95,6 +97,8 @@ export function TabelaListagemEdicoesPrograma({
   onMudarPagina,
 
   onMudarItensPorPagina,
+
+  onEditarEdicao,
 }: Readonly<TabelaListagemEdicoesProgramaProps>) {
   const [colunaOrdenacao, setColunaOrdenacao] =
     useState<ColunaOrdenacao>('nome')
@@ -196,14 +200,8 @@ export function TabelaListagemEdicoesPrograma({
                   <GrupoAcoesEdicao>
                     <BotaoAcaoEdicao
                       type="button"
-                      aria-label={`Visualizar edição ${edicao.nome}`}
-                    >
-                      <img src={iconeOlho} alt="" aria-hidden="true" />
-                    </BotaoAcaoEdicao>
-
-                    <BotaoAcaoEdicao
-                      type="button"
                       aria-label={`Editar edição ${edicao.nome}`}
+                      onClick={() => onEditarEdicao(edicao.id)}
                     >
                       <img src={iconeLapisEditar} alt="" aria-hidden="true" />
                     </BotaoAcaoEdicao>

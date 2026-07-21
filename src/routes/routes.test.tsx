@@ -8,6 +8,65 @@ vi.mock('../components/MenuLateral', () => ({
   MenuLateral: () => <aside aria-label="menu lateral">Menu lateral</aside>,
 }))
 
+vi.mock('../services/poloParceiro/api', () => ({
+  listarPolosParceiros: vi.fn().mockResolvedValue({
+    polos: [],
+    pagina: 1,
+    tamanhoPagina: 10,
+    total: 0,
+    totalPaginas: 0,
+  }),
+  cadastrarPoloParceiro: vi.fn(),
+  obterPoloParceiro: vi.fn().mockResolvedValue({
+    id: '11111111-1111-1111-1111-111111111111',
+    tipo: 'Pendente',
+    nomeOsc: 'OSC Teste',
+    nomePolo: 'Polo Teste',
+    dre: 'DIRETORIA REGIONAL DE EDUCACAO BUTANTA',
+    tipoUe: 'EMEF',
+    quantidadeMaximaAlunos: 50,
+    cep: '01310100',
+    endereco: 'Av. Paulista, 1000',
+    nomeGestor: 'Gestor Teste',
+    emailPolo: 'polo@teste.com',
+    telefonePolo: '11999999999',
+    status: 'ativo',
+    observacoesGerais: '',
+  }),
+  atualizarPoloParceiro: vi.fn(),
+}))
+
+vi.mock('../services/smeIntegracao/api', () => ({
+  listarDresNomeAbreviacao: vi.fn().mockResolvedValue([]),
+  listarTiposEscolas: vi.fn().mockResolvedValue([]),
+}))
+
+vi.mock('../services/definicaoPolo/api', () => ({
+  listarDefinicoesPolo: vi.fn().mockResolvedValue({
+    polos: [],
+    pagina: 1,
+    tamanhoPagina: 10,
+    total: 0,
+    totalPaginas: 0,
+  }),
+  sincronizarUnidadesDiretas: vi.fn().mockResolvedValue({
+    totalConsultados: 0,
+    totalNovos: 0,
+    totalJaExistentes: 0,
+    executada: false,
+    motivoIgnorada: 'ja_executada_hoje',
+    ultimaExecucaoEm: null,
+  }),
+  atualizarDefinicoesPoloEmLote: vi.fn(),
+  listarOpcoesFiltroDefinicaoPolos: vi.fn().mockResolvedValue({
+    dres: [],
+    tiposUe: [],
+    gestoes: [],
+    nomesEdicao: [],
+    tiposPolo: [],
+  }),
+}))
+
 describe('RotasAplicacao', () => {
   beforeEach(() => {
     localStorage.clear()
@@ -90,5 +149,104 @@ describe('RotasAplicacao', () => {
     expect(mapa).toHaveTextContent('Início')
     expect(mapa).toHaveTextContent('Cadastros')
     expect(mapa).toHaveTextContent('Edições do programa')
+  })
+
+  it('renderiza a página Cadastro de Polos Parceiros na rota /polos-parceiros quando autenticado', async () => {
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '8080640',
+      nome: 'VANIA FERREIRA DA SILVA CANEKI',
+      descricaoCargo: 'ASSISTENTE TECNICO DE EDUCACAO I',
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/polos-parceiros']}>
+        <RotasAplicacao />
+      </MemoryRouter>,
+    )
+
+    const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
+    expect(mapa).toHaveTextContent('Início')
+    expect(mapa).toHaveTextContent('Cadastros')
+    expect(mapa).toHaveTextContent('Cadastro de Polos Parceiros')
+    expect(
+      screen.getByRole('heading', { name: /cadastro de polos parceiros/i }),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/filtrar polos/i)).toBeInTheDocument()
+    expect(
+      await screen.findByText(/resultados da pesquisa/i),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /adicionar polo parceiro/i }),
+    ).toBeInTheDocument()
+  })
+
+  it('renderiza a página Cadastrar Polo Parceiro na rota /cadastrar-polo-parceiro quando autenticado', async () => {
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '8080640',
+      nome: 'VANIA FERREIRA DA SILVA CANEKI',
+      descricaoCargo: 'ASSISTENTE TECNICO DE EDUCACAO I',
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/cadastrar-polo-parceiro']}>
+        <RotasAplicacao />
+      </MemoryRouter>,
+    )
+
+    expect(
+      screen.getByRole('heading', { name: /cadastrar polo parceiro/i }),
+    ).toBeInTheDocument()
+    expect(await screen.findByLabelText(/^tipo$/i)).toHaveValue('Pendente')
+    expect(screen.getByText(/informações gerais/i)).toBeInTheDocument()
+  })
+
+  it('renderiza a página Editar Polo Parceiro na rota /editar-polo-parceiro/:idPolo quando autenticado', async () => {
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '8080640',
+      nome: 'VANIA FERREIRA DA SILVA CANEKI',
+      descricaoCargo: 'ASSISTENTE TECNICO DE EDUCACAO I',
+    })
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          '/editar-polo-parceiro/11111111-1111-1111-1111-111111111111',
+        ]}
+      >
+        <RotasAplicacao />
+      </MemoryRouter>,
+    )
+
+    expect(
+      screen.getByRole('heading', { name: /editar polo parceiro/i }),
+    ).toBeInTheDocument()
+    expect(await screen.findByDisplayValue('OSC Teste')).toBeInTheDocument()
+    expect(screen.getByText(/informações gerais/i)).toBeInTheDocument()
+  })
+
+  it('renderiza a página Definições de Polo na rota /definicoes-polo quando autenticado', () => {
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '8080640',
+      nome: 'VANIA FERREIRA DA SILVA CANEKI',
+      descricaoCargo: 'ASSISTENTE TECNICO DE EDUCACAO I',
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/definicoes-polo']}>
+        <RotasAplicacao />
+      </MemoryRouter>,
+    )
+
+    const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
+    expect(mapa).toHaveTextContent('Início')
+    expect(mapa).toHaveTextContent('Cadastros')
+    expect(mapa).toHaveTextContent('Definição de Polos')
+    expect(
+      screen.getByRole('heading', { name: /definição de polos/i }),
+    ).toBeInTheDocument()
   })
 })
