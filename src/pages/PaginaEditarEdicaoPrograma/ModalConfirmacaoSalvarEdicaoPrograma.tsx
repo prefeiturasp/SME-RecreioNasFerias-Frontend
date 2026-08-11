@@ -51,15 +51,15 @@ export function ModalConfirmacaoSalvarEdicaoPrograma({
       className={cn(
         'fixed inset-0 z-[1000] m-0 h-full max-h-none w-full max-w-none border-0 bg-transparent p-4',
         'open:flex open:items-center open:justify-center',
-        'backdrop:bg-[rgba(0,0,0,0.45)]',
       )}
-      onClick={(evento) => {
-        if (evento.target === evento.currentTarget) {
-          onCancelar()
-        }
-      }}
     >
-      <div className="w-full max-w-[28rem] rounded-[var(--size-radius-sm)] bg-[var(--color-background)] p-6 shadow-[var(--shadow-card)]">
+      <button
+        type="button"
+        aria-label="Fechar diálogo"
+        className="absolute inset-0 cursor-default border-0 bg-[rgba(0,0,0,0.45)] p-0"
+        onClick={onCancelar}
+      />
+      <div className="relative z-10 w-full max-w-[28rem] rounded-[var(--size-radius-sm)] bg-[var(--color-background)] p-6 shadow-[var(--shadow-card)]">
         <h4
           id="titulo-confirmacao-salvar-edicao"
           className="mb-3 font-[family-name:var(--font-family)] text-[length:var(--font-size-section-title)] font-bold leading-[1.3] text-[var(--color-text)]"

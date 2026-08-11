@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { ModalConfirmacaoSalvarEdicaoPrograma } from './ModalConfirmacaoSalvarEdicaoPrograma'
@@ -59,7 +59,8 @@ describe('ModalConfirmacaoSalvarEdicaoPrograma', () => {
     expect(onConfirmar).toHaveBeenCalledTimes(1)
   })
 
-  it('fecha ao clicar no backdrop do diálogo', () => {
+  it('fecha ao clicar no backdrop do diálogo', async () => {
+    const usuario = userEvent.setup()
     const onCancelar = vi.fn()
 
     render(
@@ -70,7 +71,7 @@ describe('ModalConfirmacaoSalvarEdicaoPrograma', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('dialog'))
+    await usuario.click(screen.getByRole('button', { name: /fechar diálogo/i }))
     expect(onCancelar).toHaveBeenCalledTimes(1)
   })
 })
