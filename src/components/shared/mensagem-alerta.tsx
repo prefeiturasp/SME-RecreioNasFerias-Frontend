@@ -56,14 +56,15 @@ export function MensagemAlerta({
 }: Readonly<MensagemAlertaProps>) {
   if (variante === 'sucesso') {
     return (
-      <output
+      <div
+        role="status"
         aria-live="polite"
         className={cn(variantesMensagemAlerta({ variante }), className)}
         {...props}
       >
         <p>{children}</p>
         {onFechar == null ? null : <BotaoFecharSucesso onFechar={onFechar} />}
-      </output>
+      </div>
     )
   }
 
