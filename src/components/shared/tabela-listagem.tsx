@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 export function TituloListagem({
   className,
   ...props
-}: ComponentPropsWithoutRef<'p'>) {
+}: Readonly<ComponentPropsWithoutRef<'p'>>) {
   return (
     <p
       className={cn(
@@ -20,14 +20,14 @@ export function TituloListagem({
 export function ContainerTabelaListagem({
   className,
   ...props
-}: ComponentPropsWithoutRef<'div'>) {
+}: Readonly<ComponentPropsWithoutRef<'div'>>) {
   return <div className={cn('w-full overflow-x-auto', className)} {...props} />
 }
 
 export function TabelaListagem({
   className,
   ...props
-}: ComponentPropsWithoutRef<'table'>) {
+}: Readonly<ComponentPropsWithoutRef<'table'>>) {
   return (
     <table
       className={cn(
@@ -42,7 +42,7 @@ export function TabelaListagem({
 export function CabecalhoTabelaListagem({
   className,
   ...props
-}: ComponentPropsWithoutRef<'thead'>) {
+}: Readonly<ComponentPropsWithoutRef<'thead'>>) {
   return (
     <thead
       className={cn(
@@ -58,7 +58,7 @@ export function CabecalhoTabelaListagem({
 export function CorpoTabelaListagem({
   className,
   ...props
-}: ComponentPropsWithoutRef<'tbody'>) {
+}: Readonly<ComponentPropsWithoutRef<'tbody'>>) {
   return (
     <tbody
       className={cn(
@@ -75,7 +75,7 @@ export function BotaoOrdenarColuna({
   className,
   children,
   ...props
-}: ComponentPropsWithoutRef<'button'>) {
+}: Readonly<ComponentPropsWithoutRef<'button'>>) {
   return (
     <button
       type="button"
@@ -95,7 +95,7 @@ export function BotaoOrdenarColuna({
 export function CelulaAcoesListagem({
   className,
   ...props
-}: ComponentPropsWithoutRef<'td'>) {
+}: Readonly<ComponentPropsWithoutRef<'td'>>) {
   return (
     <td
       className={cn('text-center whitespace-nowrap', className)}
@@ -107,7 +107,7 @@ export function CelulaAcoesListagem({
 export function GrupoAcoesListagem({
   className,
   ...props
-}: ComponentPropsWithoutRef<'div'>) {
+}: Readonly<ComponentPropsWithoutRef<'div'>>) {
   return (
     <div
       className={cn('inline-flex items-center justify-center gap-2', className)}
@@ -120,7 +120,7 @@ export function BotaoAcaoListagem({
   className,
   type = 'button',
   ...props
-}: ComponentPropsWithoutRef<'button'>) {
+}: Readonly<ComponentPropsWithoutRef<'button'>>) {
   return (
     <button
       type={type}

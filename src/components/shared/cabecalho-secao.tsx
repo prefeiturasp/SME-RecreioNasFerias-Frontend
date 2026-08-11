@@ -25,7 +25,7 @@ export function CabecalhoSecao({
       )}
     >
       <h3>{titulo}</h3>
-      {acoes != null ? <div>{acoes}</div> : null}
+      {acoes == null ? null : <div>{acoes}</div>}
     </div>
   )
 }

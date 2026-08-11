@@ -6,7 +6,7 @@ export function CampoFormulario({
   className,
   children,
   ...props
-}: ComponentPropsWithoutRef<'div'>) {
+}: Readonly<ComponentPropsWithoutRef<'div'>>) {
   return (
     <div
       className={cn(
@@ -24,7 +24,7 @@ export function CampoFormulario({
 export function LinhaFormulario({
   className,
   ...props
-}: ComponentPropsWithoutRef<'div'>) {
+}: Readonly<ComponentPropsWithoutRef<'div'>>) {
   return (
     <div
       className={cn(
@@ -39,7 +39,7 @@ export function LinhaFormulario({
 export function AcoesFormulario({
   className,
   ...props
-}: ComponentPropsWithoutRef<'div'>) {
+}: Readonly<ComponentPropsWithoutRef<'div'>>) {
   return (
     <div
       className={cn(

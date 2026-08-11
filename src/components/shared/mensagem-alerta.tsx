@@ -28,7 +28,9 @@ type MensagemAlertaProps = ComponentPropsWithoutRef<'div'> &
     children: ReactNode
   }
 
-function BotaoFecharSucesso({ onFechar }: { onFechar: () => void }) {
+function BotaoFecharSucesso({
+  onFechar,
+}: Readonly<{ onFechar: () => void }>) {
   return (
     <button
       type="button"
@@ -51,7 +53,7 @@ export function MensagemAlerta({
   onFechar,
   children,
   ...props
-}: MensagemAlertaProps) {
+}: Readonly<MensagemAlertaProps>) {
   if (variante === 'sucesso') {
     return (
       <output
@@ -60,7 +62,7 @@ export function MensagemAlerta({
         {...props}
       >
         <p>{children}</p>
-        {onFechar != null ? <BotaoFecharSucesso onFechar={onFechar} /> : null}
+        {onFechar == null ? null : <BotaoFecharSucesso onFechar={onFechar} />}
       </output>
     )
   }

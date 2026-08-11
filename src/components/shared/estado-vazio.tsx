@@ -6,7 +6,7 @@ export function EstadoVazio({
   className,
   children,
   ...props
-}: ComponentPropsWithoutRef<'p'>) {
+}: Readonly<ComponentPropsWithoutRef<'p'>>) {
   return (
     <p
       className={cn(

@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 export function ContainerPagina({
   className,
   ...props
-}: ComponentPropsWithoutRef<'main'>) {
+}: Readonly<ComponentPropsWithoutRef<'main'>>) {
   return (
     <main
       className={cn('flex h-full w-full overflow-hidden', className)}
@@ -17,7 +17,7 @@ export function ContainerPagina({
 export function SecaoPrincipal({
   className,
   ...props
-}: ComponentPropsWithoutRef<'section'>) {
+}: Readonly<ComponentPropsWithoutRef<'section'>>) {
   return (
     <section
       className={cn(
@@ -32,7 +32,7 @@ export function SecaoPrincipal({
 export function AreaConteudo({
   className,
   ...props
-}: ComponentPropsWithoutRef<'div'>) {
+}: Readonly<ComponentPropsWithoutRef<'div'>>) {
   return (
     <div
       className={cn(

@@ -49,7 +49,7 @@ export function Botao({
   tamanho,
   type = 'button',
   ...props
-}: BotaoProps) {
+}: Readonly<BotaoProps>) {
   return (
     <button
       type={type}
@@ -63,7 +63,7 @@ export function RotuloBotaoVoltar({
   className,
   children,
   ...props
-}: ComponentPropsWithoutRef<'span'>) {
+}: Readonly<ComponentPropsWithoutRef<'span'>>) {
   return (
     <span
       className={cn(
@@ -88,7 +88,7 @@ export function BotaoVoltar({
   children,
   type = 'button',
   ...props
-}: BotaoVoltarProps) {
+}: Readonly<BotaoVoltarProps>) {
   return (
     <button
       type={type}
@@ -100,9 +100,9 @@ export function BotaoVoltar({
       {...props}
     >
       {icone}
-      {children != null ? (
+      {children == null ? null : (
         <RotuloBotaoVoltar>{children}</RotuloBotaoVoltar>
-      ) : null}
+      )}
     </button>
   )
 }
