@@ -1,27 +1,22 @@
 import { useMemo, useState } from 'react'
 
 import { iconeLapisEditar } from '../../assets'
-
 import { IconeOrdenacaoTabela } from '../../components/icons'
-
-import { formatarPeriodo } from '../../services/edicaoPrograma/formatarPeriodo'
-
-import type { EdicaoPrograma } from '../../services/edicaoPrograma/types'
-
-import { PaginacaoListagemEdicoes } from './PaginacaoListagemEdicoes'
-
+import { EstadoVazio } from '@/components/shared/estado-vazio'
 import {
-  BotaoAcaoEdicao,
+  BotaoAcaoListagem,
   BotaoOrdenarColuna,
-  CabecalhoTabelaEdicoes,
-  CelulaAcoesEdicao,
-  ContainerTabelaEdicoes,
-  CorpoTabelaEdicoes,
-  GrupoAcoesEdicao,
-  MensagemListagemVazia,
-  TabelaEdicoes,
-  TituloListagemEdicoes,
-} from './tabelaListagemStyles'
+  CabecalhoTabelaListagem,
+  CelulaAcoesListagem,
+  ContainerTabelaListagem,
+  CorpoTabelaListagem,
+  GrupoAcoesListagem,
+  TabelaListagem,
+  TituloListagem,
+} from '@/components/shared/tabela-listagem'
+import { formatarPeriodo } from '../../services/edicaoPrograma/formatarPeriodo'
+import type { EdicaoPrograma } from '../../services/edicaoPrograma/types'
+import { PaginacaoListagemEdicoes } from './PaginacaoListagemEdicoes'
 
 type ColunaOrdenacao =
   | 'nome'
@@ -34,29 +29,19 @@ type DirecaoOrdenacao = 'asc' | 'desc'
 
 type TabelaListagemEdicoesProgramaProps = {
   edicoes: EdicaoPrograma[]
-
   paginaAtual: number
-
   totalPaginas: number
-
   itensPorPagina: number
-
   onMudarPagina: (pagina: number) => void
-
   onMudarItensPorPagina: (itensPorPagina: number) => void
-
   onEditarEdicao: (idEdicao: string) => void
 }
 
 const COLUNAS_ORDENAVEIS: { id: ColunaOrdenacao; rotulo: string }[] = [
   { id: 'nome', rotulo: 'Nome da Edição do Programa' },
-
   { id: 'periodoEdicao', rotulo: 'Período da Edição do Programa' },
-
   { id: 'periodoInscricoes', rotulo: 'Período das Inscrições' },
-
   { id: 'quantidadeInscritos', rotulo: 'Quantidade de Inscritos' },
-
   {
     id: 'quantidadeAtendimentoEfetivo',
     rotulo: 'Quantidade de Atendimento Efetivo',
@@ -70,16 +55,12 @@ function obterValorOrdenacao(
   switch (coluna) {
     case 'nome':
       return edicao.nome.toLowerCase()
-
     case 'periodoEdicao':
       return edicao.dataInicioEdicao
-
     case 'periodoInscricoes':
       return edicao.dataInicioInscricoes
-
     case 'quantidadeInscritos':
       return edicao.quantidadeInscritos
-
     case 'quantidadeAtendimentoEfetivo':
       return edicao.quantidadeAtendimentoEfetivo
   }
@@ -87,22 +68,15 @@ function obterValorOrdenacao(
 
 export function TabelaListagemEdicoesPrograma({
   edicoes,
-
   paginaAtual,
-
   totalPaginas,
-
   itensPorPagina,
-
   onMudarPagina,
-
   onMudarItensPorPagina,
-
   onEditarEdicao,
 }: Readonly<TabelaListagemEdicoesProgramaProps>) {
   const [colunaOrdenacao, setColunaOrdenacao] =
     useState<ColunaOrdenacao>('nome')
-
   const [direcaoOrdenacao, setDirecaoOrdenacao] =
     useState<DirecaoOrdenacao>('asc')
 
@@ -111,13 +85,10 @@ export function TabelaListagemEdicoesPrograma({
 
     copia.sort((a, b) => {
       const valorA = obterValorOrdenacao(a, colunaOrdenacao)
-
       const valorB = obterValorOrdenacao(b, colunaOrdenacao)
 
       if (valorA < valorB) return direcaoOrdenacao === 'asc' ? -1 : 1
-
       if (valorA > valorB) return direcaoOrdenacao === 'asc' ? 1 : -1
-
       return 0
     })
 
@@ -127,92 +98,76 @@ export function TabelaListagemEdicoesPrograma({
   const alternarOrdenacao = (coluna: ColunaOrdenacao) => {
     if (colunaOrdenacao === coluna) {
       setDirecaoOrdenacao((atual) => (atual === 'asc' ? 'desc' : 'asc'))
-
       return
     }
 
     setColunaOrdenacao(coluna)
-
     setDirecaoOrdenacao('asc')
   }
 
   if (edicoes.length === 0) {
     return (
       <>
-        <TituloListagemEdicoes>Edições do programa</TituloListagemEdicoes>
-
-        <MensagemListagemVazia>Sem dados</MensagemListagemVazia>
+        <TituloListagem>Edições do programa</TituloListagem>
+        <EstadoVazio>Sem dados</EstadoVazio>
       </>
     )
   }
 
   return (
     <>
-      <TituloListagemEdicoes>Edições do programa</TituloListagemEdicoes>
-
-      <ContainerTabelaEdicoes>
-        <TabelaEdicoes>
-          <CabecalhoTabelaEdicoes>
+      <TituloListagem>Edições do programa</TituloListagem>
+      <ContainerTabelaListagem>
+        <TabelaListagem>
+          <CabecalhoTabelaListagem>
             <tr>
               {COLUNAS_ORDENAVEIS.map(({ id, rotulo }) => (
                 <th key={id} scope="col">
                   <BotaoOrdenarColuna
-                    type="button"
                     aria-label={`Ordenar por ${rotulo}`}
                     onClick={() => alternarOrdenacao(id)}
                   >
                     {rotulo}
-
                     <IconeOrdenacaoTabela />
                   </BotaoOrdenarColuna>
                 </th>
               ))}
-
               <th scope="col">Ações</th>
             </tr>
-          </CabecalhoTabelaEdicoes>
-
-          <CorpoTabelaEdicoes>
+          </CabecalhoTabelaListagem>
+          <CorpoTabelaListagem>
             {edicoesOrdenadas.map((edicao) => (
               <tr key={edicao.id}>
                 <td>{edicao.nome}</td>
-
                 <td>
                   {formatarPeriodo(
                     edicao.dataInicioEdicao,
                     edicao.dataFimEdicao,
                   )}
                 </td>
-
                 <td>
                   {formatarPeriodo(
                     edicao.dataInicioInscricoes,
-
                     edicao.dataFimInscricoes,
                   )}
                 </td>
-
                 <td>{edicao.quantidadeInscritos}</td>
-
                 <td>{edicao.quantidadeAtendimentoEfetivo}</td>
-
-                <CelulaAcoesEdicao>
-                  <GrupoAcoesEdicao>
-                    <BotaoAcaoEdicao
-                      type="button"
+                <CelulaAcoesListagem>
+                  <GrupoAcoesListagem>
+                    <BotaoAcaoListagem
                       aria-label={`Editar edição ${edicao.nome}`}
                       onClick={() => onEditarEdicao(edicao.id)}
                     >
                       <img src={iconeLapisEditar} alt="" aria-hidden="true" />
-                    </BotaoAcaoEdicao>
-                  </GrupoAcoesEdicao>
-                </CelulaAcoesEdicao>
+                    </BotaoAcaoListagem>
+                  </GrupoAcoesListagem>
+                </CelulaAcoesListagem>
               </tr>
             ))}
-          </CorpoTabelaEdicoes>
-        </TabelaEdicoes>
-      </ContainerTabelaEdicoes>
-
+          </CorpoTabelaListagem>
+        </TabelaListagem>
+      </ContainerTabelaListagem>
       {totalPaginas > 0 && (
         <PaginacaoListagemEdicoes
           paginaAtual={paginaAtual}

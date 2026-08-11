@@ -58,4 +58,20 @@ describe('ModalConfirmacaoSalvarEdicaoPrograma', () => {
     await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
     expect(onConfirmar).toHaveBeenCalledTimes(1)
   })
+
+  it('fecha ao clicar no backdrop', async () => {
+    const usuario = userEvent.setup()
+    const onCancelar = vi.fn()
+
+    render(
+      <ModalConfirmacaoSalvarEdicaoPrograma
+        aberto
+        onConfirmar={vi.fn()}
+        onCancelar={onCancelar}
+      />,
+    )
+
+    await usuario.click(screen.getByRole('button', { name: /fechar diálogo/i }))
+    expect(onCancelar).toHaveBeenCalledTimes(1)
+  })
 })

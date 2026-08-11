@@ -5,10 +5,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   definirSessaoAutenticacao,
   obterSessaoAutenticacao,
-} from '../../services/autenticacao'
-import { Cabecalho } from './index'
+} from '@/services/autenticacao'
+import { CabecalhoPagina } from './cabecalho-pagina'
 
-vi.mock('../../assets/logo-recreio.png', () => ({
+vi.mock('@/assets/logo-recreio.png', () => ({
   default: 'logo-recreio-stub.png',
 }))
 
@@ -19,7 +19,7 @@ const sessaoExemplo = {
   descricaoCargo: 'ASSISTENTE TECNICO DE EDUCACAO I',
 }
 
-describe('Cabecalho', () => {
+describe('CabecalhoPagina', () => {
   beforeEach(() => {
     localStorage.clear()
   })
@@ -27,7 +27,7 @@ describe('Cabecalho', () => {
   it('renderiza campos vazios quando não há sessão', () => {
     render(
       <MemoryRouter>
-        <Cabecalho />
+        <CabecalhoPagina />
       </MemoryRouter>,
     )
 
@@ -41,7 +41,7 @@ describe('Cabecalho', () => {
 
     render(
       <MemoryRouter>
-        <Cabecalho />
+        <CabecalhoPagina />
       </MemoryRouter>,
     )
 
@@ -63,7 +63,7 @@ describe('Cabecalho', () => {
 
     render(
       <MemoryRouter>
-        <Cabecalho />
+        <CabecalhoPagina />
       </MemoryRouter>,
     )
 
@@ -80,7 +80,7 @@ describe('Cabecalho', () => {
     render(
       <MemoryRouter initialEntries={['/edicoes-programa']}>
         <Routes>
-          <Route path="/edicoes-programa" element={<Cabecalho />} />
+          <Route path="/edicoes-programa" element={<CabecalhoPagina />} />
           <Route path="/inicio" element={<div>Página inicial</div>} />
         </Routes>
       </MemoryRouter>,
@@ -99,7 +99,7 @@ describe('Cabecalho', () => {
       <MemoryRouter initialEntries={['/inicio']}>
         <Routes>
           <Route path="/" element={<div>Tela de login</div>} />
-          <Route path="/inicio" element={<Cabecalho />} />
+          <Route path="/inicio" element={<CabecalhoPagina />} />
         </Routes>
       </MemoryRouter>,
     )

@@ -61,7 +61,7 @@
 
   /*
     Tipografia de heading no @layer base para que utilities
-    (ex.: text-white no SideMenu) possam sobrescrever a cor.
+    (ex.: text-white no MenuLateral) possam sobrescrever a cor.
     styled-components (unlayered) continua prevalecendo nas páginas.
   */
   h1,

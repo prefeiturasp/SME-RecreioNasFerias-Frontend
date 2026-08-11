@@ -1,10 +1,10 @@
-import { render, screen } from '@testing-library/react'
+﻿import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { definirSessaoAutenticacao } from '../services/autenticacao'
 import { RotasAplicacao } from './index'
 
-vi.mock('../components/MenuLateral', () => ({
+vi.mock('@/components/shared/menu-lateral', () => ({
   MenuLateral: () => <aside aria-label="menu lateral">Menu lateral</aside>,
 }))
 

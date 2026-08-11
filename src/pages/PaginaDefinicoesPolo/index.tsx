@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+﻿import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import IconeSetaVoltar from '../../assets/icone-seta-voltar.png'
-import { Cabecalho } from '../../components/Cabecalho'
+import { CabecalhoPagina } from '@/components/shared/cabecalho-pagina'
 import { IndicadorCarregamento } from '../../components/IndicadorCarregamento'
 import { OPCOES_ITENS_POR_PAGINA } from '../../components/ListagemTabela/constantesPaginacao'
 import { MapaVisual } from '../../components/MapaVisual'
-import { MenuLateral } from '../../components/MenuLateral'
+import { MenuLateral } from '@/components/shared/menu-lateral'
 import {
   atualizarDefinicoesPoloEmLote,
   ErroAtualizacaoDefinicoesPolo,
@@ -230,7 +230,7 @@ export default function PaginaDefinicoesPolo() {
       <MenuLateral />
 
       <SecaoPrincipal>
-        <Cabecalho />
+        <CabecalhoPagina />
 
         <AreaConteudo>
           <MapaVisual niveis={[...NIVEIS_MAPA_VISUAL]} />

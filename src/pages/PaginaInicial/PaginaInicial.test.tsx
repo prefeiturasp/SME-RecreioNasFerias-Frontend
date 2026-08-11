@@ -1,13 +1,13 @@
-import { render, screen } from '@testing-library/react'
+﻿import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import PaginaInicial from './index'
 
-vi.mock('../../components/MenuLateral', () => ({
+vi.mock('@/components/shared/menu-lateral', () => ({
   MenuLateral: () => <aside aria-label="menu lateral">Menu lateral</aside>,
 }))
 
-vi.mock('../../components/Cabecalho', () => ({
-  Cabecalho: () => <header>Header principal</header>,
+vi.mock('@/components/shared/cabecalho-pagina', () => ({
+  CabecalhoPagina: () => <header>Header principal</header>,
 }))
 
 vi.mock('../../components/MapaVisual', () => ({
@@ -15,7 +15,7 @@ vi.mock('../../components/MapaVisual', () => ({
 }))
 
 describe('PaginaInicial', () => {
-  it('renderiza MenuLateral, Cabecalho e mapa visual', () => {
+  it('renderiza MenuLateral, CabecalhoPagina e mapa visual', () => {
     render(<PaginaInicial />)
 
     expect(screen.getByLabelText(/menu lateral/i)).toBeInTheDocument()

@@ -1,4 +1,4 @@
-import {
+﻿import {
   useCallback,
   useEffect,
   useRef,
@@ -6,37 +6,39 @@ import {
   type SubmitEvent,
 } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+
 import IconeSetaVoltar from '../../assets/icone-seta-voltar.png'
-import { Cabecalho } from '../../components/Cabecalho'
-import { GrupoPeriodoData } from '../../components/CampoDataFormulario'
-import { IndicadorCarregamento } from '../../components/IndicadorCarregamento'
-import { MapaVisual } from '../../components/MapaVisual'
-import { MenuLateral } from '../../components/MenuLateral'
+import { MensagemAlerta } from '@/components/shared/mensagem-alerta'
+import { Botao, BotaoVoltar } from '@/components/shared/botao'
+import { CartaoFormulario } from '@/components/shared/cartao-conteudo'
+import { AcoesFormulario } from '@/components/shared/campo-formulario'
+import { IndicadorCarregamento } from '@/components/shared/indicador-carregamento'
+import { MapaVisual } from '@/components/shared/mapa-visual'
+import { CabecalhoPagina } from '@/components/shared/cabecalho-pagina'
+import {
+  AreaConteudo,
+  ContainerPagina,
+  SecaoPrincipal,
+} from '@/components/shared/estrutura-pagina'
+import { CabecalhoSecao } from '@/components/shared/cabecalho-secao'
+import { MenuLateral } from '@/components/shared/menu-lateral'
 import {
   atualizarEdicaoPrograma,
   ErroAtualizacaoEdicaoPrograma,
   ErroObterEdicaoPrograma,
   obterEdicaoPrograma,
 } from '../../services/edicaoPrograma/api'
-import type { EdicaoPrograma } from '../../services/edicaoPrograma/types'
-import { validarCadastroEdicao } from '../../services/edicaoPrograma/validarCadastroEdicao'
-import { ModalConfirmacaoSalvarEdicaoPrograma } from './ModalConfirmacaoSalvarEdicaoPrograma'
 import {
-  AreaConteudo,
-  BotaoCancelarFormulario,
-  BotaoSalvarFormulario,
-  BotaoVoltar,
-  CabecalhoAreaInternaConteudo,
-  ContainerPaginaEdicoesPrograma,
-  FormularioCadastroNovaEdicao,
-  InputNumericoFormularioCadastroNovaEdicao,
-  InputTextoFormularioCadastroNovaEdicao,
-  LinhaDeControlesFormularioCadastroNovaEdicao,
-  LinhaFormularioCadastroNovaEdicao,
-  MensagemErroFormulario,
-  RotuloBotaoVoltar,
-  SecaoPrincipal,
-} from './style'
+  dadosFormularioEdicaoSaoIguais,
+  obterDadosFormularioEdicao,
+} from '../../services/edicaoPrograma/obterDadosFormularioEdicao'
+import type {
+  DadosCadastroEdicaoPrograma,
+  EdicaoPrograma,
+} from '../../services/edicaoPrograma/types'
+import { validarCadastroEdicao } from '../../services/edicaoPrograma/validarCadastroEdicao'
+import { CamposFormularioEditarEdicao } from './CamposFormularioEditarEdicao'
+import { ModalConfirmacaoSalvarEdicaoPrograma } from './ModalConfirmacaoSalvarEdicaoPrograma'
 
 const NIVEIS_MAPA_VISUAL = [
   { rotulo: 'Início', caminho: '/inicio' },
@@ -44,49 +46,6 @@ const NIVEIS_MAPA_VISUAL = [
   { rotulo: 'Edições do programa', caminho: '/edicoes-programa' },
   { rotulo: 'Editar Edição do Programa' },
 ] as const
-
-function obterCampoTextoFormulario(dados: FormData, nomeCampo: string): string {
-  const valor = dados.get(nomeCampo)
-  return typeof valor === 'string' ? valor : ''
-}
-
-type DadosEditaveisEdicao = {
-  nome: string
-  dataInicioEdicao: string
-  dataFimEdicao: string
-  dataInicioInscricoes: string
-  dataFimInscricoes: string
-}
-
-function obterDadosEditaveisFormulario(
-  form: HTMLFormElement,
-): DadosEditaveisEdicao {
-  const dados = new FormData(form)
-
-  return {
-    nome: obterCampoTextoFormulario(dados, 'NomeDaEdicao'),
-    dataInicioEdicao: obterCampoTextoFormulario(dados, 'DataInicioEdicao'),
-    dataFimEdicao: obterCampoTextoFormulario(dados, 'DataFimEdicao'),
-    dataInicioInscricoes: obterCampoTextoFormulario(
-      dados,
-      'DataInicioInscricoes',
-    ),
-    dataFimInscricoes: obterCampoTextoFormulario(dados, 'DataFimInscricoes'),
-  }
-}
-
-function dadosEditaveisSaoIguais(
-  atual: DadosEditaveisEdicao,
-  inicial: DadosEditaveisEdicao,
-): boolean {
-  return (
-    atual.nome === inicial.nome &&
-    atual.dataInicioEdicao === inicial.dataInicioEdicao &&
-    atual.dataFimEdicao === inicial.dataFimEdicao &&
-    atual.dataInicioInscricoes === inicial.dataInicioInscricoes &&
-    atual.dataFimInscricoes === inicial.dataFimInscricoes
-  )
-}
 
 function montarCamposNumericosDesabilitados(edicao: EdicaoPrograma) {
   return [
@@ -117,6 +76,26 @@ function montarCamposNumericosDesabilitados(edicao: EdicaoPrograma) {
   ] as const
 }
 
+function mensagemErroAoCarregarEdicao(error: unknown): string {
+  if (error instanceof ErroObterEdicaoPrograma) {
+    return error.mensagemUsuario
+  }
+
+  return 'Não foi possível carregar a edição do programa.'
+}
+
+function montarValoresIniciais(
+  edicao: EdicaoPrograma,
+): DadosCadastroEdicaoPrograma {
+  return {
+    nome: edicao.nome,
+    dataInicioEdicao: edicao.dataInicioEdicao,
+    dataFimEdicao: edicao.dataFimEdicao,
+    dataInicioInscricoes: edicao.dataInicioInscricoes,
+    dataFimInscricoes: edicao.dataFimInscricoes,
+  }
+}
+
 export default function PaginaEditarEdicaoPrograma() {
   const navigate = useNavigate()
   const { idEdicao } = useParams<{ idEdicao: string }>()
@@ -126,7 +105,7 @@ export default function PaginaEditarEdicaoPrograma() {
   const [estaSalvando, setEstaSalvando] = useState(false)
   const [formularioAlterado, setFormularioAlterado] = useState(false)
   const [modalConfirmacaoAberto, setModalConfirmacaoAberto] = useState(false)
-  const valoresIniciaisRef = useRef<DadosEditaveisEdicao | null>(null)
+  const valoresIniciaisRef = useRef<DadosCadastroEdicaoPrograma | null>(null)
   const formularioRef = useRef<HTMLFormElement>(null)
 
   const voltarParaEdicoes = useCallback(
@@ -145,18 +124,10 @@ export default function PaginaEditarEdicaoPrograma() {
     setMensagemErro(null)
 
     void obterEdicaoPrograma(idEdicao)
-      .then((edicaoCarregada) => {
-        setEdicao(edicaoCarregada)
-      })
-      .catch((error) => {
+      .then(setEdicao)
+      .catch((error: unknown) => {
         setEdicao(null)
-
-        if (error instanceof ErroObterEdicaoPrograma) {
-          setMensagemErro(error.mensagemUsuario)
-          return
-        }
-
-        setMensagemErro('Não foi possível carregar a edição do programa.')
+        setMensagemErro(mensagemErroAoCarregarEdicao(error))
       })
       .finally(() => {
         setEstaCarregando(false)
@@ -170,29 +141,23 @@ export default function PaginaEditarEdicaoPrograma() {
       return
     }
 
-    valoresIniciaisRef.current = {
-      nome: edicao.nome,
-      dataInicioEdicao: edicao.dataInicioEdicao,
-      dataFimEdicao: edicao.dataFimEdicao,
-      dataInicioInscricoes: edicao.dataInicioInscricoes,
-      dataFimInscricoes: edicao.dataFimInscricoes,
-    }
+    valoresIniciaisRef.current = montarValoresIniciais(edicao)
     setFormularioAlterado(false)
   }, [edicao])
 
   const detectarAlteracaoFormulario = useCallback((form: HTMLFormElement) => {
     if (!valoresIniciaisRef.current) return
 
-    const dadosAtuais = obterDadosEditaveisFormulario(form)
+    const dadosAtuais = obterDadosFormularioEdicao(form)
     setFormularioAlterado(
-      !dadosEditaveisSaoIguais(dadosAtuais, valoresIniciaisRef.current),
+      !dadosFormularioEdicaoSaoIguais(dadosAtuais, valoresIniciaisRef.current),
     )
   }, [])
 
   const salvarEdicao = (evento: SubmitEvent<HTMLFormElement>) => {
     evento.preventDefault()
 
-    const dadosEdicao = obterDadosEditaveisFormulario(evento.currentTarget)
+    const dadosEdicao = obterDadosFormularioEdicao(evento.currentTarget)
     const mensagemValidacao = validarCadastroEdicao(dadosEdicao)
 
     if (mensagemValidacao) {
@@ -208,22 +173,14 @@ export default function PaginaEditarEdicaoPrograma() {
     setModalConfirmacaoAberto(false)
   }, [])
 
-  const confirmarSalvamento = () => {
-    setModalConfirmacaoAberto(false)
-
-    if (!formularioRef.current) return
-
-    void submeterEdicao(formularioRef.current)
-  }
-
   async function submeterEdicao(form: HTMLFormElement) {
     if (!edicao || !idEdicao) return
 
     setMensagemErro(null)
 
-    const dadosEdicao = obterDadosEditaveisFormulario(form)
-
+    const dadosEdicao = obterDadosFormularioEdicao(form)
     const mensagemValidacao = validarCadastroEdicao(dadosEdicao)
+
     if (mensagemValidacao) {
       setMensagemErro(mensagemValidacao)
       return
@@ -249,44 +206,53 @@ export default function PaginaEditarEdicaoPrograma() {
     }
   }
 
+  const confirmarSalvamento = () => {
+    setModalConfirmacaoAberto(false)
+
+    if (!formularioRef.current) return
+
+    void submeterEdicao(formularioRef.current)
+  }
+
   const camposNumericosDesabilitados = edicao
     ? montarCamposNumericosDesabilitados(edicao)
     : []
 
   return (
-    <ContainerPaginaEdicoesPrograma>
+    <ContainerPagina>
       <MenuLateral />
       <SecaoPrincipal>
-        <Cabecalho />
+        <CabecalhoPagina />
         <AreaConteudo>
           <MapaVisual niveis={[...NIVEIS_MAPA_VISUAL]} />
           <section>
-            <CabecalhoAreaInternaConteudo>
-              <h3>Editar Edição do Programa</h3>
-              <div>
+            <CabecalhoSecao
+              titulo="Editar Edição do Programa"
+              acoes={
                 <BotaoVoltar
-                  type="button"
                   aria-label="Voltar para edições do programa"
                   onClick={voltarParaEdicoes}
+                  icone={
+                    <img src={IconeSetaVoltar} alt="" aria-hidden="true" />
+                  }
                 >
-                  <img src={IconeSetaVoltar} alt="" aria-hidden="true" />
-                  <RotuloBotaoVoltar>Voltar</RotuloBotaoVoltar>
+                  Voltar
                 </BotaoVoltar>
-              </div>
-            </CabecalhoAreaInternaConteudo>
+              }
+            />
 
             {estaCarregando && (
               <IndicadorCarregamento mensagem="Carregando edição do programa..." />
             )}
 
             {!estaCarregando && mensagemErro && !edicao && (
-              <MensagemErroFormulario role="alert">
+              <MensagemAlerta variante="erro" role="alert">
                 {mensagemErro}
-              </MensagemErroFormulario>
+              </MensagemAlerta>
             )}
 
             {edicao && (
-              <FormularioCadastroNovaEdicao
+              <CartaoFormulario
                 ref={formularioRef}
                 onSubmit={salvarEdicao}
                 onChange={(evento) =>
@@ -294,92 +260,32 @@ export default function PaginaEditarEdicaoPrograma() {
                 }
               >
                 {mensagemErro && (
-                  <MensagemErroFormulario role="alert">
+                  <MensagemAlerta variante="erro" role="alert">
                     {mensagemErro}
-                  </MensagemErroFormulario>
+                  </MensagemAlerta>
                 )}
-                <LinhaFormularioCadastroNovaEdicao>
-                  <InputTextoFormularioCadastroNovaEdicao>
-                    <label htmlFor="NomeDaEdicao">Nome da Edição</label>
-                    <input
-                      type="text"
-                      name="NomeDaEdicao"
-                      id="NomeDaEdicao"
-                      placeholder="Digite o Nome da Edição"
-                      defaultValue={edicao.nome}
-                    />
-                  </InputTextoFormularioCadastroNovaEdicao>
-                  <GrupoPeriodoData
-                    rotulo="Período da Edição"
-                    idCampoInicio="DataInicioEdicao"
-                    nomeCampoInicio="DataInicioEdicao"
-                    rotuloAcessivelInicio="Data de início da edição"
-                    idCampoFim="DataFimEdicao"
-                    nomeCampoFim="DataFimEdicao"
-                    rotuloAcessivelFim="Data de fim da edição"
-                    valorCampoInicio={edicao.dataInicioEdicao}
-                    valorCampoFim={edicao.dataFimEdicao}
-                  />
-                  <GrupoPeriodoData
-                    rotulo="Período das Inscrições"
-                    idCampoInicio="DataInicioInscricoes"
-                    nomeCampoInicio="DataInicioInscricoes"
-                    rotuloAcessivelInicio="Data de início das inscrições"
-                    idCampoFim="DataFimInscricoes"
-                    nomeCampoFim="DataFimInscricoes"
-                    rotuloAcessivelFim="Data de fim das inscrições"
-                    valorCampoInicio={edicao.dataInicioInscricoes}
-                    valorCampoFim={edicao.dataFimInscricoes}
-                  />
-                </LinhaFormularioCadastroNovaEdicao>
-
-                <LinhaFormularioCadastroNovaEdicao>
-                  {camposNumericosDesabilitados.slice(0, 3).map((campo) => (
-                    <InputNumericoFormularioCadastroNovaEdicao key={campo.id}>
-                      <label htmlFor={campo.id}>{campo.rotulo}</label>
-                      <input
-                        type="number"
-                        name={campo.id}
-                        id={campo.id}
-                        placeholder={campo.placeholder}
-                        readOnly
-                        value={campo.valor}
-                      />
-                    </InputNumericoFormularioCadastroNovaEdicao>
-                  ))}
-                </LinhaFormularioCadastroNovaEdicao>
-
-                <LinhaFormularioCadastroNovaEdicao>
-                  <InputNumericoFormularioCadastroNovaEdicao>
-                    <label htmlFor={camposNumericosDesabilitados[3].id}>
-                      {camposNumericosDesabilitados[3].rotulo}
-                    </label>
-                    <input
-                      type="number"
-                      name={camposNumericosDesabilitados[3].id}
-                      id={camposNumericosDesabilitados[3].id}
-                      placeholder={camposNumericosDesabilitados[3].placeholder}
-                      readOnly
-                      value={camposNumericosDesabilitados[3].valor}
-                    />
-                  </InputNumericoFormularioCadastroNovaEdicao>
-                </LinhaFormularioCadastroNovaEdicao>
-
-                <LinhaDeControlesFormularioCadastroNovaEdicao>
-                  <BotaoCancelarFormulario
-                    type="button"
+                <CamposFormularioEditarEdicao
+                  edicao={edicao}
+                  camposNumericos={camposNumericosDesabilitados}
+                />
+                <AcoesFormulario>
+                  <Botao
+                    variante="contorno"
+                    tamanho="formulario"
                     onClick={voltarParaEdicoes}
                   >
                     Cancelar
-                  </BotaoCancelarFormulario>
-                  <BotaoSalvarFormulario
+                  </Botao>
+                  <Botao
+                    variante="primario"
+                    tamanho="formulario"
                     type="submit"
                     disabled={estaSalvando || !formularioAlterado}
                   >
                     Salvar
-                  </BotaoSalvarFormulario>
-                </LinhaDeControlesFormularioCadastroNovaEdicao>
-              </FormularioCadastroNovaEdicao>
+                  </Botao>
+                </AcoesFormulario>
+              </CartaoFormulario>
             )}
 
             <ModalConfirmacaoSalvarEdicaoPrograma
@@ -390,6 +296,6 @@ export default function PaginaEditarEdicaoPrograma() {
           </section>
         </AreaConteudo>
       </SecaoPrincipal>
-    </ContainerPaginaEdicoesPrograma>
+    </ContainerPagina>
   )
 }

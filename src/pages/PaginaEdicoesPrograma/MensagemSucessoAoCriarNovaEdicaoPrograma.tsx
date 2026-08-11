@@ -1,9 +1,6 @@
 import { useEffect } from 'react'
-import { CloseIcon } from '../../components/icons'
-import {
-  BotaoFecharMensagemSucesso,
-  MensagemSucessoAoCriarNovaEdicaoPrograma as ContainerMensagemSucesso,
-} from './style'
+
+import { MensagemAlerta } from '@/components/shared/mensagem-alerta'
 
 const TEMPO_EXIBICAO_MS = 3000
 
@@ -26,15 +23,8 @@ export function MensagemSucessoAoCriarNovaEdicaoPrograma({
   if (!visivel) return null
 
   return (
-    <ContainerMensagemSucesso aria-live="polite">
-      <p>Edição do Programa cadastrado com sucesso!</p>
-      <BotaoFecharMensagemSucesso
-        type="button"
-        aria-label="Fechar mensagem de sucesso"
-        onClick={onFechar}
-      >
-        <CloseIcon />
-      </BotaoFecharMensagemSucesso>
-    </ContainerMensagemSucesso>
+    <MensagemAlerta variante="sucesso" onFechar={onFechar}>
+      Edição do Programa cadastrado com sucesso!
+    </MensagemAlerta>
   )
 }

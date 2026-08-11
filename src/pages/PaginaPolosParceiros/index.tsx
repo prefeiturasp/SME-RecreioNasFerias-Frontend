@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useState } from 'react'
+﻿import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import IconeSetaVoltar from '../../assets/icone-seta-voltar.png'
 import { OPCOES_ITENS_POR_PAGINA } from '../../components/ListagemTabela/constantesPaginacao'
-import { Cabecalho } from '../../components/Cabecalho'
+import { CabecalhoPagina } from '@/components/shared/cabecalho-pagina'
 import { IndicadorCarregamento } from '../../components/IndicadorCarregamento'
 import { MapaVisual } from '../../components/MapaVisual'
-import { MenuLateral } from '../../components/MenuLateral'
+import { MenuLateral } from '@/components/shared/menu-lateral'
 import { listarPolosParceiros } from '../../services/poloParceiro/api'
 import {
   FILTROS_LISTAGEM_POLOS_PARCEIROS_INICIAIS,
@@ -124,7 +124,7 @@ export default function PaginaPolosParceiros() {
       <MenuLateral />
 
       <SecaoPrincipal>
-        <Cabecalho />
+        <CabecalhoPagina />
 
         <AreaConteudo>
           <MapaVisual niveis={[...NIVEIS_MAPA_VISUAL]} />

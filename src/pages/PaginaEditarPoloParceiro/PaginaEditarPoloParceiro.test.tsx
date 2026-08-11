@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+﻿import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -10,12 +10,12 @@ import {
 
 import PaginaEditarPoloParceiro from './index'
 
-vi.mock('../../components/MenuLateral', () => ({
+vi.mock('@/components/shared/menu-lateral', () => ({
   MenuLateral: () => <aside aria-label="menu lateral">Menu lateral</aside>,
 }))
 
-vi.mock('../../components/Cabecalho', () => ({
-  Cabecalho: () => <header>Header principal</header>,
+vi.mock('@/components/shared/cabecalho-pagina', () => ({
+  CabecalhoPagina: () => <header>Header principal</header>,
 }))
 
 vi.mock('../../components/MapaVisual', () => ({

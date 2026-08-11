@@ -9,10 +9,10 @@ import {
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ProvedorEstadoMenuLateral } from '../../contexts/EstadoMenuLateralContext'
-import { MenuLateral } from './index'
+import { ProvedorEstadoMenuLateral } from '@/contexts/EstadoMenuLateralContext'
+import { MenuLateral } from './menu-lateral'
 
-vi.mock('../../assets/logo-sme-branco.png', () => ({
+vi.mock('@/assets/logo-sme-branco.png', () => ({
   default: 'logo-sme-branco-stub.png',
 }))
 

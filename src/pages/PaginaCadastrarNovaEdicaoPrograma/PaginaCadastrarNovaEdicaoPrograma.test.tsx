@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+﻿import { render, screen, waitFor } from '@testing-library/react'
 
 import userEvent from '@testing-library/user-event'
 
@@ -10,15 +10,15 @@ import { ErroCadastroEdicaoPrograma } from '../../services/edicaoPrograma/api'
 
 import PaginaCadastrarNovaEdicaoPrograma from './index'
 
-vi.mock('../../components/MenuLateral', () => ({
+vi.mock('@/components/shared/menu-lateral', () => ({
   MenuLateral: () => <aside aria-label="menu lateral">Menu lateral</aside>,
 }))
 
-vi.mock('../../components/Cabecalho', () => ({
-  Cabecalho: () => <header>Header principal</header>,
+vi.mock('@/components/shared/cabecalho-pagina', () => ({
+  CabecalhoPagina: () => <header>Header principal</header>,
 }))
 
-vi.mock('../../components/MapaVisual', () => ({
+vi.mock('@/components/shared/mapa-visual', () => ({
   MapaVisual: () => <nav aria-label="Mapa do site">Mapa visual</nav>,
 }))
 
@@ -78,7 +78,7 @@ describe('PaginaCadastrarNovaEdicaoPrograma', () => {
     navegarMock.mockReset()
   })
 
-  it('renderiza MenuLateral, Cabecalho, mapa visual e formulário', () => {
+  it('renderiza MenuLateral, CabecalhoPagina, mapa visual e formulário', () => {
     render(
       <MemoryRouter>
         <PaginaCadastrarNovaEdicaoPrograma />

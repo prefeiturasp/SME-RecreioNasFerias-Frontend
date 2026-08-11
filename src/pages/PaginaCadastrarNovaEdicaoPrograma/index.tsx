@@ -1,37 +1,37 @@
-import { useCallback, useState, type SubmitEvent } from 'react'
+﻿import { useCallback, useState, type SubmitEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+
 import IconeSetaVoltar from '../../assets/icone-seta-voltar.png'
-import { Cabecalho } from '../../components/Cabecalho'
-import { GrupoPeriodoData } from '../../components/CampoDataFormulario'
-import { MapaVisual } from '../../components/MapaVisual'
-import { MenuLateral } from '../../components/MenuLateral'
+import { Botao, BotaoVoltar } from '@/components/shared/botao'
+import { MensagemAlerta } from '@/components/shared/mensagem-alerta'
+import { CartaoFormulario } from '@/components/shared/cartao-conteudo'
+import { GrupoPeriodoData } from '@/components/shared/campo-periodo-data'
+import {
+  AcoesFormulario,
+  CampoFormulario,
+  LinhaFormulario,
+} from '@/components/shared/campo-formulario'
+import { MapaVisual } from '@/components/shared/mapa-visual'
+import { CabecalhoPagina } from '@/components/shared/cabecalho-pagina'
+import {
+  AreaConteudo,
+  ContainerPagina,
+  SecaoPrincipal,
+} from '@/components/shared/estrutura-pagina'
+import { CabecalhoSecao } from '@/components/shared/cabecalho-secao'
+import { MenuLateral } from '@/components/shared/menu-lateral'
+import { CampoEntrada } from '@/components/ui/campo-entrada'
 import {
   cadastrarEdicaoPrograma,
   ErroCadastroEdicaoPrograma,
 } from '../../services/edicaoPrograma/api'
 import { QUANTIDADES_MOCK_CADASTRO_EDICAO } from '../../services/edicaoPrograma/mocks'
-import type { DadosCadastroEdicaoPrograma } from '../../services/edicaoPrograma/types'
+import { obterDadosFormularioEdicao } from '../../services/edicaoPrograma/obterDadosFormularioEdicao'
 import {
   validarCadastroEdicao,
   formularioCadastroEstaPreenchido,
 } from '../../services/edicaoPrograma/validarCadastroEdicao'
 import type { EstadoNavegacaoEdicoesPrograma } from '../PaginaEdicoesPrograma/types'
-import {
-  AreaConteudo,
-  BotaoCancelarFormulario,
-  BotaoSalvarFormulario,
-  BotaoVoltar,
-  CabecalhoAreaInternaConteudo,
-  ContainerPaginaEdicoesPrograma,
-  FormularioCadastroNovaEdicao,
-  InputNumericoFormularioCadastroNovaEdicao,
-  InputTextoFormularioCadastroNovaEdicao,
-  LinhaDeControlesFormularioCadastroNovaEdicao,
-  LinhaFormularioCadastroNovaEdicao,
-  MensagemErroFormulario,
-  RotuloBotaoVoltar,
-  SecaoPrincipal,
-} from './style'
 
 const NIVEIS_MAPA_VISUAL = [
   { rotulo: 'Início', caminho: '/inicio' },
@@ -67,28 +67,6 @@ const CAMPOS_NUMERICOS_DESABILITADOS = [
   },
 ] as const
 
-function obterCampoTextoFormulario(dados: FormData, nomeCampo: string): string {
-  const valor = dados.get(nomeCampo)
-  return typeof valor === 'string' ? valor : ''
-}
-
-function obterDadosCadastroFormulario(
-  form: HTMLFormElement,
-): DadosCadastroEdicaoPrograma {
-  const dados = new FormData(form)
-
-  return {
-    nome: obterCampoTextoFormulario(dados, 'NomeDaEdicao'),
-    dataInicioEdicao: obterCampoTextoFormulario(dados, 'DataInicioEdicao'),
-    dataFimEdicao: obterCampoTextoFormulario(dados, 'DataFimEdicao'),
-    dataInicioInscricoes: obterCampoTextoFormulario(
-      dados,
-      'DataInicioInscricoes',
-    ),
-    dataFimInscricoes: obterCampoTextoFormulario(dados, 'DataFimInscricoes'),
-  }
-}
-
 export default function PaginaCadastrarNovaEdicaoPrograma() {
   const navigate = useNavigate()
   const [mensagemErro, setMensagemErro] = useState<string | null>(null)
@@ -100,7 +78,7 @@ export default function PaginaCadastrarNovaEdicaoPrograma() {
   const detectarPreenchimentoFormulario = useCallback(
     (form: HTMLFormElement) => {
       setFormularioPreenchido(
-        formularioCadastroEstaPreenchido(obterDadosCadastroFormulario(form)),
+        formularioCadastroEstaPreenchido(obterDadosFormularioEdicao(form)),
       )
     },
     [],
@@ -114,7 +92,7 @@ export default function PaginaCadastrarNovaEdicaoPrograma() {
   async function submeterNovaEdicao(form: HTMLFormElement) {
     setMensagemErro(null)
 
-    const dadosCadastro = obterDadosCadastroFormulario(form)
+    const dadosCadastro = obterDadosFormularioEdicao(form)
 
     const mensagemValidacao = validarCadastroEdicao(dadosCadastro)
     if (mensagemValidacao) {
@@ -142,49 +120,50 @@ export default function PaginaCadastrarNovaEdicaoPrograma() {
   }
 
   return (
-    <ContainerPaginaEdicoesPrograma>
+    <ContainerPagina>
       <MenuLateral />
       <SecaoPrincipal>
-        <Cabecalho />
+        <CabecalhoPagina />
         <AreaConteudo>
           <MapaVisual niveis={[...NIVEIS_MAPA_VISUAL]} />
           <section>
-            <CabecalhoAreaInternaConteudo>
-              <h3>Cadastrar Nova Edição do Programa</h3>
-              <div>
+            <CabecalhoSecao
+              titulo="Cadastrar Nova Edição do Programa"
+              acoes={
                 <BotaoVoltar
-                  type="button"
                   aria-label="Voltar para edições do programa"
                   onClick={voltarParaEdicoes}
+                  icone={
+                    <img src={IconeSetaVoltar} alt="" aria-hidden="true" />
+                  }
                 >
-                  <img src={IconeSetaVoltar} alt="" aria-hidden="true" />
-                  <RotuloBotaoVoltar>Voltar</RotuloBotaoVoltar>
+                  Voltar
                 </BotaoVoltar>
-              </div>
-            </CabecalhoAreaInternaConteudo>
-            <FormularioCadastroNovaEdicao
+              }
+            />
+            <CartaoFormulario
               onSubmit={salvarNovaEdicao}
               onChange={(evento) =>
                 detectarPreenchimentoFormulario(evento.currentTarget)
               }
             >
               {mensagemErro && (
-                <MensagemErroFormulario role="alert">
+                <MensagemAlerta variante="erro" role="alert">
                   {mensagemErro}
-                </MensagemErroFormulario>
+                </MensagemAlerta>
               )}
-              <LinhaFormularioCadastroNovaEdicao>
-                <InputTextoFormularioCadastroNovaEdicao>
+              <LinhaFormulario>
+                <CampoFormulario>
                   <label htmlFor="NomeDaEdicao">
                     Nome da Edição do Programa
                   </label>
-                  <input
+                  <CampoEntrada
                     type="text"
                     name="NomeDaEdicao"
                     id="NomeDaEdicao"
                     placeholder="Digite o Nome da Edição do Programa"
                   />
-                </InputTextoFormularioCadastroNovaEdicao>
+                </CampoFormulario>
                 <GrupoPeriodoData
                   rotulo="Período da Edição do Programa"
                   idCampoInicio="DataInicioEdicao"
@@ -203,13 +182,13 @@ export default function PaginaCadastrarNovaEdicaoPrograma() {
                   nomeCampoFim="DataFimInscricoes"
                   rotuloAcessivelFim="Data de fim das inscrições"
                 />
-              </LinhaFormularioCadastroNovaEdicao>
+              </LinhaFormulario>
 
-              <LinhaFormularioCadastroNovaEdicao>
+              <LinhaFormulario>
                 {CAMPOS_NUMERICOS_DESABILITADOS.slice(0, 3).map((campo) => (
-                  <InputNumericoFormularioCadastroNovaEdicao key={campo.id}>
+                  <CampoFormulario key={campo.id}>
                     <label htmlFor={campo.id}>{campo.rotulo}</label>
-                    <input
+                    <CampoEntrada
                       type="number"
                       name={campo.id}
                       id={campo.id}
@@ -217,16 +196,16 @@ export default function PaginaCadastrarNovaEdicaoPrograma() {
                       readOnly
                       value={campo.valor}
                     />
-                  </InputNumericoFormularioCadastroNovaEdicao>
+                  </CampoFormulario>
                 ))}
-              </LinhaFormularioCadastroNovaEdicao>
+              </LinhaFormulario>
 
-              <LinhaFormularioCadastroNovaEdicao>
-                <InputNumericoFormularioCadastroNovaEdicao>
+              <LinhaFormulario>
+                <CampoFormulario>
                   <label htmlFor={CAMPOS_NUMERICOS_DESABILITADOS[3].id}>
                     {CAMPOS_NUMERICOS_DESABILITADOS[3].rotulo}
                   </label>
-                  <input
+                  <CampoEntrada
                     type="number"
                     name={CAMPOS_NUMERICOS_DESABILITADOS[3].id}
                     id={CAMPOS_NUMERICOS_DESABILITADOS[3].id}
@@ -234,27 +213,30 @@ export default function PaginaCadastrarNovaEdicaoPrograma() {
                     readOnly
                     value={CAMPOS_NUMERICOS_DESABILITADOS[3].valor}
                   />
-                </InputNumericoFormularioCadastroNovaEdicao>
-              </LinhaFormularioCadastroNovaEdicao>
+                </CampoFormulario>
+              </LinhaFormulario>
 
-              <LinhaDeControlesFormularioCadastroNovaEdicao>
-                <BotaoCancelarFormulario
-                  type="button"
+              <AcoesFormulario>
+                <Botao
+                  variante="contorno"
+                  tamanho="formulario"
                   onClick={voltarParaEdicoes}
                 >
                   Cancelar
-                </BotaoCancelarFormulario>
-                <BotaoSalvarFormulario
+                </Botao>
+                <Botao
+                  variante="primario"
+                  tamanho="formulario"
                   type="submit"
                   disabled={estaSalvando || !formularioPreenchido}
                 >
                   Salvar
-                </BotaoSalvarFormulario>
-              </LinhaDeControlesFormularioCadastroNovaEdicao>
-            </FormularioCadastroNovaEdicao>
+                </Botao>
+              </AcoesFormulario>
+            </CartaoFormulario>
           </section>
         </AreaConteudo>
       </SecaoPrincipal>
-    </ContainerPaginaEdicoesPrograma>
+    </ContainerPagina>
   )
 }

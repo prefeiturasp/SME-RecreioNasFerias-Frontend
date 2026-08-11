@@ -1,4 +1,4 @@
-import {
+﻿import {
   useCallback,
   useEffect,
   useRef,
@@ -9,11 +9,11 @@ import {
 import { useNavigate, useParams } from 'react-router-dom'
 
 import IconeSetaVoltar from '../../assets/icone-seta-voltar.png'
-import { Cabecalho } from '../../components/Cabecalho'
+import { CabecalhoPagina } from '@/components/shared/cabecalho-pagina'
 import { IndicadorCarregamento } from '../../components/IndicadorCarregamento'
 import { ChevronDownIcon } from '../../components/icons'
 import { MapaVisual } from '../../components/MapaVisual'
-import { MenuLateral } from '../../components/MenuLateral'
+import { MenuLateral } from '@/components/shared/menu-lateral'
 import {
   atualizarPoloParceiro,
   ErroAtualizacaoPoloParceiro,
@@ -218,7 +218,7 @@ export default function PaginaEditarPoloParceiro() {
     <ContainerPaginaEditarPoloParceiro>
       <MenuLateral />
       <SecaoPrincipal>
-        <Cabecalho />
+        <CabecalhoPagina />
         <AreaConteudo>
           <MapaVisual niveis={[...NIVEIS_MAPA_VISUAL]} />
           <section>
