@@ -1,31 +1,60 @@
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
-import { beforeEach, describe, expect, it } from 'vitest'
-import { definirSessaoAutenticacao } from '../../services/autenticacao'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  definirSessaoAutenticacao,
+  limparSessaoAutenticacao,
+} from '../../services/autenticacao'
 import { RotaProtegida } from './index'
+
+const { restaurarSessaoAutenticacaoMock } = vi.hoisted(() => ({
+  restaurarSessaoAutenticacaoMock: vi.fn(),
+}))
+
+vi.mock('../../services/autenticacao', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('../../services/autenticacao')>()
+
+  return {
+    ...actual,
+    restaurarSessaoAutenticacao: restaurarSessaoAutenticacaoMock,
+  }
+})
 
 describe('RotaProtegida', () => {
   beforeEach(() => {
-    localStorage.clear()
+    limparSessaoAutenticacao()
+    restaurarSessaoAutenticacaoMock.mockReset()
+    restaurarSessaoAutenticacaoMock.mockResolvedValue(undefined)
   })
 
-  it('redireciona para login quando não autenticado', () => {
+  it('redireciona para login quando não autenticado', async () => {
     render(
       <MemoryRouter initialEntries={['/inicio']}>
-        <RotaProtegida>
-          <p>Área restrita</p>
-        </RotaProtegida>
+        <Routes>
+          <Route
+            path="/inicio"
+            element={
+              <RotaProtegida>
+                <p>Área restrita</p>
+              </RotaProtegida>
+            }
+          />
+          <Route path="/" element={<p>Tela de login</p>} />
+        </Routes>
       </MemoryRouter>,
     )
 
+    expect(await screen.findByText(/tela de login/i)).toBeInTheDocument()
     expect(screen.queryByText(/área restrita/i)).not.toBeInTheDocument()
+    expect(restaurarSessaoAutenticacaoMock).toHaveBeenCalled()
   })
 
   it('renderiza conteúdo quando autenticado', () => {
     definirSessaoAutenticacao({
       token: 'eyJ-token',
-      rf: '8080640',
-      nome: 'VANIA',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO',
     })
 
