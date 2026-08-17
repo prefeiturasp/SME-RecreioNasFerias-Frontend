@@ -1,4 +1,5 @@
-import { requisicaoAutenticada } from '../autenticacao'
+import { extrairMensagemDeErro } from '../api/extrairMensagemDeErro'
+import { api } from '../api/http'
 import { interpretarRespostaListagemDefinicoesPolo } from './interpretarRespostaListagemDefinicoesPolo'
 import {
   PARAMETROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
@@ -48,26 +49,6 @@ export class ErroOpcoesFiltroDefinicaoPolos extends Error {
   }
 }
 
-async function extrairMensagemDeErroDaResposta(
-  response: Response,
-): Promise<string> {
-  try {
-    const dados = (await response.json()) as { error?: string; detail?: string }
-
-    if (typeof dados.error === 'string' && dados.error.trim()) {
-      return dados.error.trim()
-    }
-
-    if (typeof dados.detail === 'string' && dados.detail.trim()) {
-      return dados.detail.trim()
-    }
-  } catch {
-    // resposta sem JSON utilizável
-  }
-
-  return ''
-}
-
 function interpretarOpcoesFiltro(
   dados: unknown,
 ): OpcoesFiltroDefinicaoPolos | null {
@@ -107,65 +88,69 @@ function interpretarOpcoesFiltro(
 }
 
 export async function listarOpcoesFiltroDefinicaoPolos(): Promise<OpcoesFiltroDefinicaoPolos> {
-  const response = await requisicaoAutenticada('/api/polos/opcoes-filtro/', {
-    method: 'GET',
-  })
+  try {
+    const { data } = await api.get('/api/polos/opcoes-filtro/')
 
-  if (!response.ok) {
-    const mensagem = await extrairMensagemDeErroDaResposta(response)
+    const opcoes = interpretarOpcoesFiltro(data as unknown)
+
+    if (!opcoes) {
+      throw new ErroOpcoesFiltroDefinicaoPolos(
+        'Resposta de opções de filtro inválida.',
+      )
+    }
+
+    return opcoes
+  } catch (error) {
+    if (error instanceof ErroOpcoesFiltroDefinicaoPolos) {
+      throw error
+    }
+
     throw new ErroOpcoesFiltroDefinicaoPolos(
-      mensagem || 'Não foi possível carregar as opções dos filtros.',
+      extrairMensagemDeErro(error) ||
+        'Não foi possível carregar as opções dos filtros.',
     )
   }
-
-  const opcoes = interpretarOpcoesFiltro(await response.json())
-
-  if (!opcoes) {
-    throw new ErroOpcoesFiltroDefinicaoPolos(
-      'Resposta de opções de filtro inválida.',
-    )
-  }
-
-  return opcoes
 }
 
 export async function sincronizarUnidadesDiretas(): Promise<ResultadoSincronizacaoUnidadesDiretas> {
-  const response = await requisicaoAutenticada('/api/polos/unidades-diretas/', {
-    method: 'GET',
-  })
+  try {
+    const { data } = await api.get('/api/polos/unidades-diretas/')
 
-  if (!response.ok) {
-    const mensagem = await extrairMensagemDeErroDaResposta(response)
+    const dados = data as Record<string, unknown>
+
+    if (
+      typeof dados.totalConsultados !== 'number' ||
+      typeof dados.totalNovos !== 'number' ||
+      typeof dados.totalJaExistentes !== 'number' ||
+      !Array.isArray(dados.unidadesNovas) ||
+      typeof dados.executada !== 'boolean'
+    ) {
+      throw new ErroSincronizacaoUnidadesDiretas(
+        'Resposta de sincronização inválida.',
+      )
+    }
+
+    return {
+      totalConsultados: dados.totalConsultados,
+      totalNovos: dados.totalNovos,
+      totalJaExistentes: dados.totalJaExistentes,
+      executada: dados.executada,
+      motivoIgnorada:
+        typeof dados.motivoIgnorada === 'string' ? dados.motivoIgnorada : null,
+      ultimaExecucaoEm:
+        typeof dados.ultimaExecucaoEm === 'string'
+          ? dados.ultimaExecucaoEm
+          : null,
+    }
+  } catch (error) {
+    if (error instanceof ErroSincronizacaoUnidadesDiretas) {
+      throw error
+    }
+
     throw new ErroSincronizacaoUnidadesDiretas(
-      mensagem || 'Não foi possível sincronizar as unidades diretas.',
+      extrairMensagemDeErro(error) ||
+        'Não foi possível sincronizar as unidades diretas.',
     )
-  }
-
-  const dados = (await response.json()) as Record<string, unknown>
-
-  if (
-    typeof dados.totalConsultados !== 'number' ||
-    typeof dados.totalNovos !== 'number' ||
-    typeof dados.totalJaExistentes !== 'number' ||
-    !Array.isArray(dados.unidadesNovas) ||
-    typeof dados.executada !== 'boolean'
-  ) {
-    throw new ErroSincronizacaoUnidadesDiretas(
-      'Resposta de sincronização inválida.',
-    )
-  }
-
-  return {
-    totalConsultados: dados.totalConsultados,
-    totalNovos: dados.totalNovos,
-    totalJaExistentes: dados.totalJaExistentes,
-    executada: dados.executada,
-    motivoIgnorada:
-      typeof dados.motivoIgnorada === 'string' ? dados.motivoIgnorada : null,
-    ultimaExecucaoEm:
-      typeof dados.ultimaExecucaoEm === 'string'
-        ? dados.ultimaExecucaoEm
-        : null,
   }
 }
 
@@ -174,57 +159,55 @@ export async function listarDefinicoesPolo({
   tamanhoPagina = 10,
   ...filtros
 }: ParametrosListagemDefinicaoPolos = PARAMETROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS): Promise<ListagemDefinicaoPolos> {
-  const parametros = new URLSearchParams({
+  const params: Record<string, string> = {
     page: String(pagina),
     pageSize: String(tamanhoPagina),
-  })
+  }
 
   if (filtros.dre.trim()) {
-    parametros.set('dre', filtros.dre.trim())
+    params.dre = filtros.dre.trim()
   }
 
   if (filtros.tipoUe.trim()) {
-    parametros.set('tipoUe', filtros.tipoUe.trim())
+    params.tipoUe = filtros.tipoUe.trim()
   }
 
   if (filtros.gestao.trim()) {
-    parametros.set('gestao', filtros.gestao.trim())
+    params.gestao = filtros.gestao.trim()
   }
 
   if (filtros.tipoPolo.trim()) {
-    parametros.set('tipoPolo', filtros.tipoPolo.trim())
+    params.tipoPolo = filtros.tipoPolo.trim()
   }
 
   if (filtros.nomeEdicao.trim()) {
-    parametros.set('nomeEdicao', filtros.nomeEdicao.trim())
+    params.nomeEdicao = filtros.nomeEdicao.trim()
   }
 
   if (filtros.nomeUeOuCodigoEol.trim()) {
-    parametros.set('nomeUeOuCodigoEol', filtros.nomeUeOuCodigoEol.trim())
+    params.nomeUeOuCodigoEol = filtros.nomeUeOuCodigoEol.trim()
   }
 
-  const response = await requisicaoAutenticada(
-    `/api/polos/?${parametros.toString()}`,
-    {
-      method: 'GET',
-    },
-  )
+  try {
+    const { data } = await api.get('/api/polos/', { params })
 
-  if (!response.ok) {
-    const mensagem = await extrairMensagemDeErroDaResposta(response)
+    const listagem = interpretarRespostaListagemDefinicoesPolo(data as unknown)
+
+    if (!listagem) {
+      throw new ErroListagemDefinicoesPolo('Resposta de listagem inválida.')
+    }
+
+    return listagem
+  } catch (error) {
+    if (error instanceof ErroListagemDefinicoesPolo) {
+      throw error
+    }
+
     throw new ErroListagemDefinicoesPolo(
-      mensagem || 'Não foi possível carregar a definição de polos.',
+      extrairMensagemDeErro(error) ||
+        'Não foi possível carregar a definição de polos.',
     )
   }
-
-  const dados = await response.json()
-  const listagem = interpretarRespostaListagemDefinicoesPolo(dados)
-
-  if (!listagem) {
-    throw new ErroListagemDefinicoesPolo('Resposta de listagem inválida.')
-  }
-
-  return listagem
 }
 
 export type ParametrosAtualizacaoDefinicoesPoloEmLote = {
@@ -252,26 +235,26 @@ export async function atualizarDefinicoesPoloEmLote({
     corpo.tipo = tipo
   }
 
-  const response = await requisicaoAutenticada('/api/polos/atualizacao-lote/', {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(corpo),
-  })
+  try {
+    const { data } = await api.patch('/api/polos/atualizacao-lote/', corpo)
 
-  if (!response.ok) {
-    const mensagem = await extrairMensagemDeErroDaResposta(response)
+    const dados = data as Record<string, unknown>
+
+    if (typeof dados.totalAtualizados !== 'number') {
+      throw new ErroAtualizacaoDefinicoesPolo(
+        'Resposta de atualização inválida.',
+      )
+    }
+
+    return { totalAtualizados: dados.totalAtualizados }
+  } catch (error) {
+    if (error instanceof ErroAtualizacaoDefinicoesPolo) {
+      throw error
+    }
+
     throw new ErroAtualizacaoDefinicoesPolo(
-      mensagem || 'Não foi possível atualizar os polos selecionados.',
+      extrairMensagemDeErro(error) ||
+        'Não foi possível atualizar os polos selecionados.',
     )
   }
-
-  const dados = (await response.json()) as Record<string, unknown>
-
-  if (typeof dados.totalAtualizados !== 'number') {
-    throw new ErroAtualizacaoDefinicoesPolo('Resposta de atualização inválida.')
-  }
-
-  return { totalAtualizados: dados.totalAtualizados }
 }
