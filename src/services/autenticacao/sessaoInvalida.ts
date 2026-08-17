@@ -1,51 +1,38 @@
+import { extrairMensagemDeErroDeDados } from '../api/extrairMensagemDeErro'
 import { estaAutenticado, limparSessaoAutenticacao } from './storage'
 
 const ouvintesSessaoInvalida = new Set<() => void>()
 
-export const MENSAGEM_TOKEN_INVALIDO_OU_EXPIRADO = 'Token inválido ou expirado.'
+function mensagemIndicaTokenInvalidoOuExpirado(mensagem: string): boolean {
+  const textoNormalizado = mensagem.toLowerCase()
+  const mencionaToken =
+    textoNormalizado.includes('token') ||
+    textoNormalizado.includes('autenticação') ||
+    textoNormalizado.includes('autenticacao')
+  const indicaInvalidez =
+    textoNormalizado.includes('inválido') ||
+    textoNormalizado.includes('invalido') ||
+    textoNormalizado.includes('invalid') ||
+    textoNormalizado.includes('expirado') ||
+    textoNormalizado.includes('expired')
 
-async function corpoIndicaTokenInvalidoOuExpirado(
-  response: Response,
-): Promise<boolean> {
-  try {
-    const corpo = await response.clone().text()
-    if (!corpo.trim()) {
-      return false
-    }
-
-    const dados = JSON.parse(corpo) as unknown
-    if (!dados || typeof dados !== 'object') {
-      return false
-    }
-
-    if (
-      'detail' in dados &&
-      typeof (dados as { detail: unknown }).detail === 'string'
-    ) {
-      return (
-        (dados as { detail: string }).detail ===
-        MENSAGEM_TOKEN_INVALIDO_OU_EXPIRADO
-      )
-    }
-
-    return false
-  } catch {
-    return false
-  }
+  return mencionaToken && indicaInvalidez
 }
 
-export async function respostaIndicaSessaoInvalida(
-  response: Response,
-): Promise<boolean> {
-  if (response.status === 401) {
+export function respostaIndicaSessaoInvalida(
+  status: number,
+  dados: unknown,
+): boolean {
+  if (status === 401) {
     return true
   }
 
-  if (response.status === 403) {
-    return corpoIndicaTokenInvalidoOuExpirado(response)
+  if (status !== 403) {
+    return false
   }
 
-  return false
+  const mensagem = extrairMensagemDeErroDeDados(dados)
+  return mensagem !== null && mensagemIndicaTokenInvalidoOuExpirado(mensagem)
 }
 
 export function registrarOuvinteSessaoInvalida(
