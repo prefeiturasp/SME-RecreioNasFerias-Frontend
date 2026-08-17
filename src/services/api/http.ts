@@ -23,13 +23,11 @@ type ConfiguracaoRequisicaoComRetry = InternalAxiosRequestConfig & {
 let promessaRenovacaoToken: Promise<string | null> | null = null
 
 function renovarTokenAutenticacao(): Promise<string | null> {
-  if (promessaRenovacaoToken === null) {
-    promessaRenovacaoToken = atualizarTokenAutenticacaoViaRefresh().finally(
-      () => {
-        promessaRenovacaoToken = null
-      },
-    )
-  }
+  promessaRenovacaoToken ??= atualizarTokenAutenticacaoViaRefresh().finally(
+    () => {
+      promessaRenovacaoToken = null
+    },
+  )
 
   return promessaRenovacaoToken
 }

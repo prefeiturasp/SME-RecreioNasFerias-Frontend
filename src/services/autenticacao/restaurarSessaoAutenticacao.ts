@@ -28,11 +28,9 @@ async function executarRestauracaoSessao(): Promise<void> {
 }
 
 export function restaurarSessaoAutenticacao(): Promise<void> {
-  if (promessaRestauracaoSessao === null) {
-    promessaRestauracaoSessao = executarRestauracaoSessao().finally(() => {
-      promessaRestauracaoSessao = null
-    })
-  }
+  promessaRestauracaoSessao ??= executarRestauracaoSessao().finally(() => {
+    promessaRestauracaoSessao = null
+  })
 
   return promessaRestauracaoSessao
 }
