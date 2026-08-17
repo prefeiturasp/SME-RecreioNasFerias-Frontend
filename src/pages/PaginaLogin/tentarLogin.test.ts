@@ -1,96 +1,129 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { obterSessaoAutenticacao } from '../../services/autenticacao'
+import { axiosPostMock } from '../../services/api/mocks'
+import { beforeEach, describe, expect, it } from 'vitest'
+import {
+  limparSessaoAutenticacao,
+  obterSessaoAutenticacao,
+} from '../../services/autenticacao'
 import { ErroAcessoNegadoLogin, tentarLogin } from './tentarLogin'
 
 const respostaLoginExemplo = {
-  rf: '8080640',
-  cpf: '22712612876',
-  email: 'vania.montefusco@sme.prefeitura.sp.gov.br',
+  rf: '1234567',
+  cpf: '11122233344',
+  email: 'usuario.teste@sme.prefeitura.sp.gov.br',
   cargos: [
     {
-      codigoCargo: 2640,
-      descricaoCargo: 'ASSISTENTE TECNICO DE EDUCACAO I',
-      codigoUnidade: '121000',
-      descricaoUnidade:
-        'COORDENADORIA DOS CENTROS EDUCACIONAIS UNIFICADOS - COCEU',
-      codigoDre: '121000',
+      codigoCargo: 1234,
+      descricaoCargo: 'CARGO TESTE',
+      codigoUnidade: '000123',
+      descricaoUnidade: 'UNIDADE DE TESTE',
+      codigoDre: '000123',
       contratoExterno: false,
     },
   ],
-  nome: 'VANIA FERREIRA DA SILVA CANEKI',
+  nome: 'USUARIO TESTE',
   inexistenteEol: false,
   token: 'eyJ-token-exemplo',
 }
 
 describe('tentarLogin', () => {
   beforeEach(() => {
-    localStorage.clear()
+    limparSessaoAutenticacao()
+    axiosPostMock.mockReset()
   })
 
   it('envia requisição de login com payload esperado e persiste sessão', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => respostaLoginExemplo,
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    axiosPostMock.mockResolvedValue({ data: respostaLoginExemplo })
 
     await expect(
       tentarLogin({ usuario: 'usuario.teste', senha: 'senha-segura' }),
     ).resolves.toBeUndefined()
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/auth/login/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ login: 'usuario.teste', senha: 'senha-segura' }),
-    })
+    expect(axiosPostMock).toHaveBeenCalledWith(
+      '/api/v1/auth/login/',
+      { login: 'usuario.teste', senha: 'senha-segura' },
+      { withCredentials: true },
+    )
     expect(obterSessaoAutenticacao()).toEqual({
       token: 'eyJ-token-exemplo',
-      rf: '8080640',
-      nome: 'VANIA FERREIRA DA SILVA CANEKI',
-      descricaoCargo: 'ASSISTENTE TECNICO DE EDUCACAO I',
-    })
-  })
-
-  it('usa rota relativa para o proxy do backend', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => respostaLoginExemplo,
-    })
-    vi.stubGlobal('fetch', fetchMock)
-
-    await expect(
-      tentarLogin({ usuario: 'usuario.teste', senha: 'senha-segura' }),
-    ).resolves.toBeUndefined()
-
-    expect(fetchMock).toHaveBeenCalledWith('/api/auth/login/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ login: 'usuario.teste', senha: 'senha-segura' }),
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
     })
   })
 
   it('lança ErroAcessoNegadoLogin quando status é 403', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({ ok: false, status: 403 }),
-    )
+    axiosPostMock.mockRejectedValue({ response: { status: 403 } })
 
     await expect(
       tentarLogin({ usuario: 'maria', senha: 'senha-invalida' }),
     ).rejects.toEqual(new ErroAcessoNegadoLogin('maria'))
   })
 
-  it('lança ErroFalhaLogin com mensagem vazia quando corpo da resposta está vazio', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
+  it('extrai mensagem do campo detalhe em erro da API', async () => {
+    axiosPostMock.mockRejectedValue({
+      response: { status: 401, data: { detalhe: 'Credenciais inválidas' } },
+    })
+
+    await expect(
+      tentarLogin({ usuario: 'joao', senha: '123' }),
+    ).rejects.toMatchObject({
+      mensagemUsuario: 'Credenciais inválidas',
+    })
+  })
+
+  it('extrai mensagem do campo detail em erro da API', async () => {
+    axiosPostMock.mockRejectedValue({
+      response: { status: 401, data: { detail: 'Credenciais inválidas' } },
+    })
+
+    await expect(
+      tentarLogin({ usuario: 'joao', senha: '123' }),
+    ).rejects.toMatchObject({
+      mensagemUsuario: 'Credenciais inválidas',
+    })
+  })
+
+  it('repassa a mensagem do campo error do backend', async () => {
+    axiosPostMock.mockRejectedValue({
+      response: {
         status: 500,
-        text: async () => '',
-      }),
-    )
+        data: { error: 'The read operation timed out' },
+      },
+    })
+
+    await expect(
+      tentarLogin({ usuario: 'joao', senha: '123' }),
+    ).rejects.toMatchObject({
+      mensagemUsuario: 'The read operation timed out',
+    })
+  })
+
+  it('usa mensagem vazia quando o corpo de erro não tem chave reconhecida', async () => {
+    axiosPostMock.mockRejectedValue({
+      response: { status: 400, data: { mensagem: 'Payload inválido' } },
+    })
+
+    await expect(
+      tentarLogin({ usuario: 'joao', senha: '123' }),
+    ).rejects.toMatchObject({
+      mensagemUsuario: '',
+    })
+  })
+
+  it('repassa o texto bruto quando o corpo de erro é uma string', async () => {
+    axiosPostMock.mockRejectedValue({
+      response: { status: 502, data: 'Bad Gateway' },
+    })
+
+    await expect(
+      tentarLogin({ usuario: 'joao', senha: '123' }),
+    ).rejects.toMatchObject({
+      mensagemUsuario: 'Bad Gateway',
+    })
+  })
+
+  it('usa mensagem vazia quando não há resposta da API', async () => {
+    axiosPostMock.mockRejectedValue(new Error('network error'))
 
     await expect(
       tentarLogin({ usuario: 'joao', senha: '123' }),
@@ -100,102 +133,8 @@ describe('tentarLogin', () => {
     })
   })
 
-  it('repassa a mensagem do backend sem alteração', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 500,
-        text: async () =>
-          JSON.stringify({ error: 'The read operation timed out' }),
-      }),
-    )
-
-    await expect(
-      tentarLogin({ usuario: 'joao', senha: '123' }),
-    ).rejects.toMatchObject({
-      name: 'ErroFalhaLogin',
-      mensagemUsuario: 'The read operation timed out',
-    })
-  })
-
-  it('extrai mensagem do campo detail em erro da API', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 401,
-        text: async () => JSON.stringify({ detail: 'Credenciais inválidas' }),
-      }),
-    )
-
-    await expect(
-      tentarLogin({ usuario: 'joao', senha: '123' }),
-    ).rejects.toMatchObject({
-      mensagemUsuario: 'Credenciais inválidas',
-    })
-  })
-
-  it('retorna corpo bruto quando JSON de erro não tem error nem detail', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 400,
-        text: async () => JSON.stringify({ mensagem: 'Payload inválido' }),
-      }),
-    )
-
-    await expect(
-      tentarLogin({ usuario: 'joao', senha: '123' }),
-    ).rejects.toMatchObject({
-      mensagemUsuario: JSON.stringify({ mensagem: 'Payload inválido' }),
-    })
-  })
-
-  it('retorna texto bruto quando corpo de erro é JSON inválido', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 500,
-        text: async () => '{invalido',
-      }),
-    )
-
-    await expect(
-      tentarLogin({ usuario: 'joao', senha: '123' }),
-    ).rejects.toMatchObject({
-      mensagemUsuario: '{invalido',
-    })
-  })
-
-  it('retorna texto bruto quando corpo de erro não é JSON', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 502,
-        text: async () => 'Bad Gateway',
-      }),
-    )
-
-    await expect(
-      tentarLogin({ usuario: 'joao', senha: '123' }),
-    ).rejects.toMatchObject({
-      mensagemUsuario: 'Bad Gateway',
-    })
-  })
-
   it('lança ErroFalhaLogin quando resposta ok não contém dados obrigatórios', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({ user: 'maria' }),
-      }),
-    )
+    axiosPostMock.mockResolvedValue({ data: { user: 'maria' } })
 
     await expect(
       tentarLogin({ usuario: 'maria', senha: '123' }),

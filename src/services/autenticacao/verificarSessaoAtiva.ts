@@ -1,12 +1,12 @@
+import { api } from '../api/http'
 import {
   marcarSessaoVerificada,
   sessaoVerificadaRecentemente,
 } from './cacheVerificacaoSessao'
-import { requisicaoAutenticada } from './requisicaoAutenticada'
 import { respostaIndicaSessaoInvalida } from './sessaoInvalida'
 import { estaAutenticado } from './storage'
 
-const ENDPOINT_VERIFICACAO_SESSAO = '/api/edicoes/'
+const ENDPOINT_VERIFICACAO_SESSAO = '/api/v1/auth/me/'
 
 export const ROTA_LISTAGEM_EDICOES_PROGRAMA = '/edicoes-programa'
 
@@ -25,17 +25,24 @@ export async function verificarSessaoAtiva(): Promise<boolean> {
   }
 
   try {
-    const response = await requisicaoAutenticada(ENDPOINT_VERIFICACAO_SESSAO, {
-      method: 'GET',
-    })
+    await api.get(ENDPOINT_VERIFICACAO_SESSAO)
+    marcarSessaoVerificada()
+    return true
+  } catch (error) {
+    const axiosError = error as {
+      response?: { status?: number; data?: unknown }
+    }
 
-    if (await respostaIndicaSessaoInvalida(response)) {
+    if (
+      axiosError.response &&
+      respostaIndicaSessaoInvalida(
+        axiosError.response.status ?? 0,
+        axiosError.response.data,
+      )
+    ) {
       return false
     }
 
-    marcarSessaoVerificada()
-    return true
-  } catch {
     return true
   }
 }

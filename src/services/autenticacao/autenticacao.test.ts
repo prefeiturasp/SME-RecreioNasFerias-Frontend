@@ -1,66 +1,107 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { interpretarRespostaLogin } from './interpretarRespostaLogin'
+import {
+  extrairPerfilUsuario,
+  interpretarRespostaLogin,
+} from './interpretarRespostaLogin'
 import {
   definirSessaoAutenticacao,
+  definirTokenAutenticacao,
   estaAutenticado,
   limparSessaoAutenticacao,
+  obterPerfilUsuario,
   obterSessaoAutenticacao,
   obterTokenAutenticacao,
 } from './storage'
 
 const respostaLoginExemplo = {
-  rf: '8080640',
-  cpf: '22712612876',
-  email: 'vania.montefusco@sme.prefeitura.sp.gov.br',
+  rf: '1234567',
+  cpf: '11122233344',
+  email: 'usuario.teste@sme.prefeitura.sp.gov.br',
   cargos: [
     {
-      codigoCargo: 2640,
-      descricaoCargo: 'ASSISTENTE TECNICO DE EDUCACAO I',
-      codigoUnidade: '121000',
-      descricaoUnidade:
-        'COORDENADORIA DOS CENTROS EDUCACIONAIS UNIFICADOS - COCEU',
-      codigoDre: '121000',
+      codigoCargo: 1234,
+      descricaoCargo: 'CARGO TESTE',
+      codigoUnidade: '000123',
+      descricaoUnidade: 'UNIDADE DE TESTE',
+      codigoDre: '000123',
       contratoExterno: false,
     },
   ],
-  nome: 'VANIA FERREIRA DA SILVA CANEKI',
+  nome: 'USUARIO TESTE',
   inexistenteEol: false,
   token: 'eyJ-token-exemplo',
 }
 
 describe('autenticacao storage', () => {
   beforeEach(() => {
-    localStorage.clear()
+    limparSessaoAutenticacao()
   })
 
-  it('persiste e recupera a sessão completa', () => {
+  it('persiste o perfil e mantém o token apenas em memória', () => {
     definirSessaoAutenticacao({
       token: 'eyJ-token',
-      rf: '8080640',
-      nome: 'VANIA FERREIRA DA SILVA CANEKI',
-      descricaoCargo: 'ASSISTENTE TECNICO DE EDUCACAO I',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
     })
 
     expect(obterSessaoAutenticacao()).toEqual({
       token: 'eyJ-token',
-      rf: '8080640',
-      nome: 'VANIA FERREIRA DA SILVA CANEKI',
-      descricaoCargo: 'ASSISTENTE TECNICO DE EDUCACAO I',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
     })
     expect(obterTokenAutenticacao()).toBe('eyJ-token')
     expect(estaAutenticado()).toBe(true)
   })
 
+  it('não armazena o token no localStorage', () => {
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
+    })
+
+    const armazenado = localStorage.getItem('sme-recreio-auth-session')
+    expect(armazenado).not.toContain('eyJ-token')
+    expect(obterPerfilUsuario()).toEqual({
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
+    })
+  })
+
   it('remove a sessão ao limpar autenticação', () => {
     definirSessaoAutenticacao({
       token: 'eyJ-token',
-      rf: '8080640',
-      nome: 'VANIA',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO',
     })
     limparSessaoAutenticacao()
     expect(obterSessaoAutenticacao()).toBeNull()
+    expect(obterPerfilUsuario()).toBeNull()
     expect(estaAutenticado()).toBe(false)
+  })
+
+  it('atualiza o token em memória sem alterar o perfil', () => {
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO',
+    })
+
+    definirTokenAutenticacao('eyJ-token-renovado')
+
+    expect(obterTokenAutenticacao()).toBe('eyJ-token-renovado')
+    expect(obterSessaoAutenticacao()).toEqual({
+      token: 'eyJ-token-renovado',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO',
+    })
   })
 })
 
@@ -68,9 +109,9 @@ describe('interpretarRespostaLogin', () => {
   it('extrai token, rf, nome e descricaoCargo do primeiro cargo', () => {
     expect(interpretarRespostaLogin(respostaLoginExemplo)).toEqual({
       token: 'eyJ-token-exemplo',
-      rf: '8080640',
-      nome: 'VANIA FERREIRA DA SILVA CANEKI',
-      descricaoCargo: 'ASSISTENTE TECNICO DE EDUCACAO I',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
     })
   })
 
@@ -94,21 +135,55 @@ describe('interpretarRespostaLogin', () => {
   })
 })
 
-describe('obterSessaoAutenticacao validação', () => {
+describe('extrairPerfilUsuario', () => {
+  it('extrai o perfil sem exigir token', () => {
+    expect(extrairPerfilUsuario(respostaLoginExemplo)).toEqual({
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
+    })
+  })
+
+  it('retorna null quando o perfil está incompleto', () => {
+    expect(extrairPerfilUsuario(null)).toBeNull()
+    expect(extrairPerfilUsuario({})).toBeNull()
+    expect(extrairPerfilUsuario({ rf: '1', nome: 'Maria' })).toBeNull()
+  })
+})
+
+describe('obterPerfilUsuario validação', () => {
   beforeEach(() => {
-    localStorage.clear()
+    limparSessaoAutenticacao()
   })
 
   it('retorna null quando JSON armazenado é inválido', () => {
     localStorage.setItem('sme-recreio-auth-session', '{invalido')
-    expect(obterSessaoAutenticacao()).toBeNull()
+    expect(obterPerfilUsuario()).toBeNull()
   })
 
-  it('retorna null quando sessão não possui token válido', () => {
+  it('retorna null quando perfil armazenado não possui campos válidos', () => {
     localStorage.setItem(
       'sme-recreio-auth-session',
-      JSON.stringify({ token: '', rf: '1', nome: 'A', descricaoCargo: 'B' }),
+      JSON.stringify({ rf: '', nome: 'A', descricaoCargo: 'B' }),
     )
+    expect(obterPerfilUsuario()).toBeNull()
+  })
+
+  it('retorna null para obterSessaoAutenticacao quando não há token em memória', () => {
+    localStorage.setItem(
+      'sme-recreio-auth-session',
+      JSON.stringify({
+        rf: '1234567',
+        nome: 'USUARIO TESTE',
+        descricaoCargo: 'CARGO',
+      }),
+    )
+
+    expect(obterPerfilUsuario()).toEqual({
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO',
+    })
     expect(obterSessaoAutenticacao()).toBeNull()
   })
 })

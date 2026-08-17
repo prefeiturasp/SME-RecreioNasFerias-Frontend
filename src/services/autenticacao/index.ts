@@ -1,17 +1,26 @@
 export {
+  definirPerfilUsuario,
   definirSessaoAutenticacao,
+  definirTokenAutenticacao,
   estaAutenticado,
   limparSessaoAutenticacao,
+  obterPerfilUsuario,
   obterSessaoAutenticacao,
   obterTokenAutenticacao,
 } from './storage'
-export { interpretarRespostaLogin } from './interpretarRespostaLogin'
+export {
+  extrairPerfilUsuario,
+  interpretarRespostaLogin,
+} from './interpretarRespostaLogin'
+export { obterDadosUsuarioAutenticado } from './obterDadosUsuarioAutenticado'
+export { restaurarSessaoAutenticacao } from './restaurarSessaoAutenticacao'
+export { atualizarTokenAutenticacaoViaRefresh } from './refreshToken'
+export { encerrarSessaoAutenticacao } from './logout'
 export {
   invalidarCacheVerificacaoSessao,
   marcarSessaoVerificada,
   sessaoVerificadaRecentemente,
 } from './cacheVerificacaoSessao'
-export { requisicaoAutenticada } from './requisicaoAutenticada'
 export {
   notificarSessaoInvalida,
   registrarOuvinteSessaoInvalida,
@@ -22,4 +31,4 @@ export {
   ROTA_LISTAGEM_EDICOES_PROGRAMA,
   verificarSessaoAtiva,
 } from './verificarSessaoAtiva'
-export type { SessaoAutenticacao } from './types'
+export type { PerfilUsuario, SessaoAutenticacao } from './types'

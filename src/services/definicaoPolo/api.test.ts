@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { requisicaoAutenticada } from '../autenticacao'
+import { api } from '../api/http'
 import {
   ErroListagemDefinicoesPolo,
   ErroSincronizacaoUnidadesDiretas,
@@ -10,30 +10,29 @@ import {
   sincronizarUnidadesDiretas,
 } from './api'
 
-vi.mock('../autenticacao', () => ({
-  requisicaoAutenticada: vi.fn(),
+vi.mock('../api/http', () => ({
+  api: { get: vi.fn(), patch: vi.fn() },
 }))
 
-const requisicaoAutenticadaMock = vi.mocked(requisicaoAutenticada)
+const apiGetMock = vi.mocked(api.get)
+const apiPatchMock = vi.mocked(api.patch)
 
 describe('definicaoPolo/api', () => {
   beforeEach(() => {
-    requisicaoAutenticadaMock.mockReset()
+    apiGetMock.mockReset()
+    apiPatchMock.mockReset()
   })
 
   it('lista opções de filtro a partir do endpoint dedicado', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          dres: ['DIRETORIA REGIONAL DE EDUCACAO PENHA'],
-          tiposUe: ['CEI DIRET', 'EMEF'],
-          gestoes: ['Direta', 'Parceira'],
-          nomesEdicao: ['-', 'Janeiro 2025'],
-          tiposPolo: ['Pendente', 'Polo oficial', 'Polo reserva'],
-        }),
-        { status: 200 },
-      ),
-    )
+    apiGetMock.mockResolvedValue({
+      data: {
+        dres: ['DIRETORIA REGIONAL DE EDUCACAO PENHA'],
+        tiposUe: ['CEI DIRET', 'EMEF'],
+        gestoes: ['Direta', 'Parceira'],
+        nomesEdicao: ['-', 'Janeiro 2025'],
+        tiposPolo: ['Pendente', 'Polo oficial', 'Polo reserva'],
+      },
+    })
 
     await expect(listarOpcoesFiltroDefinicaoPolos()).resolves.toEqual({
       dres: ['DIRETORIA REGIONAL DE EDUCACAO PENHA'],
@@ -43,16 +42,11 @@ describe('definicaoPolo/api', () => {
       tiposPolo: ['Pendente', 'Polo oficial', 'Polo reserva'],
     })
 
-    expect(requisicaoAutenticadaMock).toHaveBeenCalledWith(
-      '/api/polos/opcoes-filtro/',
-      { method: 'GET' },
-    )
+    expect(apiGetMock).toHaveBeenCalledWith('/api/polos/opcoes-filtro/')
   })
 
   it('lança ErroOpcoesFiltroDefinicaoPolos quando o payload não é objeto', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(JSON.stringify(null), { status: 200 }),
-    )
+    apiGetMock.mockResolvedValue({ data: null })
 
     await expect(listarOpcoesFiltroDefinicaoPolos()).rejects.toMatchObject({
       name: 'ErroOpcoesFiltroDefinicaoPolos',
@@ -60,12 +54,10 @@ describe('definicaoPolo/api', () => {
     })
   })
 
-  it('lança ErroOpcoesFiltroDefinicaoPolos com error do corpo quando !ok', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(JSON.stringify({ error: 'Filtros indisponíveis' }), {
-        status: 503,
-      }),
-    )
+  it('lança ErroOpcoesFiltroDefinicaoPolos com error do corpo quando falha', async () => {
+    apiGetMock.mockRejectedValue({
+      response: { status: 503, data: { error: 'Filtros indisponíveis' } },
+    })
 
     await expect(listarOpcoesFiltroDefinicaoPolos()).rejects.toMatchObject({
       name: 'ErroOpcoesFiltroDefinicaoPolos',
@@ -73,12 +65,10 @@ describe('definicaoPolo/api', () => {
     })
   })
 
-  it('lança ErroOpcoesFiltroDefinicaoPolos com detail do corpo quando !ok', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(JSON.stringify({ detail: 'Acesso negado' }), {
-        status: 403,
-      }),
-    )
+  it('lança ErroOpcoesFiltroDefinicaoPolos com detail do corpo quando falha', async () => {
+    apiGetMock.mockRejectedValue({
+      response: { status: 403, data: { detail: 'Acesso negado' } },
+    })
 
     await expect(listarOpcoesFiltroDefinicaoPolos()).rejects.toMatchObject({
       name: 'ErroOpcoesFiltroDefinicaoPolos',
@@ -86,10 +76,21 @@ describe('definicaoPolo/api', () => {
     })
   })
 
-  it('lança ErroOpcoesFiltroDefinicaoPolos com fallback quando JSON vazio e !ok', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(JSON.stringify({}), { status: 500 }),
-    )
+  it('lança ErroOpcoesFiltroDefinicaoPolos com detalhe do corpo quando falha', async () => {
+    apiGetMock.mockRejectedValue({
+      response: { status: 500, data: { detalhe: 'Erro interno' } },
+    })
+
+    await expect(listarOpcoesFiltroDefinicaoPolos()).rejects.toMatchObject({
+      name: 'ErroOpcoesFiltroDefinicaoPolos',
+      mensagemUsuario: 'Erro interno',
+    })
+  })
+
+  it('lança ErroOpcoesFiltroDefinicaoPolos com fallback quando corpo vazio', async () => {
+    apiGetMock.mockRejectedValue({
+      response: { status: 500, data: {} },
+    })
 
     await expect(listarOpcoesFiltroDefinicaoPolos()).rejects.toMatchObject({
       name: 'ErroOpcoesFiltroDefinicaoPolos',
@@ -98,9 +99,7 @@ describe('definicaoPolo/api', () => {
   })
 
   it('lança ErroOpcoesFiltroDefinicaoPolos quando payload de opções é inválido', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(JSON.stringify({ dres: 'inválido' }), { status: 200 }),
-    )
+    apiGetMock.mockResolvedValue({ data: { dres: 'inválido' } })
 
     await expect(listarOpcoesFiltroDefinicaoPolos()).rejects.toMatchObject({
       name: 'ErroOpcoesFiltroDefinicaoPolos',
@@ -109,20 +108,17 @@ describe('definicaoPolo/api', () => {
   })
 
   it('sincroniza unidades diretas no endpoint dedicado', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          totalConsultados: 10,
-          totalNovos: 2,
-          totalJaExistentes: 8,
-          unidadesNovas: [],
-          executada: true,
-          motivoIgnorada: null,
-          ultimaExecucaoEm: '2026-07-13T12:00:00+00:00',
-        }),
-        { status: 200 },
-      ),
-    )
+    apiGetMock.mockResolvedValue({
+      data: {
+        totalConsultados: 10,
+        totalNovos: 2,
+        totalJaExistentes: 8,
+        unidadesNovas: [],
+        executada: true,
+        motivoIgnorada: null,
+        ultimaExecucaoEm: '2026-07-13T12:00:00+00:00',
+      },
+    })
 
     await expect(sincronizarUnidadesDiretas()).resolves.toEqual({
       totalConsultados: 10,
@@ -133,16 +129,11 @@ describe('definicaoPolo/api', () => {
       ultimaExecucaoEm: '2026-07-13T12:00:00+00:00',
     })
 
-    expect(requisicaoAutenticadaMock).toHaveBeenCalledWith(
-      '/api/polos/unidades-diretas/',
-      { method: 'GET' },
-    )
+    expect(apiGetMock).toHaveBeenCalledWith('/api/polos/unidades-diretas/')
   })
 
   it('lança ErroSincronizacaoUnidadesDiretas quando resposta de sync é inválida', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(JSON.stringify({ totalConsultados: '10' }), { status: 200 }),
-    )
+    apiGetMock.mockResolvedValue({ data: { totalConsultados: '10' } })
 
     await expect(sincronizarUnidadesDiretas()).rejects.toMatchObject({
       name: 'ErroSincronizacaoUnidadesDiretas',
@@ -151,20 +142,17 @@ describe('definicaoPolo/api', () => {
   })
 
   it('normaliza motivoIgnorada e ultimaExecucaoEm para null quando não são string', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          totalConsultados: 1,
-          totalNovos: 0,
-          totalJaExistentes: 1,
-          unidadesNovas: [],
-          executada: false,
-          motivoIgnorada: 123,
-          ultimaExecucaoEm: false,
-        }),
-        { status: 200 },
-      ),
-    )
+    apiGetMock.mockResolvedValue({
+      data: {
+        totalConsultados: 1,
+        totalNovos: 0,
+        totalJaExistentes: 1,
+        unidadesNovas: [],
+        executada: false,
+        motivoIgnorada: 123,
+        ultimaExecucaoEm: false,
+      },
+    })
 
     await expect(sincronizarUnidadesDiretas()).resolves.toEqual({
       totalConsultados: 1,
@@ -177,26 +165,23 @@ describe('definicaoPolo/api', () => {
   })
 
   it('lista definições de polo com filtros suportados', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          results: [
-            {
-              id: '11111111-1111-1111-1111-111111111111',
-              dre: 'DRE Butantã',
-              tipoUe: 'EMEF',
-              nomePolo: 'Escola Centro',
-              gestao: 'Direta',
-            },
-          ],
-          page: 1,
-          pageSize: 10,
-          total: 1,
-          totalPages: 1,
-        }),
-        { status: 200 },
-      ),
-    )
+    apiGetMock.mockResolvedValue({
+      data: {
+        results: [
+          {
+            id: '11111111-1111-1111-1111-111111111111',
+            dre: 'DRE Butantã',
+            tipoUe: 'EMEF',
+            nomePolo: 'Escola Centro',
+            gestao: 'Direta',
+          },
+        ],
+        page: 1,
+        pageSize: 10,
+        total: 1,
+        totalPages: 1,
+      },
+    })
 
     const listagem = await listarDefinicoesPolo({
       pagina: 1,
@@ -212,25 +197,29 @@ describe('definicaoPolo/api', () => {
     expect(listagem.total).toBe(1)
     expect(listagem.polos[0]?.nomeUe).toBe('Escola Centro')
 
-    const [url] = requisicaoAutenticadaMock.mock.calls[0] ?? []
-    expect(url).toBe(
-      '/api/polos/?page=1&pageSize=10&dre=DRE+Butant%C3%A3&tipoUe=EMEF&gestao=Direta&nomeEdicao=Janeiro+2025&nomeUeOuCodigoEol=Centro',
-    )
+    expect(apiGetMock).toHaveBeenCalledWith('/api/polos/', {
+      params: {
+        page: '1',
+        pageSize: '10',
+        dre: 'DRE Butantã',
+        tipoUe: 'EMEF',
+        gestao: 'Direta',
+        nomeEdicao: 'Janeiro 2025',
+        nomeUeOuCodigoEol: 'Centro',
+      },
+    })
   })
 
   it('envia Tipo de Polo como filtro da coluna tipo', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          results: [],
-          page: 1,
-          pageSize: 10,
-          total: 0,
-          totalPages: 0,
-        }),
-        { status: 200 },
-      ),
-    )
+    apiGetMock.mockResolvedValue({
+      data: {
+        results: [],
+        page: 1,
+        pageSize: 10,
+        total: 0,
+        totalPages: 0,
+      },
+    })
 
     await listarDefinicoesPolo({
       pagina: 1,
@@ -243,16 +232,15 @@ describe('definicaoPolo/api', () => {
       gestao: '',
     })
 
-    const [url] = requisicaoAutenticadaMock.mock.calls[0] ?? []
-    expect(url).toBe('/api/polos/?page=1&pageSize=10&tipoPolo=Polo+oficial')
+    expect(apiGetMock).toHaveBeenCalledWith('/api/polos/', {
+      params: { page: '1', pageSize: '10', tipoPolo: 'Polo oficial' },
+    })
   })
 
   it('lança erro tipado quando a sincronização falha', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(JSON.stringify({ error: 'SME indisponível' }), {
-        status: 503,
-      }),
-    )
+    apiGetMock.mockRejectedValue({
+      response: { status: 503, data: { error: 'SME indisponível' } },
+    })
 
     await expect(sincronizarUnidadesDiretas()).rejects.toBeInstanceOf(
       ErroSincronizacaoUnidadesDiretas,
@@ -260,11 +248,9 @@ describe('definicaoPolo/api', () => {
   })
 
   it('atualiza nome da edição em lote', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(JSON.stringify({ totalAtualizados: 2, results: [] }), {
-        status: 200,
-      }),
-    )
+    apiPatchMock.mockResolvedValue({
+      data: { totalAtualizados: 2, results: [] },
+    })
 
     await expect(
       atualizarDefinicoesPoloEmLote({
@@ -276,27 +262,19 @@ describe('definicaoPolo/api', () => {
       }),
     ).resolves.toEqual({ totalAtualizados: 2 })
 
-    expect(requisicaoAutenticadaMock).toHaveBeenCalledWith(
-      '/api/polos/atualizacao-lote/',
-      expect.objectContaining({
-        method: 'PATCH',
-        body: JSON.stringify({
-          ids: [
-            '11111111-1111-1111-1111-111111111111',
-            '22222222-2222-2222-2222-222222222222',
-          ],
-          nomeEdicao: 'Janeiro 2026',
-        }),
-      }),
-    )
+    expect(apiPatchMock).toHaveBeenCalledWith('/api/polos/atualizacao-lote/', {
+      ids: [
+        '11111111-1111-1111-1111-111111111111',
+        '22222222-2222-2222-2222-222222222222',
+      ],
+      nomeEdicao: 'Janeiro 2026',
+    })
   })
 
   it('atualiza tipo de polo em lote', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(JSON.stringify({ totalAtualizados: 1, results: [] }), {
-        status: 200,
-      }),
-    )
+    apiPatchMock.mockResolvedValue({
+      data: { totalAtualizados: 1, results: [] },
+    })
 
     await expect(
       atualizarDefinicoesPoloEmLote({
@@ -307,11 +285,9 @@ describe('definicaoPolo/api', () => {
   })
 
   it('atualiza nomeEdicao e tipo juntos em lote', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(JSON.stringify({ totalAtualizados: 1, results: [] }), {
-        status: 200,
-      }),
-    )
+    apiPatchMock.mockResolvedValue({
+      data: { totalAtualizados: 1, results: [] },
+    })
 
     await expect(
       atualizarDefinicoesPoloEmLote({
@@ -321,24 +297,17 @@ describe('definicaoPolo/api', () => {
       }),
     ).resolves.toEqual({ totalAtualizados: 1 })
 
-    expect(requisicaoAutenticadaMock).toHaveBeenCalledWith(
-      '/api/polos/atualizacao-lote/',
-      expect.objectContaining({
-        body: JSON.stringify({
-          ids: ['11111111-1111-1111-1111-111111111111'],
-          nomeEdicao: 'Julho 2026',
-          tipo: 'Polo reserva',
-        }),
-      }),
-    )
+    expect(apiPatchMock).toHaveBeenCalledWith('/api/polos/atualizacao-lote/', {
+      ids: ['11111111-1111-1111-1111-111111111111'],
+      nomeEdicao: 'Julho 2026',
+      tipo: 'Polo reserva',
+    })
   })
 
   it('lança ErroAtualizacaoDefinicoesPolo quando atualização em lote falha', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(JSON.stringify({ error: 'Payload inválido' }), {
-        status: 400,
-      }),
-    )
+    apiPatchMock.mockRejectedValue({
+      response: { status: 400, data: { error: 'Payload inválido' } },
+    })
 
     await expect(
       atualizarDefinicoesPoloEmLote({
@@ -352,9 +321,7 @@ describe('definicaoPolo/api', () => {
   })
 
   it('lança ErroAtualizacaoDefinicoesPolo quando corpo de atualização é inválido', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(JSON.stringify({ results: [] }), { status: 200 }),
-    )
+    apiPatchMock.mockResolvedValue({ data: { results: [] } })
 
     await expect(
       atualizarDefinicoesPoloEmLote({
@@ -367,10 +334,21 @@ describe('definicaoPolo/api', () => {
     })
   })
 
-  it('usa fallback de extrairMensagem quando o corpo da resposta não é JSON', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response('serviço indisponível', { status: 502 }),
-    )
+  it('usa a mensagem do corpo quando a resposta é texto puro', async () => {
+    apiGetMock.mockRejectedValue({
+      response: { status: 502, data: 'serviço indisponível' },
+    })
+
+    await expect(listarDefinicoesPolo()).rejects.toMatchObject({
+      name: 'ErroListagemDefinicoesPolo',
+      mensagemUsuario: 'serviço indisponível',
+    })
+  })
+
+  it('usa fallback quando o corpo de erro não tem mensagem reconhecida', async () => {
+    apiGetMock.mockRejectedValue({
+      response: { status: 500, data: { motivo: 'x' } },
+    })
 
     await expect(listarDefinicoesPolo()).rejects.toMatchObject({
       name: 'ErroListagemDefinicoesPolo',
@@ -379,9 +357,9 @@ describe('definicaoPolo/api', () => {
   })
 
   it('lança erro tipado quando a listagem falha', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(JSON.stringify({ error: 'Falha' }), { status: 500 }),
-    )
+    apiGetMock.mockRejectedValue({
+      response: { status: 500, data: { error: 'Falha' } },
+    })
 
     await expect(listarDefinicoesPolo()).rejects.toBeInstanceOf(
       ErroListagemDefinicoesPolo,
@@ -389,13 +367,25 @@ describe('definicaoPolo/api', () => {
   })
 
   it('lança ErroListagemDefinicoesPolo quando resposta de listagem é inválida', async () => {
-    requisicaoAutenticadaMock.mockResolvedValue(
-      new Response(JSON.stringify({ results: 'inválido' }), { status: 200 }),
-    )
+    apiGetMock.mockResolvedValue({ data: { results: 'inválido' } })
 
     await expect(listarDefinicoesPolo()).rejects.toMatchObject({
       name: 'ErroListagemDefinicoesPolo',
       mensagemUsuario: 'Resposta de listagem inválida.',
+    })
+  })
+
+  it('lança ErroAtualizacaoDefinicoesPolo com fallback quando falha sem mensagem', async () => {
+    apiPatchMock.mockRejectedValue(new Error('network error'))
+
+    await expect(
+      atualizarDefinicoesPoloEmLote({
+        ids: ['11111111-1111-1111-1111-111111111111'],
+        tipo: 'Polo oficial',
+      }),
+    ).rejects.toMatchObject({
+      name: 'ErroAtualizacaoDefinicoesPolo',
+      mensagemUsuario: 'Não foi possível atualizar os polos selecionados.',
     })
   })
 })

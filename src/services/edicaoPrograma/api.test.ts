@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { definirSessaoAutenticacao } from '../autenticacao'
+import { api } from '../api/http'
 import {
   atualizarEdicaoPrograma,
   cadastrarEdicaoPrograma,
@@ -11,6 +11,14 @@ import {
   obterEdicaoPrograma,
 } from './api'
 import { QUANTIDADES_MOCK_CADASTRO_EDICAO } from './mocks'
+
+vi.mock('../api/http', () => ({
+  api: { get: vi.fn(), post: vi.fn(), put: vi.fn() },
+}))
+
+const apiGetMock = vi.mocked(api.get)
+const apiPostMock = vi.mocked(api.post)
+const apiPutMock = vi.mocked(api.put)
 
 const respostaListagemExemplo = {
   results: [
@@ -52,23 +60,11 @@ const respostaCadastroExemplo = {
 
 describe('cadastrarEdicaoPrograma', () => {
   beforeEach(() => {
-    localStorage.clear()
+    apiPostMock.mockReset()
   })
 
   it('envia payload esperado e retorna a edição criada', async () => {
-    definirSessaoAutenticacao({
-      token: 'eyJ-token',
-      rf: '1234567',
-      nome: 'Usuário Teste',
-      descricaoCargo: 'Cargo Teste',
-    })
-
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 201,
-      json: async () => respostaCadastroExemplo,
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiPostMock.mockResolvedValue({ data: respostaCadastroExemplo })
 
     await expect(cadastrarEdicaoPrograma(dadosEdicaoExemplo)).resolves.toEqual({
       id: '22222222-2222-2222-2222-222222222222',
@@ -83,32 +79,22 @@ describe('cadastrarEdicaoPrograma', () => {
       quantidadeApresentacoes: 0,
     })
 
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-
-    const [, options] = fetchMock.mock.calls[0] as [string, RequestInit]
-    const headers = options.headers as Headers
-
-    expect(options.method).toBe('POST')
-    expect(headers.get('Authorization')).toBe('Bearer eyJ-token')
-    expect(headers.get('Content-Type')).toBe('application/json')
-    expect(options.body).toBe(
-      JSON.stringify({
-        nome: 'Edição Julho 2026',
-        periodoEdicao: { de: '2026-07-01', ate: '2026-07-31' },
-        periodoInscricoes: { de: '2026-06-01', ate: '2026-06-20' },
-        ...QUANTIDADES_MOCK_CADASTRO_EDICAO,
-      }),
-    )
+    expect(apiPostMock).toHaveBeenCalledTimes(1)
+    expect(apiPostMock).toHaveBeenCalledWith('/api/edicoes/', {
+      nome: 'Edição Julho 2026',
+      periodoEdicao: { de: '2026-07-01', ate: '2026-07-31' },
+      periodoInscricoes: { de: '2026-06-01', ate: '2026-06-20' },
+      ...QUANTIDADES_MOCK_CADASTRO_EDICAO,
+    })
   })
 
   it('lança erro quando a API retorna falha no cadastro', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 400,
-      text: async () =>
-        JSON.stringify({ error: 'Já existe uma edição com este nome.' }),
+    apiPostMock.mockRejectedValue({
+      response: {
+        status: 400,
+        data: { error: 'Já existe uma edição com este nome.' },
+      },
     })
-    vi.stubGlobal('fetch', fetchMock)
 
     await expect(
       cadastrarEdicaoPrograma({
@@ -134,12 +120,7 @@ describe('cadastrarEdicaoPrograma', () => {
   })
 
   it('lança erro quando a resposta de cadastro é inválida', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 201,
-      json: async () => ({ nome: 'sem id' }),
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiPostMock.mockResolvedValue({ data: { nome: 'sem id' } })
 
     await expect(
       cadastrarEdicaoPrograma(dadosEdicaoExemplo),
@@ -149,12 +130,7 @@ describe('cadastrarEdicaoPrograma', () => {
   })
 
   it('usa mensagem padrão quando o corpo de erro está vazio', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 500,
-      text: async () => '   ',
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiPostMock.mockRejectedValue({ response: { status: 500, data: {} } })
 
     await expect(
       cadastrarEdicaoPrograma(dadosEdicaoExemplo),
@@ -175,21 +151,12 @@ describe('obterEdicaoPrograma', () => {
   const idEdicao = '11111111-1111-1111-1111-111111111111'
 
   beforeEach(() => {
-    localStorage.clear()
+    apiGetMock.mockReset()
   })
 
   it('busca edição pelo id e mapeia a resposta da API', async () => {
-    definirSessaoAutenticacao({
-      token: 'eyJ-token',
-      rf: '1234567',
-      nome: 'Usuário Teste',
-      descricaoCargo: 'Cargo Teste',
-    })
-
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({
+    apiGetMock.mockResolvedValue({
+      data: {
         id: idEdicao,
         nome: 'Janeiro 2026',
         periodoEdicao: { de: '2026-01-01', ate: '2026-01-31' },
@@ -198,9 +165,8 @@ describe('obterEdicaoPrograma', () => {
         quantidadeAtendimentoEfetivo: 40,
         quantidadePasseios: 5,
         quantidadeApresentacoes: 2,
-      }),
+      },
     })
-    vi.stubGlobal('fetch', fetchMock)
 
     await expect(obterEdicaoPrograma(idEdicao)).resolves.toEqual({
       id: idEdicao,
@@ -215,18 +181,13 @@ describe('obterEdicaoPrograma', () => {
       quantidadeApresentacoes: 2,
     })
 
-    const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit]
-    expect(url).toBe(`/api/edicoes/${idEdicao}/`)
-    expect(options.method).toBe('GET')
+    expect(apiGetMock).toHaveBeenCalledWith(`/api/edicoes/${idEdicao}/`)
   })
 
   it('lança erro quando a API retorna falha na consulta', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 404,
-      text: async () => JSON.stringify({ detail: 'Edição não encontrada.' }),
+    apiGetMock.mockRejectedValue({
+      response: { status: 404, data: { detail: 'Edição não encontrada.' } },
     })
-    vi.stubGlobal('fetch', fetchMock)
 
     await expect(obterEdicaoPrograma(idEdicao)).rejects.toBeInstanceOf(
       ErroObterEdicaoPrograma,
@@ -237,12 +198,7 @@ describe('obterEdicaoPrograma', () => {
   })
 
   it('lança erro quando a resposta de consulta é inválida', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ nome: 'sem id' }),
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiGetMock.mockResolvedValue({ data: { nome: 'sem id' } })
 
     await expect(obterEdicaoPrograma(idEdicao)).rejects.toMatchObject({
       mensagemUsuario: 'Resposta de consulta inválida.',
@@ -254,23 +210,11 @@ describe('atualizarEdicaoPrograma', () => {
   const idEdicao = '22222222-2222-2222-2222-222222222222'
 
   beforeEach(() => {
-    localStorage.clear()
+    apiPutMock.mockReset()
   })
 
   it('envia payload esperado com quantidades e retorna a edição atualizada', async () => {
-    definirSessaoAutenticacao({
-      token: 'eyJ-token',
-      rf: '1234567',
-      nome: 'Usuário Teste',
-      descricaoCargo: 'Cargo Teste',
-    })
-
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => respostaCadastroExemplo,
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiPutMock.mockResolvedValue({ data: respostaCadastroExemplo })
 
     await expect(
       atualizarEdicaoPrograma(
@@ -291,30 +235,18 @@ describe('atualizarEdicaoPrograma', () => {
       quantidadeApresentacoes: 0,
     })
 
-    const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit]
-    const headers = options.headers as Headers
-
-    expect(url).toBe(`/api/edicoes/${idEdicao}/`)
-    expect(options.method).toBe('PUT')
-    expect(headers.get('Authorization')).toBe('Bearer eyJ-token')
-    expect(headers.get('Content-Type')).toBe('application/json')
-    expect(options.body).toBe(
-      JSON.stringify({
-        nome: 'Edição Julho 2026',
-        periodoEdicao: { de: '2026-07-01', ate: '2026-07-31' },
-        periodoInscricoes: { de: '2026-06-01', ate: '2026-06-20' },
-        ...quantidadesEdicaoExemplo,
-      }),
-    )
+    expect(apiPutMock).toHaveBeenCalledWith(`/api/edicoes/${idEdicao}/`, {
+      nome: 'Edição Julho 2026',
+      periodoEdicao: { de: '2026-07-01', ate: '2026-07-31' },
+      periodoInscricoes: { de: '2026-06-01', ate: '2026-06-20' },
+      ...quantidadesEdicaoExemplo,
+    })
   })
 
   it('lança erro quando a API retorna falha na atualização', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 404,
-      text: async () => JSON.stringify({ detail: 'Edição não encontrada.' }),
+    apiPutMock.mockRejectedValue({
+      response: { status: 404, data: { detail: 'Edição não encontrada.' } },
     })
-    vi.stubGlobal('fetch', fetchMock)
 
     await expect(
       atualizarEdicaoPrograma(
@@ -335,12 +267,7 @@ describe('atualizarEdicaoPrograma', () => {
   })
 
   it('lança erro quando a resposta de atualização é inválida', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => null,
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiPutMock.mockResolvedValue({ data: null })
 
     await expect(
       atualizarEdicaoPrograma(
@@ -356,23 +283,11 @@ describe('atualizarEdicaoPrograma', () => {
 
 describe('listarEdicoesPrograma', () => {
   beforeEach(() => {
-    localStorage.clear()
+    apiGetMock.mockReset()
   })
 
   it('envia requisição autenticada e mapeia a resposta da API', async () => {
-    definirSessaoAutenticacao({
-      token: 'eyJ-token',
-      rf: '1234567',
-      nome: 'Usuário Teste',
-      descricaoCargo: 'Cargo Teste',
-    })
-
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => respostaListagemExemplo,
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiGetMock.mockResolvedValue({ data: respostaListagemExemplo })
 
     await expect(listarEdicoesPrograma()).resolves.toEqual({
       edicoes: [
@@ -395,23 +310,19 @@ describe('listarEdicoesPrograma', () => {
       totalPaginas: 1,
     })
 
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-
-    const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit]
-    const headers = options.headers as Headers
-
-    expect(url).toBe('/api/edicoes/?page=1&pageSize=10')
-    expect(options.method).toBe('GET')
-    expect(headers.get('Authorization')).toBe('Bearer eyJ-token')
+    expect(apiGetMock).toHaveBeenCalledTimes(1)
+    expect(apiGetMock).toHaveBeenCalledWith('/api/edicoes/', {
+      params: { page: '1', pageSize: '10' },
+    })
   })
 
   it('lança erro quando a API retorna falha', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 401,
-      text: async () => JSON.stringify({ detail: 'Credenciais inválidas.' }),
+    apiGetMock.mockRejectedValue({
+      response: {
+        status: 401,
+        data: { detail: 'Credenciais inválidas.' },
+      },
     })
-    vi.stubGlobal('fetch', fetchMock)
 
     await expect(listarEdicoesPrograma()).rejects.toBeInstanceOf(
       ErroListagemEdicoesPrograma,
@@ -422,39 +333,27 @@ describe('listarEdicoesPrograma', () => {
   })
 
   it('envia parâmetros de paginação customizados', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => respostaListagemExemplo,
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiGetMock.mockResolvedValue({ data: respostaListagemExemplo })
 
     await listarEdicoesPrograma({ pagina: 2, tamanhoPagina: 20 })
 
-    const [url] = fetchMock.mock.calls[0] as [string]
-    expect(url).toBe('/api/edicoes/?page=2&pageSize=20')
+    expect(apiGetMock).toHaveBeenCalledWith('/api/edicoes/', {
+      params: { page: '2', pageSize: '20' },
+    })
   })
 
   it('lança erro quando a resposta de listagem é inválida', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ results: 'invalido' }),
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiGetMock.mockResolvedValue({ data: { results: 'invalido' } })
 
     await expect(listarEdicoesPrograma()).rejects.toMatchObject({
       mensagemUsuario: 'Resposta de listagem inválida.',
     })
   })
 
-  it('exibe texto bruto quando o corpo de erro não é JSON', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 500,
-      text: async () => 'Erro interno do servidor',
+  it('usa o texto bruto quando o corpo de erro é uma string', async () => {
+    apiGetMock.mockRejectedValue({
+      response: { status: 500, data: 'Erro interno do servidor' },
     })
-    vi.stubGlobal('fetch', fetchMock)
 
     await expect(listarEdicoesPrograma()).rejects.toMatchObject({
       mensagemUsuario: 'Erro interno do servidor',
