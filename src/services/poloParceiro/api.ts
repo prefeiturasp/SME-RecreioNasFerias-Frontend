@@ -1,4 +1,5 @@
-import { requisicaoAutenticada } from '../autenticacao'
+import { extrairMensagemDeErro } from '../api/extrairMensagemDeErro'
+import { api } from '../api/http'
 import { interpretarRespostaPoloParceiroDetalhado } from './interpretarRespostaPoloParceiroDetalhado'
 import { interpretarRespostaListagemPolosParceirosPaginada } from './interpretarRespostaListagemPolosParceiros'
 import {
@@ -93,38 +94,6 @@ function interpretarRespostaPoloParceiro(dados: unknown): PoloParceiro | null {
   }
 }
 
-async function extrairMensagemDeErroDaResposta(
-  response: Response,
-): Promise<string> {
-  const corpo = await response.text()
-  if (!corpo.trim()) {
-    return ''
-  }
-
-  try {
-    const dados = JSON.parse(corpo) as unknown
-    if (dados && typeof dados === 'object') {
-      if (
-        'error' in dados &&
-        typeof (dados as { error: unknown }).error === 'string'
-      ) {
-        return (dados as { error: string }).error
-      }
-
-      if (
-        'detail' in dados &&
-        typeof (dados as { detail: unknown }).detail === 'string'
-      ) {
-        return (dados as { detail: string }).detail
-      }
-    }
-  } catch {
-    // corpo não é JSON; exibe o texto bruto retornado pelo backend
-  }
-
-  return corpo
-}
-
 export async function listarPolosParceiros({
   pagina = 1,
   tamanhoPagina = 10,
@@ -132,125 +101,126 @@ export async function listarPolosParceiros({
   tipoUe = '',
   nomePoloOuOsc = '',
 }: ParametrosListagemPolosParceiros = PARAMETROS_LISTAGEM_POLOS_PARCEIROS_INICIAIS): Promise<ListagemPolosParceiros> {
-  const parametros = new URLSearchParams({
+  const params: Record<string, string> = {
     page: String(pagina),
     pageSize: String(tamanhoPagina),
     gestao: 'Parceira',
-  })
+  }
 
   if (dre.trim()) {
-    parametros.set('dre', dre.trim())
+    params.dre = dre.trim()
   }
 
   if (tipoUe.trim()) {
-    parametros.set('tipoUe', tipoUe.trim())
+    params.tipoUe = tipoUe.trim()
   }
 
   if (nomePoloOuOsc.trim()) {
-    parametros.set('nomePoloOuOsc', nomePoloOuOsc.trim())
+    params.nomePoloOuOsc = nomePoloOuOsc.trim()
   }
 
-  const response = await requisicaoAutenticada(
-    `/api/polos/?${parametros.toString()}`,
-    {
-      method: 'GET',
-    },
-  )
+  try {
+    const { data } = await api.get('/api/polos/', { params })
 
-  if (!response.ok) {
-    const mensagem = await extrairMensagemDeErroDaResposta(response)
+    const listagem = interpretarRespostaListagemPolosParceirosPaginada(
+      data as unknown,
+    )
+
+    if (!listagem) {
+      throw new ErroListagemPolosParceiros('Resposta de listagem inválida.')
+    }
+
+    return listagem
+  } catch (error) {
+    if (error instanceof ErroListagemPolosParceiros) {
+      throw error
+    }
+
     throw new ErroListagemPolosParceiros(
-      mensagem || 'Não foi possível carregar os polos parceiros.',
+      extrairMensagemDeErro(error) ||
+        'Não foi possível carregar os polos parceiros.',
     )
   }
-
-  const dados = await response.json()
-  const listagem = interpretarRespostaListagemPolosParceirosPaginada(dados)
-
-  if (!listagem) {
-    throw new ErroListagemPolosParceiros('Resposta de listagem inválida.')
-  }
-
-  return listagem
 }
 
 export async function cadastrarPoloParceiro(
   dados: DadosCadastroPoloParceiro,
 ): Promise<PoloParceiro> {
-  const response = await requisicaoAutenticada('/api/polos/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(montarPayloadCadastroPoloParceiro(dados)),
-  })
+  try {
+    const { data } = await api.post(
+      '/api/polos/',
+      montarPayloadCadastroPoloParceiro(dados),
+    )
 
-  if (!response.ok) {
-    const mensagem = await extrairMensagemDeErroDaResposta(response)
+    const polo = interpretarRespostaPoloParceiro(data as unknown)
+
+    if (!polo) {
+      throw new ErroCadastroPoloParceiro('Resposta de cadastro inválida.')
+    }
+
+    return polo
+  } catch (error) {
+    if (error instanceof ErroCadastroPoloParceiro) {
+      throw error
+    }
+
     throw new ErroCadastroPoloParceiro(
-      mensagem || 'Não foi possível cadastrar o polo parceiro.',
+      extrairMensagemDeErro(error) ||
+        'Não foi possível cadastrar o polo parceiro.',
     )
   }
-
-  const resposta = await response.json()
-  const polo = interpretarRespostaPoloParceiro(resposta)
-
-  if (!polo) {
-    throw new ErroCadastroPoloParceiro('Resposta de cadastro inválida.')
-  }
-
-  return polo
 }
 
 export async function obterPoloParceiro(
   id: string,
 ): Promise<PoloParceiroDetalhado> {
-  const response = await requisicaoAutenticada(`/api/polos/${id}/`, {
-    method: 'GET',
-  })
+  try {
+    const { data } = await api.get(`/api/polos/${id}/`)
 
-  if (!response.ok) {
-    const mensagem = await extrairMensagemDeErroDaResposta(response)
+    const polo = interpretarRespostaPoloParceiroDetalhado(data as unknown)
+
+    if (!polo) {
+      throw new ErroObterPoloParceiro('Resposta de consulta inválida.')
+    }
+
+    return polo
+  } catch (error) {
+    if (error instanceof ErroObterPoloParceiro) {
+      throw error
+    }
+
     throw new ErroObterPoloParceiro(
-      mensagem || 'Não foi possível carregar o polo parceiro.',
+      extrairMensagemDeErro(error) ||
+        'Não foi possível carregar o polo parceiro.',
     )
   }
-
-  const resposta = await response.json()
-  const polo = interpretarRespostaPoloParceiroDetalhado(resposta)
-
-  if (!polo) {
-    throw new ErroObterPoloParceiro('Resposta de consulta inválida.')
-  }
-
-  return polo
 }
 
 export async function atualizarPoloParceiro(
   id: string,
   dados: DadosCadastroPoloParceiro,
 ): Promise<PoloParceiro> {
-  const response = await requisicaoAutenticada(`/api/polos/${id}/`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(montarPayloadCadastroPoloParceiro(dados)),
-  })
+  try {
+    const { data } = await api.put(
+      `/api/polos/${id}/`,
+      montarPayloadCadastroPoloParceiro(dados),
+    )
 
-  if (!response.ok) {
-    const mensagem = await extrairMensagemDeErroDaResposta(response)
+    const polo = interpretarRespostaPoloParceiro(data as unknown)
+
+    if (!polo) {
+      throw new ErroAtualizacaoPoloParceiro('Resposta de atualização inválida.')
+    }
+
+    return polo
+  } catch (error) {
+    if (error instanceof ErroAtualizacaoPoloParceiro) {
+      throw error
+    }
+
     throw new ErroAtualizacaoPoloParceiro(
-      mensagem || 'Não foi possível atualizar o polo parceiro.',
+      extrairMensagemDeErro(error) ||
+        'Não foi possível atualizar o polo parceiro.',
     )
   }
-
-  const resposta = await response.json()
-  const polo = interpretarRespostaPoloParceiro(resposta)
-
-  if (!polo) {
-    throw new ErroAtualizacaoPoloParceiro('Resposta de atualização inválida.')
-  }
-
-  return polo
 }

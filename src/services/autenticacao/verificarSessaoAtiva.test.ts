@@ -3,15 +3,32 @@ import {
   invalidarCacheVerificacaoSessao,
   marcarSessaoVerificada,
 } from './cacheVerificacaoSessao'
-import { definirSessaoAutenticacao } from './storage'
+import { definirSessaoAutenticacao, limparSessaoAutenticacao } from './storage'
 import {
   deveVerificarSessaoNaRota,
   verificarSessaoAtiva,
 } from './verificarSessaoAtiva'
 
+const { apiGetMock } = vi.hoisted(() => ({
+  apiGetMock: vi.fn(),
+}))
+
+vi.mock('../api/http', () => ({
+  api: { get: apiGetMock },
+}))
+
+function definirSessaoComToken(token = 'eyJ-token') {
+  definirSessaoAutenticacao({
+    token,
+    rf: '1234567',
+    nome: 'Usuário Teste',
+    descricaoCargo: 'Cargo Teste',
+  })
+}
+
 describe('deveVerificarSessaoNaRota', () => {
   beforeEach(() => {
-    localStorage.clear()
+    limparSessaoAutenticacao()
   })
 
   it('não verifica sessão na página de login', () => {
@@ -19,23 +36,13 @@ describe('deveVerificarSessaoNaRota', () => {
   })
 
   it('não verifica sessão na listagem de edições', () => {
-    definirSessaoAutenticacao({
-      token: 'eyJ-token',
-      rf: '1234567',
-      nome: 'Usuário Teste',
-      descricaoCargo: 'Cargo Teste',
-    })
+    definirSessaoComToken()
 
     expect(deveVerificarSessaoNaRota('/edicoes-programa')).toBe(false)
   })
 
   it('verifica sessão em outras rotas autenticadas', () => {
-    definirSessaoAutenticacao({
-      token: 'eyJ-token',
-      rf: '1234567',
-      nome: 'Usuário Teste',
-      descricaoCargo: 'Cargo Teste',
-    })
+    definirSessaoComToken()
 
     expect(deveVerificarSessaoNaRota('/inicio')).toBe(true)
   })
@@ -43,93 +50,54 @@ describe('deveVerificarSessaoNaRota', () => {
 
 describe('verificarSessaoAtiva', () => {
   beforeEach(() => {
-    localStorage.clear()
+    limparSessaoAutenticacao()
     invalidarCacheVerificacaoSessao()
+    apiGetMock.mockReset()
   })
 
   it('retorna false quando não há sessão local', async () => {
     await expect(verificarSessaoAtiva()).resolves.toBe(false)
+    expect(apiGetMock).not.toHaveBeenCalled()
   })
 
   it('reutiliza cache recente sem chamar a API', async () => {
-    definirSessaoAutenticacao({
-      token: 'eyJ-token',
-      rf: '1234567',
-      nome: 'Usuário Teste',
-      descricaoCargo: 'Cargo Teste',
-    })
+    definirSessaoComToken()
     marcarSessaoVerificada()
 
-    const fetchMock = vi.fn()
-    vi.stubGlobal('fetch', fetchMock)
-
     await expect(verificarSessaoAtiva()).resolves.toBe(true)
-    expect(fetchMock).not.toHaveBeenCalled()
+    expect(apiGetMock).not.toHaveBeenCalled()
   })
 
-  it('retorna true quando a API aceita o token', async () => {
-    definirSessaoAutenticacao({
-      token: 'eyJ-token',
-      rf: '1234567',
-      nome: 'Usuário Teste',
-      descricaoCargo: 'Cargo Teste',
-    })
-
-    const fetchMock = vi.fn().mockResolvedValue({ status: 200, ok: true })
-    vi.stubGlobal('fetch', fetchMock)
+  it('verifica a sessão no endpoint me', async () => {
+    definirSessaoComToken()
+    apiGetMock.mockResolvedValue({ data: { rf: '1234567' } })
 
     await expect(verificarSessaoAtiva()).resolves.toBe(true)
+    expect(apiGetMock).toHaveBeenCalledWith('/api/v1/auth/me/')
   })
 
-  it('retorna false quando a API retorna 401', async () => {
-    definirSessaoAutenticacao({
-      token: 'eyJ-token-expirado',
-      rf: '1234567',
-      nome: 'Usuário Teste',
-      descricaoCargo: 'Cargo Teste',
-    })
-
-    const fetchMock = vi.fn().mockResolvedValue({ status: 401, ok: false })
-    vi.stubGlobal('fetch', fetchMock)
+  it('retorna false quando a API responde 401', async () => {
+    definirSessaoComToken('eyJ-token-expirado')
+    apiGetMock.mockRejectedValue({ response: { status: 401, data: null } })
 
     await expect(verificarSessaoAtiva()).resolves.toBe(false)
   })
 
-  it('retorna false quando a API retorna 403 com token expirado', async () => {
-    definirSessaoAutenticacao({
-      token: 'eyJ-token-expirado',
-      rf: '1234567',
-      nome: 'Usuário Teste',
-      descricaoCargo: 'Cargo Teste',
+  it('retorna false quando a API responde 403 com token expirado', async () => {
+    definirSessaoComToken('eyJ-token-expirado')
+    apiGetMock.mockRejectedValue({
+      response: {
+        status: 403,
+        data: { detalhe: 'Token inválido ou expirado.' },
+      },
     })
-
-    const { MENSAGEM_TOKEN_INVALIDO_OU_EXPIRADO } =
-      await import('./sessaoInvalida')
-    const corpo = JSON.stringify({
-      detail: MENSAGEM_TOKEN_INVALIDO_OU_EXPIRADO,
-    })
-    const fetchMock = vi.fn().mockResolvedValue({
-      status: 403,
-      ok: false,
-      clone: () => ({
-        text: () => Promise.resolve(corpo),
-      }),
-    })
-    vi.stubGlobal('fetch', fetchMock)
 
     await expect(verificarSessaoAtiva()).resolves.toBe(false)
   })
 
   it('mantém sessão quando ocorre falha de rede', async () => {
-    definirSessaoAutenticacao({
-      token: 'eyJ-token',
-      rf: '1234567',
-      nome: 'Usuário Teste',
-      descricaoCargo: 'Cargo Teste',
-    })
-
-    const fetchMock = vi.fn().mockRejectedValue(new Error('network'))
-    vi.stubGlobal('fetch', fetchMock)
+    definirSessaoComToken()
+    apiGetMock.mockRejectedValue(new Error('network'))
 
     await expect(verificarSessaoAtiva()).resolves.toBe(true)
   })

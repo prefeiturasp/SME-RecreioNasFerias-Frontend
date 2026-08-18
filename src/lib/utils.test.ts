@@ -7,7 +7,10 @@ describe('cn', () => {
   })
 
   it('ignora valores falsy', () => {
-    expect(cn('p-2', false && 'hidden', null, undefined, 'm-2')).toBe('p-2 m-2')
+    const condicaoFalsa = false
+    expect(cn('p-2', condicaoFalsa && 'hidden', null, undefined, 'm-2')).toBe(
+      'p-2 m-2',
+    )
   })
 
   it('aplica classes condicionais via objeto', () => {

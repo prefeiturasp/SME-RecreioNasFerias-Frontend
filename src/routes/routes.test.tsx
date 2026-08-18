@@ -1,8 +1,25 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { definirSessaoAutenticacao } from '../services/autenticacao'
+import {
+  definirSessaoAutenticacao,
+  limparSessaoAutenticacao,
+} from '../services/autenticacao'
 import { RotasAplicacao } from './index'
+
+const { restaurarSessaoAutenticacaoMock } = vi.hoisted(() => ({
+  restaurarSessaoAutenticacaoMock: vi.fn(),
+}))
+
+vi.mock('../services/autenticacao', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('../services/autenticacao')>()
+
+  return {
+    ...actual,
+    restaurarSessaoAutenticacao: restaurarSessaoAutenticacaoMock,
+  }
+})
 
 vi.mock('../components/MenuLateral', () => ({
   MenuLateral: () => <aside aria-label="menu lateral">Menu lateral</aside>,
@@ -69,7 +86,9 @@ vi.mock('../services/definicaoPolo/api', () => ({
 
 describe('RotasAplicacao', () => {
   beforeEach(() => {
-    localStorage.clear()
+    limparSessaoAutenticacao()
+    restaurarSessaoAutenticacaoMock.mockReset()
+    restaurarSessaoAutenticacaoMock.mockResolvedValue(undefined)
   })
 
   it('renderiza a página inicial na rota raiz', () => {
@@ -87,14 +106,14 @@ describe('RotasAplicacao', () => {
     ).toBeInTheDocument()
   })
 
-  it('redireciona para login ao acessar /inicio sem autenticação', () => {
+  it('redireciona para login ao acessar /inicio sem autenticação', async () => {
     render(
       <MemoryRouter initialEntries={['/inicio']}>
         <RotasAplicacao />
       </MemoryRouter>,
     )
 
-    expect(screen.getByText(/bem-vindo\(a\) ao/i)).toBeInTheDocument()
+    expect(await screen.findByText(/bem-vindo\(a\) ao/i)).toBeInTheDocument()
     expect(
       screen.queryByRole('navigation', { name: /mapa do site/i }),
     ).not.toBeInTheDocument()
@@ -103,9 +122,9 @@ describe('RotasAplicacao', () => {
   it('renderiza a página principal na rota /inicio quando autenticado', () => {
     definirSessaoAutenticacao({
       token: 'eyJ-token',
-      rf: '8080640',
-      nome: 'VANIA FERREIRA DA SILVA CANEKI',
-      descricaoCargo: 'ASSISTENTE TECNICO DE EDUCACAO I',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
     })
 
     render(
@@ -118,14 +137,14 @@ describe('RotasAplicacao', () => {
     expect(mapa).toHaveTextContent('Início')
   })
 
-  it('redireciona para login ao acessar /edicoes-programa sem autenticação', () => {
+  it('redireciona para login ao acessar /edicoes-programa sem autenticação', async () => {
     render(
       <MemoryRouter initialEntries={['/edicoes-programa']}>
         <RotasAplicacao />
       </MemoryRouter>,
     )
 
-    expect(screen.getByText(/bem-vindo\(a\) ao/i)).toBeInTheDocument()
+    expect(await screen.findByText(/bem-vindo\(a\) ao/i)).toBeInTheDocument()
     expect(
       screen.queryByRole('navigation', { name: /mapa do site/i }),
     ).not.toBeInTheDocument()
@@ -134,9 +153,9 @@ describe('RotasAplicacao', () => {
   it('renderiza a página Edições do Programa na rota /edicoes-programa quando autenticado', () => {
     definirSessaoAutenticacao({
       token: 'eyJ-token',
-      rf: '8080640',
-      nome: 'VANIA FERREIRA DA SILVA CANEKI',
-      descricaoCargo: 'ASSISTENTE TECNICO DE EDUCACAO I',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
     })
 
     render(
@@ -154,9 +173,9 @@ describe('RotasAplicacao', () => {
   it('renderiza a página Cadastro de Polos Parceiros na rota /polos-parceiros quando autenticado', async () => {
     definirSessaoAutenticacao({
       token: 'eyJ-token',
-      rf: '8080640',
-      nome: 'VANIA FERREIRA DA SILVA CANEKI',
-      descricaoCargo: 'ASSISTENTE TECNICO DE EDUCACAO I',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
     })
 
     render(
@@ -184,9 +203,9 @@ describe('RotasAplicacao', () => {
   it('renderiza a página Cadastrar Polo Parceiro na rota /cadastrar-polo-parceiro quando autenticado', async () => {
     definirSessaoAutenticacao({
       token: 'eyJ-token',
-      rf: '8080640',
-      nome: 'VANIA FERREIRA DA SILVA CANEKI',
-      descricaoCargo: 'ASSISTENTE TECNICO DE EDUCACAO I',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
     })
 
     render(
@@ -205,9 +224,9 @@ describe('RotasAplicacao', () => {
   it('renderiza a página Editar Polo Parceiro na rota /editar-polo-parceiro/:idPolo quando autenticado', async () => {
     definirSessaoAutenticacao({
       token: 'eyJ-token',
-      rf: '8080640',
-      nome: 'VANIA FERREIRA DA SILVA CANEKI',
-      descricaoCargo: 'ASSISTENTE TECNICO DE EDUCACAO I',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
     })
 
     render(
@@ -230,9 +249,9 @@ describe('RotasAplicacao', () => {
   it('renderiza a página Definições de Polo na rota /definicoes-polo quando autenticado', () => {
     definirSessaoAutenticacao({
       token: 'eyJ-token',
-      rf: '8080640',
-      nome: 'VANIA FERREIRA DA SILVA CANEKI',
-      descricaoCargo: 'ASSISTENTE TECNICO DE EDUCACAO I',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
     })
 
     render(

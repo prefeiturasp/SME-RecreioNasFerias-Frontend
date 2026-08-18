@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { restaurarSessaoAutenticacao } from '../../services/autenticacao'
 import { registrarOuvinteSessaoInvalida } from '../../services/autenticacao/sessaoInvalida'
 import {
   deveVerificarSessaoNaRota,
@@ -17,12 +18,14 @@ export function VerificadorSessaoAutenticacao() {
   }, [navigate])
 
   useEffect(() => {
-    if (!deveVerificarSessaoNaRota(location.pathname)) return
+    void restaurarSessaoAutenticacao().then(() => {
+      if (!deveVerificarSessaoNaRota(location.pathname)) return
 
-    void verificarSessaoAtiva().then((sessaoValida) => {
-      if (!sessaoValida) {
-        navigate('/', { replace: true })
-      }
+      void verificarSessaoAtiva().then((sessaoValida) => {
+        if (!sessaoValida) {
+          navigate('/', { replace: true })
+        }
+      })
     })
   }, [location.pathname, navigate])
 

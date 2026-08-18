@@ -1,5 +1,5 @@
 import { obterSmeIntegracaoApiKey } from '../../config/variaveisAmbiente'
-import { construirUrlSmeIntegracaoApi } from './construirUrlSmeIntegracaoApi'
+import { apiSmeIntegracao } from '../api/http'
 import { interpretarRespostaDresNomeAbreviacao } from './interpretarRespostaDresNomeAbreviacao'
 import { interpretarRespostaTiposEscolas } from './interpretarRespostaTiposEscolas'
 import type { DreNomeAbreviacao, TipoEscola } from './types'
@@ -24,78 +24,62 @@ export class ErroListagemTiposEscolas extends Error {
   }
 }
 
-function obterChaveApiSmeIntegracao(): string {
-  return obterSmeIntegracaoApiKey()
-}
-
 export async function listarDresNomeAbreviacao(): Promise<DreNomeAbreviacao[]> {
-  const chaveApi = obterChaveApiSmeIntegracao()
-
-  if (!chaveApi) {
+  if (!obterSmeIntegracaoApiKey()) {
     throw new ErroListagemDresNomeAbreviacao(
       'Chave da API de integração não configurada.',
     )
   }
 
-  const response = await fetch(
-    construirUrlSmeIntegracaoApi('/api/abrangencia/nome-abreviacao-dres'),
-    {
-      method: 'GET',
-      headers: {
-        'x-api-eol-key': chaveApi,
-      },
-    },
-  )
+  try {
+    const { data } = await apiSmeIntegracao.get(
+      '/api/abrangencia/nome-abreviacao-dres',
+    )
 
-  if (!response.ok) {
+    const dres = interpretarRespostaDresNomeAbreviacao(data as unknown)
+
+    if (!dres) {
+      throw new ErroListagemDresNomeAbreviacao('Resposta de DREs inválida.')
+    }
+
+    return [...dres].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+  } catch (error) {
+    if (error instanceof ErroListagemDresNomeAbreviacao) {
+      throw error
+    }
+
     throw new ErroListagemDresNomeAbreviacao(
       'Não foi possível carregar as DREs.',
     )
   }
-
-  const dados = await response.json()
-  const dres = interpretarRespostaDresNomeAbreviacao(dados)
-
-  if (!dres) {
-    throw new ErroListagemDresNomeAbreviacao('Resposta de DREs inválida.')
-  }
-
-  return [...dres].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
 }
 
 export async function listarTiposEscolas(): Promise<TipoEscola[]> {
-  const chaveApi = obterChaveApiSmeIntegracao()
-
-  if (!chaveApi) {
+  if (!obterSmeIntegracaoApiKey()) {
     throw new ErroListagemTiposEscolas(
       'Chave da API de integração não configurada.',
     )
   }
 
-  const response = await fetch(
-    construirUrlSmeIntegracaoApi('/api/escolas/tiposEscolas'),
-    {
-      method: 'GET',
-      headers: {
-        'x-api-eol-key': chaveApi,
-      },
-    },
-  )
+  try {
+    const { data } = await apiSmeIntegracao.get('/api/escolas/tiposEscolas')
 
-  if (!response.ok) {
+    const tiposEscolas = interpretarRespostaTiposEscolas(data as unknown)
+
+    if (!tiposEscolas) {
+      throw new ErroListagemTiposEscolas('Resposta de tipos de UE inválida.')
+    }
+
+    return [...tiposEscolas].sort((a, b) =>
+      a.descricaoSigla.localeCompare(b.descricaoSigla, 'pt-BR'),
+    )
+  } catch (error) {
+    if (error instanceof ErroListagemTiposEscolas) {
+      throw error
+    }
+
     throw new ErroListagemTiposEscolas(
       'Não foi possível carregar os tipos de UE.',
     )
   }
-
-  const dados = await response.json()
-  const tiposEscolas = interpretarRespostaTiposEscolas(dados)
-
-  if (!tiposEscolas) {
-    throw new ErroListagemTiposEscolas('Resposta de tipos de UE inválida.')
-  }
-
-  return [...tiposEscolas].sort((a, b) =>
-    a.descricaoSigla.localeCompare(b.descricaoSigla, 'pt-BR'),
-  )
 }

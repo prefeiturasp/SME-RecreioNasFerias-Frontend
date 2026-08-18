@@ -3,13 +3,26 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   definirSessaoAutenticacao,
+  limparSessaoAutenticacao,
   obterSessaoAutenticacao,
 } from '../../services/autenticacao'
 import { VerificadorSessaoAutenticacao } from './index'
 
-const { verificarSessaoAtivaMock } = vi.hoisted(() => ({
-  verificarSessaoAtivaMock: vi.fn(),
-}))
+const { restaurarSessaoAutenticacaoMock, verificarSessaoAtivaMock } =
+  vi.hoisted(() => ({
+    restaurarSessaoAutenticacaoMock: vi.fn(),
+    verificarSessaoAtivaMock: vi.fn(),
+  }))
+
+vi.mock('../../services/autenticacao', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('../../services/autenticacao')>()
+
+  return {
+    ...actual,
+    restaurarSessaoAutenticacao: restaurarSessaoAutenticacaoMock,
+  }
+})
 
 vi.mock(
   '../../services/autenticacao/verificarSessaoAtiva',
@@ -28,7 +41,9 @@ vi.mock(
 
 describe('VerificadorSessaoAutenticacao', () => {
   beforeEach(() => {
-    localStorage.clear()
+    limparSessaoAutenticacao()
+    restaurarSessaoAutenticacaoMock.mockReset()
+    restaurarSessaoAutenticacaoMock.mockResolvedValue(undefined)
     verificarSessaoAtivaMock.mockReset()
     verificarSessaoAtivaMock.mockResolvedValue(true)
   })
