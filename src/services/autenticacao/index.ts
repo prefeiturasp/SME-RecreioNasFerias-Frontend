@@ -16,6 +16,8 @@ export { obterDadosUsuarioAutenticado } from './obterDadosUsuarioAutenticado'
 export { restaurarSessaoAutenticacao } from './restaurarSessaoAutenticacao'
 export { atualizarTokenAutenticacaoViaRefresh } from './refreshToken'
 export { encerrarSessaoAutenticacao } from './logout'
+export { login, ErroAcessoNegadoLogin, ErroFalhaLogin } from './login'
+export type { CredenciaisLogin } from './login'
 export {
   invalidarCacheVerificacaoSessao,
   marcarSessaoVerificada,
