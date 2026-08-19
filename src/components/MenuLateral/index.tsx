@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { iconeCadastro } from '../../assets'
-import { useEstadoMenuLateral } from '../../contexts/useEstadoMenuLateral'
 import logoSmeBranco from '../../assets/logo-sme-branco.png'
+import { useEstadoMenuLateral } from '../../contexts/useEstadoMenuLateral'
 import { ChevronDownIcon, CloseIcon, MenuIcon } from '../icons'
+import { Button } from '../ui/button'
 import {
   AreaRolagemMenu,
   BotaoAbrirMenu,
@@ -180,6 +181,7 @@ export function MenuLateral() {
               width={157}
               height={55}
             />
+            <Button>teste</Button>
           </RodapeLogoMenu>
         </ConteudoMenu>
       )}

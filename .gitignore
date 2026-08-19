@@ -38,3 +38,5 @@ Thumbs.db
 # Test and tooling artifacts
 test-results
 playwright-report
+
+_material
