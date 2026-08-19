@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -58,6 +59,23 @@ vi.mock('../services/smeIntegracao/api', () => ({
   listarTiposEscolas: vi.fn().mockResolvedValue([]),
 }))
 
+function renderRotas(initialEntry: string) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  })
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[initialEntry]}>
+        <RotasAplicacao />
+      </MemoryRouter>
+    </QueryClientProvider>,
+  )
+}
+
 vi.mock('../services/definicaoPolo/api', () => ({
   listarDefinicoesPolo: vi.fn().mockResolvedValue({
     polos: [],
@@ -92,11 +110,7 @@ describe('RotasAplicacao', () => {
   })
 
   it('renderiza a página inicial na rota raiz', () => {
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <RotasAplicacao />
-      </MemoryRouter>,
-    )
+    renderRotas('/')
 
     expect(screen.getByText(/bem-vindo\(a\) ao/i)).toBeInTheDocument()
     expect(
@@ -107,11 +121,7 @@ describe('RotasAplicacao', () => {
   })
 
   it('redireciona para login ao acessar /inicio sem autenticação', async () => {
-    render(
-      <MemoryRouter initialEntries={['/inicio']}>
-        <RotasAplicacao />
-      </MemoryRouter>,
-    )
+    renderRotas('/inicio')
 
     expect(await screen.findByText(/bem-vindo\(a\) ao/i)).toBeInTheDocument()
     expect(
@@ -138,11 +148,7 @@ describe('RotasAplicacao', () => {
   })
 
   it('redireciona para login ao acessar /edicoes-programa sem autenticação', async () => {
-    render(
-      <MemoryRouter initialEntries={['/edicoes-programa']}>
-        <RotasAplicacao />
-      </MemoryRouter>,
-    )
+    renderRotas('/edicoes-programa')
 
     expect(await screen.findByText(/bem-vindo\(a\) ao/i)).toBeInTheDocument()
     expect(
