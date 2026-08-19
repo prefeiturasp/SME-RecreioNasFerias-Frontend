@@ -1,4 +1,5 @@
-import { requisicaoAutenticada } from '../autenticacao'
+import { extrairMensagemDeErro } from '../api/extrairMensagemDeErro'
+import { api } from '../api/http'
 import {
   interpretarRespostaEdicaoPrograma,
   interpretarRespostaListagemEdicoesPaginada,
@@ -70,86 +71,52 @@ function montarPayloadEdicao(
   }
 }
 
-async function extrairMensagemDeErroDaResposta(
-  response: Response,
-): Promise<string> {
-  const corpo = await response.text()
-  if (!corpo.trim()) {
-    return ''
-  }
-
-  try {
-    const dados = JSON.parse(corpo) as unknown
-    if (dados && typeof dados === 'object') {
-      if (
-        'error' in dados &&
-        typeof (dados as { error: unknown }).error === 'string'
-      ) {
-        return (dados as { error: string }).error
-      }
-
-      if (
-        'detail' in dados &&
-        typeof (dados as { detail: unknown }).detail === 'string'
-      ) {
-        return (dados as { detail: string }).detail
-      }
-    }
-  } catch {
-    // corpo não é JSON; exibe o texto bruto retornado pelo backend
-  }
-
-  return corpo
-}
-
 export async function cadastrarEdicaoPrograma(
   dados: DadosCadastroEdicaoPrograma,
 ): Promise<EdicaoPrograma> {
-  const response = await requisicaoAutenticada('/api/edicoes/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(montarPayloadEdicao(dados)),
-  })
+  try {
+    const { data } = await api.post('/api/edicoes/', montarPayloadEdicao(dados))
 
-  if (!response.ok) {
-    const mensagem = await extrairMensagemDeErroDaResposta(response)
+    const edicao = interpretarRespostaEdicaoPrograma(data as unknown)
+
+    if (!edicao) {
+      throw new ErroCadastroEdicaoPrograma('Resposta de cadastro inválida.')
+    }
+
+    return edicao
+  } catch (error) {
+    if (error instanceof ErroCadastroEdicaoPrograma) {
+      throw error
+    }
+
     throw new ErroCadastroEdicaoPrograma(
-      mensagem || 'Não foi possível cadastrar a edição do programa.',
+      extrairMensagemDeErro(error) ||
+        'Não foi possível cadastrar a edição do programa.',
     )
   }
-
-  const resposta = await response.json()
-  const edicao = interpretarRespostaEdicaoPrograma(resposta)
-
-  if (!edicao) {
-    throw new ErroCadastroEdicaoPrograma('Resposta de cadastro inválida.')
-  }
-
-  return edicao
 }
 
 export async function obterEdicaoPrograma(id: string): Promise<EdicaoPrograma> {
-  const response = await requisicaoAutenticada(`/api/edicoes/${id}/`, {
-    method: 'GET',
-  })
+  try {
+    const { data } = await api.get(`/api/edicoes/${id}/`)
 
-  if (!response.ok) {
-    const mensagem = await extrairMensagemDeErroDaResposta(response)
+    const edicao = interpretarRespostaEdicaoPrograma(data as unknown)
+
+    if (!edicao) {
+      throw new ErroObterEdicaoPrograma('Resposta de consulta inválida.')
+    }
+
+    return edicao
+  } catch (error) {
+    if (error instanceof ErroObterEdicaoPrograma) {
+      throw error
+    }
+
     throw new ErroObterEdicaoPrograma(
-      mensagem || 'Não foi possível carregar a edição do programa.',
+      extrairMensagemDeErro(error) ||
+        'Não foi possível carregar a edição do programa.',
     )
   }
-
-  const resposta = await response.json()
-  const edicao = interpretarRespostaEdicaoPrograma(resposta)
-
-  if (!edicao) {
-    throw new ErroObterEdicaoPrograma('Resposta de consulta inválida.')
-  }
-
-  return edicao
 }
 
 export async function atualizarEdicaoPrograma(
@@ -157,60 +124,60 @@ export async function atualizarEdicaoPrograma(
   dados: DadosCadastroEdicaoPrograma,
   quantidades: QuantidadesEdicaoPrograma,
 ): Promise<EdicaoPrograma> {
-  const response = await requisicaoAutenticada(`/api/edicoes/${id}/`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(montarPayloadEdicao(dados, quantidades)),
-  })
+  try {
+    const { data } = await api.put(
+      `/api/edicoes/${id}/`,
+      montarPayloadEdicao(dados, quantidades),
+    )
 
-  if (!response.ok) {
-    const mensagem = await extrairMensagemDeErroDaResposta(response)
+    const edicao = interpretarRespostaEdicaoPrograma(data as unknown)
+
+    if (!edicao) {
+      throw new ErroAtualizacaoEdicaoPrograma(
+        'Resposta de atualização inválida.',
+      )
+    }
+
+    return edicao
+  } catch (error) {
+    if (error instanceof ErroAtualizacaoEdicaoPrograma) {
+      throw error
+    }
+
     throw new ErroAtualizacaoEdicaoPrograma(
-      mensagem || 'Não foi possível atualizar a edição do programa.',
+      extrairMensagemDeErro(error) ||
+        'Não foi possível atualizar a edição do programa.',
     )
   }
-
-  const resposta = await response.json()
-  const edicao = interpretarRespostaEdicaoPrograma(resposta)
-
-  if (!edicao) {
-    throw new ErroAtualizacaoEdicaoPrograma('Resposta de atualização inválida.')
-  }
-
-  return edicao
 }
 
 export async function listarEdicoesPrograma({
   pagina = 1,
   tamanhoPagina = 10,
 }: ParametrosListagemEdicoesPrograma = {}): Promise<ListagemEdicoesPrograma> {
-  const parametros = new URLSearchParams({
-    page: String(pagina),
-    pageSize: String(tamanhoPagina),
-  })
+  try {
+    const { data } = await api.get('/api/edicoes/', {
+      params: {
+        page: String(pagina),
+        pageSize: String(tamanhoPagina),
+      },
+    })
 
-  const response = await requisicaoAutenticada(
-    `/api/edicoes/?${parametros.toString()}`,
-    {
-      method: 'GET',
-    },
-  )
+    const listagem = interpretarRespostaListagemEdicoesPaginada(data as unknown)
 
-  if (!response.ok) {
-    const mensagem = await extrairMensagemDeErroDaResposta(response)
+    if (!listagem) {
+      throw new ErroListagemEdicoesPrograma('Resposta de listagem inválida.')
+    }
+
+    return listagem
+  } catch (error) {
+    if (error instanceof ErroListagemEdicoesPrograma) {
+      throw error
+    }
+
     throw new ErroListagemEdicoesPrograma(
-      mensagem || 'Não foi possível carregar as edições do programa.',
+      extrairMensagemDeErro(error) ||
+        'Não foi possível carregar as edições do programa.',
     )
   }
-
-  const dados = await response.json()
-  const listagem = interpretarRespostaListagemEdicoesPaginada(dados)
-
-  if (!listagem) {
-    throw new ErroListagemEdicoesPrograma('Resposta de listagem inválida.')
-  }
-
-  return listagem
 }

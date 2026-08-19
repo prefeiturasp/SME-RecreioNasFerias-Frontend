@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import logoRecreioImg from '../../assets/logo-recreio.png'
 import {
-  limparSessaoAutenticacao,
+  encerrarSessaoAutenticacao,
   obterSessaoAutenticacao,
 } from '../../services/autenticacao'
 import { IconeSair } from '../icons'
@@ -19,8 +19,8 @@ export function Cabecalho() {
   const navigate = useNavigate()
   const session = obterSessaoAutenticacao()
 
-  function handleLogout() {
-    limparSessaoAutenticacao()
+  async function handleLogout() {
+    await encerrarSessaoAutenticacao()
     navigate('/')
   }
 

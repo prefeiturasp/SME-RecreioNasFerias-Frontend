@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { definirSessaoAutenticacao } from '../autenticacao'
+import { api } from '../api/http'
 import {
   atualizarPoloParceiro,
   cadastrarPoloParceiro,
@@ -12,6 +12,14 @@ import {
   obterPoloParceiro,
 } from './api'
 import type { DadosCadastroPoloParceiro } from './types'
+
+vi.mock('../api/http', () => ({
+  api: { get: vi.fn(), post: vi.fn(), put: vi.fn() },
+}))
+
+const apiGetMock = vi.mocked(api.get)
+const apiPostMock = vi.mocked(api.post)
+const apiPutMock = vi.mocked(api.put)
 
 const respostaListagemExemplo = {
   results: [
@@ -73,23 +81,11 @@ const respostaCadastroExemplo = {
 
 describe('listarPolosParceiros', () => {
   beforeEach(() => {
-    localStorage.clear()
+    apiGetMock.mockReset()
   })
 
   it('envia requisição autenticada e mapeia a resposta da API', async () => {
-    definirSessaoAutenticacao({
-      token: 'eyJ-token',
-      rf: '1234567',
-      nome: 'Usuário Teste',
-      descricaoCargo: 'Cargo Teste',
-    })
-
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => respostaListagemExemplo,
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiGetMock.mockResolvedValue({ data: respostaListagemExemplo })
 
     await expect(listarPolosParceiros()).resolves.toEqual({
       polos: [
@@ -107,23 +103,14 @@ describe('listarPolosParceiros', () => {
       totalPaginas: 1,
     })
 
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-
-    const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit]
-    const headers = options.headers as Headers
-
-    expect(url).toBe('/api/polos/?page=1&pageSize=10&gestao=Parceira')
-    expect(options.method).toBe('GET')
-    expect(headers.get('Authorization')).toBe('Bearer eyJ-token')
+    expect(apiGetMock).toHaveBeenCalledTimes(1)
+    expect(apiGetMock).toHaveBeenCalledWith('/api/polos/', {
+      params: { page: '1', pageSize: '10', gestao: 'Parceira' },
+    })
   })
 
   it('envia parâmetros de paginação e filtros customizados', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => respostaListagemExemplo,
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiGetMock.mockResolvedValue({ data: respostaListagemExemplo })
 
     await listarPolosParceiros({
       pagina: 2,
@@ -133,19 +120,25 @@ describe('listarPolosParceiros', () => {
       nomePoloOuOsc: 'Centro',
     })
 
-    const [url] = fetchMock.mock.calls[0] as [string]
-    expect(url).toBe(
-      '/api/polos/?page=2&pageSize=20&gestao=Parceira&dre=DRE+Butant%C3%A3&tipoUe=CEI&nomePoloOuOsc=Centro',
-    )
+    expect(apiGetMock).toHaveBeenCalledWith('/api/polos/', {
+      params: {
+        page: '2',
+        pageSize: '20',
+        gestao: 'Parceira',
+        dre: 'DRE Butantã',
+        tipoUe: 'CEI',
+        nomePoloOuOsc: 'Centro',
+      },
+    })
   })
 
   it('lança erro quando a API retorna falha', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 401,
-      text: async () => JSON.stringify({ detail: 'Credenciais inválidas.' }),
+    apiGetMock.mockRejectedValue({
+      response: {
+        status: 401,
+        data: { detail: 'Credenciais inválidas.' },
+      },
     })
-    vi.stubGlobal('fetch', fetchMock)
 
     await expect(listarPolosParceiros()).rejects.toBeInstanceOf(
       ErroListagemPolosParceiros,
@@ -156,25 +149,17 @@ describe('listarPolosParceiros', () => {
   })
 
   it('lança erro quando a resposta de listagem é inválida', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ results: 'invalido' }),
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiGetMock.mockResolvedValue({ data: { results: 'invalido' } })
 
     await expect(listarPolosParceiros()).rejects.toMatchObject({
       mensagemUsuario: 'Resposta de listagem inválida.',
     })
   })
 
-  it('exibe texto bruto quando o corpo de erro não é JSON', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 500,
-      text: async () => 'Erro interno do servidor',
+  it('usa o texto bruto quando o corpo de erro é uma string', async () => {
+    apiGetMock.mockRejectedValue({
+      response: { status: 500, data: 'Erro interno do servidor' },
     })
-    vi.stubGlobal('fetch', fetchMock)
 
     await expect(listarPolosParceiros()).rejects.toMatchObject({
       mensagemUsuario: 'Erro interno do servidor',
@@ -184,23 +169,11 @@ describe('listarPolosParceiros', () => {
 
 describe('cadastrarPoloParceiro', () => {
   beforeEach(() => {
-    localStorage.clear()
+    apiPostMock.mockReset()
   })
 
   it('envia payload esperado e retorna o polo criado', async () => {
-    definirSessaoAutenticacao({
-      token: 'eyJ-token',
-      rf: '1234567',
-      nome: 'Usuário Teste',
-      descricaoCargo: 'Cargo Teste',
-    })
-
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 201,
-      json: async () => respostaCadastroExemplo,
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiPostMock.mockResolvedValue({ data: respostaCadastroExemplo })
 
     await expect(cadastrarPoloParceiro(dadosCadastroExemplo)).resolves.toEqual({
       id: '22222222-2222-2222-2222-222222222222',
@@ -210,43 +183,32 @@ describe('cadastrarPoloParceiro', () => {
       nomeOsc: 'OSC Parceira Exemplo',
     })
 
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-
-    const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit]
-    const headers = options.headers as Headers
-
-    expect(url).toBe('/api/polos/')
-    expect(options.method).toBe('POST')
-    expect(headers.get('Authorization')).toBe('Bearer eyJ-token')
-    expect(headers.get('Content-Type')).toBe('application/json')
-    expect(options.body).toBe(
-      JSON.stringify({
-        nomeOsc: 'OSC Parceira Exemplo',
-        nomePolo: 'Polo Centro',
-        dre: 'DRE Butantã',
-        tipoUe: 'EMEF',
-        quantidadeMaximaAlunos: 50,
-        cep: '05508-000',
-        endereco: 'Rua Exemplo, 100',
-        nomeGestor: 'Maria Silva',
-        emailPolo: 'polo@osc.org.br',
-        telefonePolo: '(11) 99999-9999',
-        status: 'ativo',
-        observacoesGerais: 'Polo com boa estrutura',
-      }),
-    )
+    expect(apiPostMock).toHaveBeenCalledTimes(1)
+    expect(apiPostMock).toHaveBeenCalledWith('/api/polos/', {
+      nomeOsc: 'OSC Parceira Exemplo',
+      nomePolo: 'Polo Centro',
+      dre: 'DRE Butantã',
+      tipoUe: 'EMEF',
+      quantidadeMaximaAlunos: 50,
+      cep: '05508-000',
+      endereco: 'Rua Exemplo, 100',
+      nomeGestor: 'Maria Silva',
+      emailPolo: 'polo@osc.org.br',
+      telefonePolo: '(11) 99999-9999',
+      status: 'ativo',
+      observacoesGerais: 'Polo com boa estrutura',
+    })
   })
 
   it('lança erro quando a API retorna falha no cadastro', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 400,
-      text: async () =>
-        JSON.stringify({
+    apiPostMock.mockRejectedValue({
+      response: {
+        status: 400,
+        data: {
           error: 'Erro: já existe polo parceiro com o nome cadastrado',
-        }),
+        },
+      },
     })
-    vi.stubGlobal('fetch', fetchMock)
 
     await expect(
       cadastrarPoloParceiro(dadosCadastroExemplo),
@@ -259,12 +221,7 @@ describe('cadastrarPoloParceiro', () => {
   })
 
   it('lança erro quando a resposta de cadastro é inválida', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 201,
-      json: async () => ({ id: 1 }),
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiPostMock.mockResolvedValue({ data: { id: 1 } })
 
     await expect(
       cadastrarPoloParceiro(dadosCadastroExemplo),
@@ -276,23 +233,11 @@ describe('cadastrarPoloParceiro', () => {
 
 describe('obterPoloParceiro', () => {
   beforeEach(() => {
-    localStorage.clear()
+    apiGetMock.mockReset()
   })
 
   it('envia requisição autenticada e retorna o polo detalhado', async () => {
-    definirSessaoAutenticacao({
-      token: 'eyJ-token',
-      rf: '1234567',
-      nome: 'Usuário Teste',
-      descricaoCargo: 'Cargo Teste',
-    })
-
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => respostaCadastroExemplo,
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiGetMock.mockResolvedValue({ data: respostaCadastroExemplo })
 
     await expect(
       obterPoloParceiro('22222222-2222-2222-2222-222222222222'),
@@ -313,18 +258,15 @@ describe('obterPoloParceiro', () => {
       observacoesGerais: 'Polo com boa estrutura',
     })
 
-    const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit]
-    expect(url).toBe('/api/polos/22222222-2222-2222-2222-222222222222/')
-    expect(options.method).toBe('GET')
+    expect(apiGetMock).toHaveBeenCalledWith(
+      '/api/polos/22222222-2222-2222-2222-222222222222/',
+    )
   })
 
   it('lança erro quando a API retorna falha', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 404,
-      text: async () => JSON.stringify({ detail: 'Polo não encontrado.' }),
+    apiGetMock.mockRejectedValue({
+      response: { status: 404, data: { detail: 'Polo não encontrado.' } },
     })
-    vi.stubGlobal('fetch', fetchMock)
 
     await expect(obterPoloParceiro('1')).rejects.toBeInstanceOf(
       ErroObterPoloParceiro,
@@ -335,12 +277,7 @@ describe('obterPoloParceiro', () => {
   })
 
   it('lança erro quando a resposta de consulta é inválida', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ id: '1' }),
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiGetMock.mockResolvedValue({ data: { id: '1' } })
 
     await expect(obterPoloParceiro('1')).rejects.toMatchObject({
       mensagemUsuario: 'Resposta de consulta inválida.',
@@ -348,12 +285,7 @@ describe('obterPoloParceiro', () => {
   })
 
   it('usa mensagem padrão quando o corpo de erro está vazio', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 500,
-      text: async () => '',
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiGetMock.mockRejectedValue({ response: { status: 500, data: {} } })
 
     await expect(obterPoloParceiro('1')).rejects.toMatchObject({
       mensagemUsuario: 'Não foi possível carregar o polo parceiro.',
@@ -363,23 +295,11 @@ describe('obterPoloParceiro', () => {
 
 describe('atualizarPoloParceiro', () => {
   beforeEach(() => {
-    localStorage.clear()
+    apiPutMock.mockReset()
   })
 
   it('envia payload esperado e retorna o polo atualizado', async () => {
-    definirSessaoAutenticacao({
-      token: 'eyJ-token',
-      rf: '1234567',
-      nome: 'Usuário Teste',
-      descricaoCargo: 'Cargo Teste',
-    })
-
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => respostaCadastroExemplo,
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiPutMock.mockResolvedValue({ data: respostaCadastroExemplo })
 
     await expect(
       atualizarPoloParceiro(
@@ -394,11 +314,9 @@ describe('atualizarPoloParceiro', () => {
       nomeOsc: 'OSC Parceira Exemplo',
     })
 
-    const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit]
-    expect(url).toBe('/api/polos/22222222-2222-2222-2222-222222222222/')
-    expect(options.method).toBe('PUT')
-    expect(options.body).toBe(
-      JSON.stringify({
+    expect(apiPutMock).toHaveBeenCalledWith(
+      '/api/polos/22222222-2222-2222-2222-222222222222/',
+      {
         nomeOsc: 'OSC Parceira Exemplo',
         nomePolo: 'Polo Centro',
         dre: 'DRE Butantã',
@@ -411,18 +329,14 @@ describe('atualizarPoloParceiro', () => {
         telefonePolo: '(11) 99999-9999',
         status: 'ativo',
         observacoesGerais: 'Polo com boa estrutura',
-      }),
+      },
     )
   })
 
   it('lança erro quando a API retorna falha', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 400,
-      text: async () =>
-        JSON.stringify({ error: 'Não foi possível atualizar.' }),
+    apiPutMock.mockRejectedValue({
+      response: { status: 400, data: { error: 'Não foi possível atualizar.' } },
     })
-    vi.stubGlobal('fetch', fetchMock)
 
     await expect(
       atualizarPoloParceiro('1', dadosCadastroExemplo),
@@ -430,12 +344,7 @@ describe('atualizarPoloParceiro', () => {
   })
 
   it('lança erro quando a resposta de atualização é inválida', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ id: 1 }),
-    })
-    vi.stubGlobal('fetch', fetchMock)
+    apiPutMock.mockResolvedValue({ data: { id: 1 } })
 
     await expect(
       atualizarPoloParceiro('1', dadosCadastroExemplo),

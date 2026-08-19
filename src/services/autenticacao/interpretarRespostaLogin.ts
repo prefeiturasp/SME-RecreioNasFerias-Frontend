@@ -1,4 +1,4 @@
-import type { SessaoAutenticacao } from './types'
+import type { PerfilUsuario, SessaoAutenticacao } from './types'
 
 function textoValido(valor: unknown): valor is string {
   return typeof valor === 'string' && valor.trim().length > 0
@@ -19,6 +19,27 @@ function extrairDescricaoCargo(cargos: unknown): string | null {
   return textoValido(descricao) ? descricao.trim() : null
 }
 
+export function extrairPerfilUsuario(dados: unknown): PerfilUsuario | null {
+  if (!dados || typeof dados !== 'object') {
+    return null
+  }
+
+  const resposta = dados as Record<string, unknown>
+  const rf = resposta.rf
+  const nome = resposta.nome
+  const descricaoCargo = extrairDescricaoCargo(resposta.cargos)
+
+  if (!textoValido(rf) || !textoValido(nome) || !descricaoCargo) {
+    return null
+  }
+
+  return {
+    rf: rf.trim(),
+    nome: nome.trim(),
+    descricaoCargo,
+  }
+}
+
 export function interpretarRespostaLogin(
   dados: unknown,
 ): SessaoAutenticacao | null {
@@ -26,25 +47,12 @@ export function interpretarRespostaLogin(
     return null
   }
 
-  const resposta = dados as Record<string, unknown>
-  const token = resposta.token
-  const rf = resposta.rf
-  const nome = resposta.nome
-  const descricaoCargo = extrairDescricaoCargo(resposta.cargos)
+  const token = (dados as Record<string, unknown>).token
+  const perfil = extrairPerfilUsuario(dados)
 
-  if (
-    !textoValido(token) ||
-    !textoValido(rf) ||
-    !textoValido(nome) ||
-    !descricaoCargo
-  ) {
+  if (!textoValido(token) || !perfil) {
     return null
   }
 
-  return {
-    token: token.trim(),
-    rf: rf.trim(),
-    nome: nome.trim(),
-    descricaoCargo,
-  }
+  return { ...perfil, token: token.trim() }
 }

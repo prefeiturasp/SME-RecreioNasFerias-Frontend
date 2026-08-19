@@ -1,59 +1,55 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { definirSessaoAutenticacao, obterSessaoAutenticacao } from './storage'
 import {
-  MENSAGEM_TOKEN_INVALIDO_OU_EXPIRADO,
   notificarSessaoInvalida,
   registrarOuvinteSessaoInvalida,
   respostaIndicaSessaoInvalida,
 } from './sessaoInvalida'
+import {
+  definirSessaoAutenticacao,
+  limparSessaoAutenticacao,
+  obterSessaoAutenticacao,
+} from './storage'
 
-function criarRespostaComCorpo(status: number, corpo: string): Response {
-  return {
-    status,
-    clone: () =>
-      ({
-        text: () => Promise.resolve(corpo),
-      }) as Response,
-  } as Response
-}
+describe('respostaIndicaSessaoInvalida', () => {
+  it('identifica status 401 como sessão inválida', () => {
+    expect(respostaIndicaSessaoInvalida(401, undefined)).toBe(true)
+  })
 
-describe('sessaoInvalida', () => {
+  it('identifica 403 com detalhe de token inválido ou expirado', () => {
+    expect(
+      respostaIndicaSessaoInvalida(403, {
+        detalhe: 'Token inválido ou expirado.',
+      }),
+    ).toBe(true)
+  })
+
+  it('identifica 403 com detail de token expirado (formato antigo)', () => {
+    expect(
+      respostaIndicaSessaoInvalida(403, { detail: 'Token expirado.' }),
+    ).toBe(true)
+  })
+
+  it('identifica mensagem de token em qualquer caixa', () => {
+    expect(
+      respostaIndicaSessaoInvalida(403, { detalhe: 'TOKEN EXPIRADO' }),
+    ).toBe(true)
+  })
+
+  it('não identifica 403 com outra mensagem como sessão inválida', () => {
+    expect(
+      respostaIndicaSessaoInvalida(403, { detalhe: 'Acesso negado.' }),
+    ).toBe(false)
+  })
+
+  it('não identifica outros status como sessão inválida', () => {
+    expect(respostaIndicaSessaoInvalida(200, {})).toBe(false)
+    expect(respostaIndicaSessaoInvalida(500, {})).toBe(false)
+  })
+})
+
+describe('notificarSessaoInvalida', () => {
   beforeEach(() => {
-    localStorage.clear()
-  })
-
-  it('identifica resposta 401 como sessão inválida', async () => {
-    await expect(
-      respostaIndicaSessaoInvalida({ status: 401 } as Response),
-    ).resolves.toBe(true)
-  })
-
-  it('identifica 403 com token inválido ou expirado como sessão inválida', async () => {
-    await expect(
-      respostaIndicaSessaoInvalida(
-        criarRespostaComCorpo(
-          403,
-          JSON.stringify({ detail: MENSAGEM_TOKEN_INVALIDO_OU_EXPIRADO }),
-        ),
-      ),
-    ).resolves.toBe(true)
-  })
-
-  it('não identifica 403 com outra mensagem como sessão inválida', async () => {
-    await expect(
-      respostaIndicaSessaoInvalida(
-        criarRespostaComCorpo(
-          403,
-          JSON.stringify({ detail: 'Acesso negado.' }),
-        ),
-      ),
-    ).resolves.toBe(false)
-  })
-
-  it('não identifica respostas de sucesso como sessão inválida', async () => {
-    await expect(
-      respostaIndicaSessaoInvalida({ status: 200 } as Response),
-    ).resolves.toBe(false)
+    limparSessaoAutenticacao()
   })
 
   it('limpa sessão e notifica ouvintes quando a sessão expira', () => {
