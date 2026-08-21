@@ -5,22 +5,27 @@ import { format, isValid, parse } from 'date-fns'
 import { ptBR as dateFnsPtBR } from 'date-fns/locale'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ErroCadastroEdicaoPrograma } from '@/services/edicaoPrograma/api'
-import { CadastroEdicaoForm } from './index'
+import { ErroCadastroEdicaoPrograma } from '@/services/edicaoPrograma/cadastrarEdicaoPrograma'
+import { EdicaoForm } from './index'
 
 const { cadastrarEdicaoProgramaMock } = vi.hoisted(() => ({
   cadastrarEdicaoProgramaMock: vi.fn(),
 }))
 
-vi.mock('@/services/edicaoPrograma/api', async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import('@/services/edicaoPrograma/api')>()
+vi.mock(
+  '@/services/edicaoPrograma/cadastrarEdicaoPrograma',
+  async (importOriginal) => {
+    const actual =
+      await importOriginal<
+        typeof import('@/services/edicaoPrograma/cadastrarEdicaoPrograma')
+      >()
 
-  return {
-    ...actual,
-    cadastrarEdicaoPrograma: cadastrarEdicaoProgramaMock,
-  }
-})
+    return {
+      ...actual,
+      cadastrarEdicaoPrograma: cadastrarEdicaoProgramaMock,
+    }
+  },
+)
 
 function parseIsoLocal(iso: string) {
   const [ano, mes, dia] = iso.split('-').map(Number)
@@ -94,7 +99,7 @@ function renderCadastroEdicaoForm() {
         <Routes>
           <Route
             path="/cadastrar-nova-edicao-programa"
-            element={<CadastroEdicaoForm />}
+            element={<EdicaoForm />}
           />
           <Route
             path="/edicoes-programa"
@@ -106,7 +111,7 @@ function renderCadastroEdicaoForm() {
   )
 }
 
-describe('CadastroEdicaoForm', () => {
+describe('EdicaoForm', () => {
   beforeEach(() => {
     cadastrarEdicaoProgramaMock.mockReset()
     cadastrarEdicaoProgramaMock.mockResolvedValue({
@@ -123,7 +128,7 @@ describe('CadastroEdicaoForm', () => {
     })
   })
 
-  it('renderiza os campos, o botão salvar desabilitado e o cancelar', () => {
+  it('renderiza os campos, o botão salvar e o cancelar', () => {
     renderCadastroEdicaoForm()
 
     expect(
@@ -132,28 +137,34 @@ describe('CadastroEdicaoForm', () => {
     expect(
       screen.getByRole('button', { name: 'Data de início da edição' }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Salvar' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Salvar' })).toBeEnabled()
     expect(
       screen.getByRole('button', { name: 'Cancelar' }),
     ).toBeInTheDocument()
   })
 
-  it('mantém o botão salvar desabilitado até o formulário estar preenchido', async () => {
+  it('exibe erros de validação quando os campos estão vazios', async () => {
     const usuario = userEvent.setup()
     renderCadastroEdicaoForm()
 
-    const botaoSalvar = screen.getByRole('button', { name: 'Salvar' })
-    expect(botaoSalvar).toBeDisabled()
+    await usuario.click(screen.getByRole('button', { name: 'Salvar' }))
 
-    await usuario.type(screen.getByLabelText(/nome da edição/i), 'Edição Teste')
-    expect(botaoSalvar).toBeDisabled()
-
-    await escolherData(usuario, 'Data de início da edição', '2026-06-10')
-    await escolherData(usuario, 'Data de fim da edição', '2026-06-20')
-    await escolherData(usuario, 'Data de início das inscrições', '2026-05-01')
-    await escolherData(usuario, 'Data de fim das inscrições', '2026-05-31')
-
-    expect(botaoSalvar).toBeEnabled()
+    expect(
+      await screen.findByText('Nome da edição é obrigatório'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Data de início da edição é obrigatória'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Data de fim da edição é obrigatória'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Data de início das inscrições é obrigatória'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Data de fim das inscrições é obrigatória'),
+    ).toBeInTheDocument()
+    expect(cadastrarEdicaoProgramaMock).not.toHaveBeenCalled()
   })
 
   it('cadastra nova edição via API e redireciona para a listagem', async () => {
@@ -183,7 +194,7 @@ describe('CadastroEdicaoForm', () => {
     ).toBeInTheDocument()
   })
 
-  it('exibe mensagem de erro quando o período da edição é inválido e bloqueia novo envio', async () => {
+  it('exibe mensagem de erro quando o período da edição é inválido', async () => {
     const usuario = userEvent.setup()
     renderCadastroEdicaoForm()
 
@@ -200,7 +211,6 @@ describe('CadastroEdicaoForm', () => {
     expect(
       await screen.findByText(/data "de" não pode ser maior que a data "até"/i),
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Salvar' })).toBeDisabled()
     expect(cadastrarEdicaoProgramaMock).not.toHaveBeenCalled()
   })
 
@@ -226,7 +236,7 @@ describe('CadastroEdicaoForm', () => {
     expect(cadastrarEdicaoProgramaMock).not.toHaveBeenCalled()
   })
 
-  it('exibe mensagem de erro quando o fim das inscrições é posterior ao início da edição', async () => {
+  it('exibe mensagem de erro quando o fim das inscrições é posterior ao fim da edição', async () => {
     const usuario = userEvent.setup()
     renderCadastroEdicaoForm()
 
@@ -237,12 +247,12 @@ describe('CadastroEdicaoForm', () => {
     await escolherData(usuario, 'Data de início da edição', '2026-06-01')
     await escolherData(usuario, 'Data de fim da edição', '2026-06-30')
     await escolherData(usuario, 'Data de início das inscrições', '2026-05-01')
-    await escolherData(usuario, 'Data de fim das inscrições', '2026-06-15')
+    await escolherData(usuario, 'Data de fim das inscrições', '2026-07-01')
     await usuario.click(screen.getByRole('button', { name: 'Salvar' }))
 
     expect(
       await screen.findByText(
-        /não pode ser maior que o início do período da edição/i,
+        /não pode ser posterior à data fim da edição/i,
       ),
     ).toBeInTheDocument()
     expect(cadastrarEdicaoProgramaMock).not.toHaveBeenCalled()
@@ -261,6 +271,23 @@ describe('CadastroEdicaoForm', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Já existe uma edição com este nome.',
     )
+    expect(screen.queryByText('Listagem de edições')).not.toBeInTheDocument()
+  })
+
+  it('não exibe alerta quando o backend não envia detalhe', async () => {
+    const usuario = userEvent.setup()
+    cadastrarEdicaoProgramaMock.mockRejectedValue(
+      new ErroCadastroEdicaoPrograma(''),
+    )
+    renderCadastroEdicaoForm()
+
+    await preencherFormularioValido(usuario)
+    await usuario.click(screen.getByRole('button', { name: 'Salvar' }))
+
+    await waitFor(() => {
+      expect(cadastrarEdicaoProgramaMock).toHaveBeenCalled()
+    })
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(screen.queryByText('Listagem de edições')).not.toBeInTheDocument()
   })
 

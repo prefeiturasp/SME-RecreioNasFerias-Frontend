@@ -28,14 +28,14 @@ export function validarPeriodoInscricoes(
   return validarPeriodo(dataInicio, dataFim, 'período das inscrições')
 }
 
-export function validarInscricoesAntesDoInicioEdicao(
+export function validarFimInscricoesAteFimEdicao(
   dataFimInscricoes: string,
-  dataInicioEdicao: string,
+  dataFimEdicao: string,
 ): string | null {
-  if (!dataFimInscricoes || !dataInicioEdicao) return null
+  if (!dataFimInscricoes || !dataFimEdicao) return null
 
-  if (dataFimInscricoes > dataInicioEdicao) {
-    return 'O período das inscrições não pode ser maior que o início do período da edição.'
+  if (dataFimInscricoes > dataFimEdicao) {
+    return 'A data fim das inscrições não pode ser posterior à data fim da edição.'
   }
 
   return null
@@ -50,9 +50,9 @@ export function validarCadastroEdicao(
       dados.dataInicioInscricoes,
       dados.dataFimInscricoes,
     ) ??
-    validarInscricoesAntesDoInicioEdicao(
+    validarFimInscricoesAteFimEdicao(
       dados.dataFimInscricoes,
-      dados.dataInicioEdicao,
+      dados.dataFimEdicao,
     )
   )
 }

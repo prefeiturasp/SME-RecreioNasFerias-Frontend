@@ -1,4 +1,4 @@
-import { cadastrarEdicaoPrograma } from '@/services/edicaoPrograma/api'
+import { cadastrarEdicaoPrograma } from '@/services/edicaoPrograma/cadastrarEdicaoPrograma'
 import { useMutation } from '@tanstack/react-query'
 
 export function usePostEdicaoPrograma() {

@@ -19,10 +19,8 @@ vi.mock('@/components/MapaVisual', () => ({
   MapaVisual: () => <nav aria-label="Mapa do site">Mapa visual</nav>,
 }))
 
-vi.mock('@/components/edicaoPrograma/CadastroEdicaoForm', () => ({
-  CadastroEdicaoForm: () => (
-    <form aria-label="formulário de cadastro de edição" />
-  ),
+vi.mock('@/components/edicaoPrograma/EdicaoForm', () => ({
+  EdicaoForm: () => <form aria-label="formulário de cadastro de edição" />,
 }))
 
 describe('PaginaCadastrarNovaEdicaoPrograma', () => {

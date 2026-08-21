@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   formularioCadastroEstaPreenchido,
   validarCadastroEdicao,
-  validarInscricoesAntesDoInicioEdicao,
+  validarFimInscricoesAteFimEdicao,
   validarPeriodoEdicao,
   validarPeriodoInscricoes,
 } from './validarCadastroEdicao'
@@ -43,27 +43,27 @@ describe('validarPeriodoInscricoes', () => {
   })
 })
 
-describe('validarInscricoesAntesDoInicioEdicao', () => {
-  it('aceita quando o fim das inscrições é anterior ou igual ao início da edição', () => {
+describe('validarFimInscricoesAteFimEdicao', () => {
+  it('aceita quando o fim das inscrições é anterior ou igual ao fim da edição', () => {
     expect(
-      validarInscricoesAntesDoInicioEdicao('2026-05-31', '2026-06-01'),
+      validarFimInscricoesAteFimEdicao('2026-06-15', '2026-06-30'),
     ).toBeNull()
     expect(
-      validarInscricoesAntesDoInicioEdicao('2026-06-01', '2026-06-01'),
+      validarFimInscricoesAteFimEdicao('2026-06-30', '2026-06-30'),
     ).toBeNull()
   })
 
-  it('rejeita quando o fim das inscrições é posterior ao início da edição', () => {
+  it('rejeita quando o fim das inscrições é posterior ao fim da edição', () => {
     expect(
-      validarInscricoesAntesDoInicioEdicao('2026-06-15', '2026-06-01'),
+      validarFimInscricoesAteFimEdicao('2026-07-01', '2026-06-30'),
     ).toBe(
-      'O período das inscrições não pode ser maior que o início do período da edição.',
+      'A data fim das inscrições não pode ser posterior à data fim da edição.',
     )
   })
 
   it('ignora validação quando alguma data está vazia', () => {
-    expect(validarInscricoesAntesDoInicioEdicao('', '2026-06-01')).toBeNull()
-    expect(validarInscricoesAntesDoInicioEdicao('2026-05-31', '')).toBeNull()
+    expect(validarFimInscricoesAteFimEdicao('', '2026-06-30')).toBeNull()
+    expect(validarFimInscricoesAteFimEdicao('2026-06-15', '')).toBeNull()
   })
 })
 
@@ -96,18 +96,30 @@ describe('validarCadastroEdicao', () => {
     )
   })
 
-  it('retorna erro quando o fim das inscrições é posterior ao início da edição', () => {
+  it('retorna erro quando o fim das inscrições é posterior ao fim da edição', () => {
     expect(
       validarCadastroEdicao({
         nome: 'Edição Teste',
         dataInicioEdicao: '2026-06-01',
         dataFimEdicao: '2026-06-30',
         dataInicioInscricoes: '2026-05-01',
-        dataFimInscricoes: '2026-06-15',
+        dataFimInscricoes: '2026-07-01',
       }),
     ).toBe(
-      'O período das inscrições não pode ser maior que o início do período da edição.',
+      'A data fim das inscrições não pode ser posterior à data fim da edição.',
     )
+  })
+
+  it('aceita inscrições que começam depois do início da edição e terminam no fim da edição', () => {
+    expect(
+      validarCadastroEdicao({
+        nome: 'Edição Teste',
+        dataInicioEdicao: '2026-06-01',
+        dataFimEdicao: '2026-06-30',
+        dataInicioInscricoes: '2026-06-10',
+        dataFimInscricoes: '2026-06-30',
+      }),
+    ).toBeNull()
   })
 
   it('retorna null quando os dados são válidos', () => {

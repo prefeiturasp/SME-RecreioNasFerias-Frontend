@@ -192,7 +192,6 @@ describe('PaginaEdicoesPrograma', () => {
         initialEntries={[
           {
             pathname: '/edicoes-programa',
-
             state: { edicaoCadastrada: true },
           },
         ]}

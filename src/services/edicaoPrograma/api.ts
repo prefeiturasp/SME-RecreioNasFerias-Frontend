@@ -4,7 +4,6 @@ import {
   interpretarRespostaEdicaoPrograma,
   interpretarRespostaListagemEdicoesPaginada,
 } from './interpretarRespostaListagemEdicoes'
-import { QUANTIDADES_MOCK_CADASTRO_EDICAO } from './mocks'
 import type {
   DadosCadastroEdicaoPrograma,
   EdicaoPrograma,
@@ -19,16 +18,6 @@ export class ErroListagemEdicoesPrograma extends Error {
   constructor(mensagemUsuario: string) {
     super('LISTAGEM_EDICOES_FAILED')
     this.name = 'ErroListagemEdicoesPrograma'
-    this.mensagemUsuario = mensagemUsuario
-  }
-}
-
-export class ErroCadastroEdicaoPrograma extends Error {
-  readonly mensagemUsuario: string
-
-  constructor(mensagemUsuario: string) {
-    super('CADASTRO_EDICAO_FAILED')
-    this.name = 'ErroCadastroEdicaoPrograma'
     this.mensagemUsuario = mensagemUsuario
   }
 }
@@ -55,7 +44,7 @@ export class ErroAtualizacaoEdicaoPrograma extends Error {
 
 function montarPayloadEdicao(
   dados: DadosCadastroEdicaoPrograma,
-  quantidades: QuantidadesEdicaoPrograma = QUANTIDADES_MOCK_CADASTRO_EDICAO,
+  quantidades: QuantidadesEdicaoPrograma,
 ) {
   return {
     nome: dados.nome,
@@ -68,31 +57,6 @@ function montarPayloadEdicao(
       ate: dados.dataFimInscricoes,
     },
     ...quantidades,
-  }
-}
-
-export async function cadastrarEdicaoPrograma(
-  dados: DadosCadastroEdicaoPrograma,
-): Promise<EdicaoPrograma> {
-  try {
-    const { data } = await api.post('/api/edicoes/', montarPayloadEdicao(dados))
-
-    const edicao = interpretarRespostaEdicaoPrograma(data as unknown)
-
-    if (!edicao) {
-      throw new ErroCadastroEdicaoPrograma('Resposta de cadastro inválida.')
-    }
-
-    return edicao
-  } catch (error) {
-    if (error instanceof ErroCadastroEdicaoPrograma) {
-      throw error
-    }
-
-    throw new ErroCadastroEdicaoPrograma(
-      extrairMensagemDeErro(error) ||
-        'Não foi possível cadastrar a edição do programa.',
-    )
   }
 }
 
