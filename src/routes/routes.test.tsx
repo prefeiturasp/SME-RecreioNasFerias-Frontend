@@ -59,6 +59,21 @@ vi.mock('../services/smeIntegracao/api', () => ({
   listarTiposEscolas: vi.fn().mockResolvedValue([]),
 }))
 
+vi.mock(
+  '../services/edicaoPrograma/listarEdicoesPrograma',
+  async (importOriginal) => {
+    const actual =
+      await importOriginal<
+        typeof import('../services/edicaoPrograma/listarEdicoesPrograma')
+      >()
+
+    return {
+      ...actual,
+      listarEdicoesPrograma: vi.fn().mockResolvedValue([]),
+    }
+  },
+)
+
 function renderRotas(initialEntry: string) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -156,7 +171,7 @@ describe('RotasAplicacao', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('renderiza a página Edições do Programa na rota /edicoes-programa quando autenticado', () => {
+  it('renderiza a página Edições do Programa na rota /edicoes-programa quando autenticado', async () => {
     definirSessaoAutenticacao({
       token: 'eyJ-token',
       rf: '1234567',
@@ -164,16 +179,15 @@ describe('RotasAplicacao', () => {
       descricaoCargo: 'CARGO TESTE',
     })
 
-    render(
-      <MemoryRouter initialEntries={['/edicoes-programa']}>
-        <RotasAplicacao />
-      </MemoryRouter>,
-    )
+    renderRotas('/edicoes-programa')
 
     const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
     expect(mapa).toHaveTextContent('Início')
     expect(mapa).toHaveTextContent('Cadastros')
     expect(mapa).toHaveTextContent('Edições do programa')
+    expect(
+      await screen.findByRole('heading', { name: /edições do programa/i }),
+    ).toBeInTheDocument()
   })
 
   it('renderiza a página Cadastro de Polos Parceiros na rota /polos-parceiros quando autenticado', async () => {
