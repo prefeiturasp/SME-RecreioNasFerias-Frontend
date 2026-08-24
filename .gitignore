@@ -20,9 +20,7 @@ coverage
 .env.*.local
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
+.vscode/
 .idea
 .DS_Store
 Thumbs.db
@@ -38,3 +36,5 @@ Thumbs.db
 # Test and tooling artifacts
 test-results
 playwright-report
+
+_material

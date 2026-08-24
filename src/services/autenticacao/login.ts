@@ -1,10 +1,10 @@
 import axios from 'axios'
-import { construirUrlApi } from '../../services/api/construirUrlApi'
-import { extrairMensagemDeErro } from '../../services/api/extrairMensagemDeErro'
-import {
-  definirSessaoAutenticacao,
-  interpretarRespostaLogin,
-} from '../../services/autenticacao'
+import { construirUrlApi } from '../api/construirUrlApi'
+import { interpretarRespostaLogin } from './interpretarRespostaLogin'
+import { definirSessaoAutenticacao } from './storage'
+
+const MENSAGEM_FALHA_LOGIN =
+  'Não foi possível realizar o login. Tente novamente.'
 
 export type CredenciaisLogin = {
   usuario: string
@@ -24,14 +24,18 @@ export class ErroAcessoNegadoLogin extends Error {
 export class ErroFalhaLogin extends Error {
   readonly mensagemUsuario: string
 
-  constructor(mensagemUsuario: string) {
+  constructor(mensagemUsuario = MENSAGEM_FALHA_LOGIN, causa?: unknown) {
     super('LOGIN_FAILED')
     this.name = 'ErroFalhaLogin'
-    this.mensagemUsuario = mensagemUsuario
+    this.mensagemUsuario = mensagemUsuario.trim() || MENSAGEM_FALHA_LOGIN
+
+    if (causa !== undefined) {
+      this.cause = causa
+    }
   }
 }
 
-export async function tentarLogin({
+export async function login({
   usuario,
   senha,
 }: CredenciaisLogin): Promise<void> {
@@ -44,20 +48,19 @@ export async function tentarLogin({
       { withCredentials: true },
     )
   } catch (error) {
-    const status = (error as { response?: { status?: number } }).response
-      ?.status
+    const status = axios.isAxiosError(error) ? error.response?.status : null
 
     if (status === 403) {
       throw new ErroAcessoNegadoLogin(usuario)
     }
 
-    throw new ErroFalhaLogin(extrairMensagemDeErro(error))
+    throw new ErroFalhaLogin(undefined, error)
   }
 
   const session = interpretarRespostaLogin(response.data as unknown)
 
   if (!session) {
-    throw new ErroFalhaLogin('Resposta de login inválida.')
+    throw new ErroFalhaLogin('Não foi possível validar a resposta do login.')
   }
 
   definirSessaoAutenticacao(session)

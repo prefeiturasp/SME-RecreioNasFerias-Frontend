@@ -42,8 +42,10 @@ export default defineConfig({
       reporter: ['text', 'lcov', 'html'],
       reportsDirectory: './coverage',
       exclude: [
+        'src/components/ui/**',
         'src/**/*.test.{ts,tsx}',
         'src/setupTests.ts',
+        'src/components/ui/**',
         '**/*.d.ts',
         'vite.config.ts',
         'eslint.config.js',

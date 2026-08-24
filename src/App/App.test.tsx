@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { describe, expect, it, vi } from 'vitest'
 import App from './index'
 
@@ -16,7 +17,18 @@ vi.mock('../assets/background-home.jpg', () => ({
 
 describe('App', () => {
   it('renderiza a rota inicial com o formulário de login', () => {
-    render(<App />)
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    })
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>,
+    )
 
     expect(screen.getByText(/bem-vindo\(a\) ao/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/usuário/i)).toBeInTheDocument()
