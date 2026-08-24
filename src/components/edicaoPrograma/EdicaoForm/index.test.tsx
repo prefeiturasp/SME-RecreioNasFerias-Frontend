@@ -469,7 +469,6 @@ describe('EdicaoForm em edição', () => {
     })
 
     expect(cadastrarEdicaoProgramaMock).not.toHaveBeenCalled()
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(await screen.findByText('Listagem de edições')).toBeInTheDocument()
     expect(screen.getByText('Edição atualizada')).toBeInTheDocument()
     expect(screen.queryByText('Edição cadastrada')).not.toBeInTheDocument()

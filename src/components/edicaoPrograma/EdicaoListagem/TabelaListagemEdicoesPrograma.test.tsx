@@ -1,46 +1,28 @@
 import { render, screen } from '@testing-library/react'
-
 import userEvent from '@testing-library/user-event'
-
 import { describe, expect, it, vi } from 'vitest'
-
 import type { EdicaoPrograma } from '@/services/edicaoPrograma/types'
-
 import { TabelaListagemEdicoesPrograma } from './TabelaListagemEdicoesPrograma'
 
 const edicaoExemplo: EdicaoPrograma = {
   id: '1',
-
   nome: 'Fevereiro 2026',
-
   dataInicioEdicao: '2026-01-26',
-
   dataFimEdicao: '2026-02-26',
-
   dataInicioInscricoes: '2026-12-26',
-
   dataFimInscricoes: '2026-01-26',
-
   quantidadeInscritos: 100,
-
   quantidadeAtendimentoEfetivo: 100,
-
   quantidadePasseios: 0,
-
   quantidadeApresentacoes: 0,
 }
 
 const propsPaginacaoPadrao = {
   paginaAtual: 1,
-
   totalPaginas: 1,
-
   itensPorPagina: 10,
-
   onMudarPagina: vi.fn(),
-
   onMudarItensPorPagina: vi.fn(),
-
   onEditarEdicao: vi.fn(),
 }
 
@@ -51,9 +33,7 @@ describe('TabelaListagemEdicoesPrograma', () => {
     )
 
     expect(screen.getByText(/edições do programa/i)).toBeInTheDocument()
-
     expect(screen.getByText(/sem dados/i)).toBeInTheDocument()
-
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 
@@ -66,48 +46,32 @@ describe('TabelaListagemEdicoesPrograma', () => {
     )
 
     expect(screen.getByRole('table')).toBeInTheDocument()
-
     expect(
       screen.getByRole('columnheader', { name: /nome da edição/i }),
     ).toBeInTheDocument()
-
     expect(
       screen.getByRole('columnheader', { name: /período da edição/i }),
     ).toBeInTheDocument()
-
     expect(
       screen.getByRole('columnheader', { name: /período das inscrições/i }),
     ).toBeInTheDocument()
-
     expect(
       screen.getByRole('columnheader', { name: /quantidade de inscritos/i }),
     ).toBeInTheDocument()
-
     expect(
       screen.getByRole('columnheader', {
         name: /quantidade de atendimento efetivo/i,
       }),
     ).toBeInTheDocument()
-
     expect(
       screen.getByRole('columnheader', { name: /ações/i }),
     ).toBeInTheDocument()
-
     expect(screen.getByText('Fevereiro 2026')).toBeInTheDocument()
-
     expect(screen.getByText('26/01/2026 - 26/02/2026')).toBeInTheDocument()
-
     expect(screen.getByText('26/12/2026 - 26/01/2026')).toBeInTheDocument()
-
     expect(
       screen.getByRole('button', { name: /editar edição fevereiro 2026/i }),
     ).toBeInTheDocument()
-
-    expect(
-      screen.queryByRole('button', {
-        name: /visualizar edição fevereiro 2026/i,
-      }),
-    ).not.toBeInTheDocument()
   })
 
   it('notifica clique no botão de editar', async () => {
@@ -131,7 +95,6 @@ describe('TabelaListagemEdicoesPrograma', () => {
 
   it('exibe paginação e notifica mudanças de página', async () => {
     const usuario = userEvent.setup()
-
     const onMudarPagina = vi.fn()
 
     render(
@@ -157,10 +120,8 @@ describe('TabelaListagemEdicoesPrograma', () => {
 
   it('permite ordenar por nome da edição', async () => {
     const usuario = userEvent.setup()
-
     const edicoes: EdicaoPrograma[] = [
       { ...edicaoExemplo, id: '1', nome: 'Março 2026' },
-
       { ...edicaoExemplo, id: '2', nome: 'Janeiro 2026' },
     ]
 

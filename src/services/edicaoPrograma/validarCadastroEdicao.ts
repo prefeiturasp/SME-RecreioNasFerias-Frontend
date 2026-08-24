@@ -1,5 +1,3 @@
-import type { DadosCadastroEdicaoPrograma } from './types'
-
 function validarPeriodo(
   dataInicio: string,
   dataFim: string,
@@ -39,32 +37,4 @@ export function validarFimInscricoesAteFimEdicao(
   }
 
   return null
-}
-
-export function validarCadastroEdicao(
-  dados: DadosCadastroEdicaoPrograma,
-): string | null {
-  return (
-    validarPeriodoEdicao(dados.dataInicioEdicao, dados.dataFimEdicao) ??
-    validarPeriodoInscricoes(
-      dados.dataInicioInscricoes,
-      dados.dataFimInscricoes,
-    ) ??
-    validarFimInscricoesAteFimEdicao(
-      dados.dataFimInscricoes,
-      dados.dataFimEdicao,
-    )
-  )
-}
-
-export function formularioCadastroEstaPreenchido(
-  dados: DadosCadastroEdicaoPrograma,
-): boolean {
-  return (
-    dados.nome.trim().length > 0 &&
-    dados.dataInicioEdicao.trim().length > 0 &&
-    dados.dataFimEdicao.trim().length > 0 &&
-    dados.dataInicioInscricoes.trim().length > 0 &&
-    dados.dataFimInscricoes.trim().length > 0
-  )
 }

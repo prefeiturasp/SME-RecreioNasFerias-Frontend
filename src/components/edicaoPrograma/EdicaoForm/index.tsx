@@ -28,6 +28,39 @@ import { ErroAtualizacaoEdicaoPrograma } from '@/services/edicaoPrograma/atualiz
 import { ErroCadastroEdicaoPrograma } from '@/services/edicaoPrograma/cadastrarEdicaoPrograma'
 import { ErroObterEdicaoPrograma } from '@/services/edicaoPrograma/obterEdicaoPrograma'
 
+function AlertaErroApi({ mensagem }: Readonly<{ mensagem: string }>) {
+  return (
+    <Alert
+      variant="destructive"
+      className="border-[#e8b4b8] bg-[#f8d7da] text-center font-bold text-[#721c24]"
+    >
+      <AlertDescription className="text-[#721c24]">{mensagem}</AlertDescription>
+    </Alert>
+  )
+}
+
+function CampoQuantidadeSomenteLeitura({
+  id,
+  rotulo,
+  valor,
+}: Readonly<{ id: string; rotulo: string; valor: number }>) {
+  return (
+    <Field>
+      <FieldLabel htmlFor={id} className="font-bold">
+        {rotulo}
+      </FieldLabel>
+      <Input
+        id={id}
+        type="number"
+        readOnly
+        placeholder={rotulo}
+        value={valor}
+        className="h-10 cursor-not-allowed rounded-sm border-(--color-input-border-muted) bg-(--color-input-disabled-bg) text-sm text-placeholder"
+      />
+    </Field>
+  )
+}
+
 function GrupoPeriodo({
   rotulo,
   nomeInicio,
@@ -132,12 +165,6 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
   }, [edicaoQuery.data, form])
 
   const salvando = cadastroMutation.isPending || atualizacaoMutation.isPending
-  const quantidadeInscritos = edicaoQuery.data?.quantidadeInscritos ?? 0
-  const quantidadeAtendimentoEfetivo =
-    edicaoQuery.data?.quantidadeAtendimentoEfetivo ?? 0
-  const quantidadePasseios = edicaoQuery.data?.quantidadePasseios ?? 0
-  const quantidadeApresentacoes = edicaoQuery.data?.quantidadeApresentacoes ?? 0
-
   const mensagemErroObter =
     edicaoQuery.error instanceof ErroObterEdicaoPrograma
       ? edicaoQuery.error.mensagemUsuario
@@ -150,8 +177,7 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
     atualizacaoMutation.error instanceof ErroAtualizacaoEdicaoPrograma
       ? atualizacaoMutation.error.mensagemUsuario
       : ''
-  const mensagemErroApi =
-    mensagemErroCadastro || mensagemErroAtualizacao || mensagemErroObter
+  const mensagemErroApi = mensagemErroCadastro || mensagemErroAtualizacao
 
   function limparErroDaMutation() {
     if (cadastroMutation.isError) {
@@ -184,18 +210,9 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
   }
 
   if (edicaoId && !edicaoQuery.data) {
-    if (!mensagemErroObter) return null
-
-    return (
-      <Alert
-        variant="destructive"
-        className="border-[#e8b4b8] bg-[#f8d7da] text-center font-bold text-[#721c24]"
-      >
-        <AlertDescription className="text-[#721c24]">
-          {mensagemErroObter}
-        </AlertDescription>
-      </Alert>
-    )
+    return mensagemErroObter ? (
+      <AlertaErroApi mensagem={mensagemErroObter} />
+    ) : null
   }
 
   return (
@@ -204,16 +221,7 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
       className="rounded-sm bg-background p-8 shadow-(--shadow-card) max-md:p-4"
     >
       <FieldGroup className="gap-5.5">
-        {mensagemErroApi ? (
-          <Alert
-            variant="destructive"
-            className="border-[#e8b4b8] bg-[#f8d7da] text-center font-bold text-[#721c24]"
-          >
-            <AlertDescription className="text-[#721c24]">
-              {mensagemErroApi}
-            </AlertDescription>
-          </Alert>
-        ) : null}
+        {mensagemErroApi ? <AlertaErroApi mensagem={mensagemErroApi} /> : null}
 
         <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
           <Controller
@@ -269,64 +277,29 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
         </div>
 
         <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
-          <Field>
-            <FieldLabel htmlFor="QuantidadeInscritos" className="font-bold">
-              Quantidade de Inscritos
-            </FieldLabel>
-            <Input
-              id="QuantidadeInscritos"
-              type="number"
-              readOnly
-              placeholder="Quantidade de Inscritos"
-              value={quantidadeInscritos}
-              className="h-10 cursor-not-allowed rounded-sm border-(--color-input-border-muted) bg-(--color-input-disabled-bg) text-sm text-placeholder"
-            />
-          </Field>
-          <Field>
-            <FieldLabel
-              htmlFor="QuantidadeAtendimentoEfetivo"
-              className="font-bold"
-            >
-              Quantidade de Atendimento Efetivo
-            </FieldLabel>
-            <Input
-              id="QuantidadeAtendimentoEfetivo"
-              type="number"
-              readOnly
-              placeholder="Quantidade de Atendimento Efetivo"
-              value={quantidadeAtendimentoEfetivo}
-              className="h-10 cursor-not-allowed rounded-sm border-(--color-input-border-muted) bg-(--color-input-disabled-bg) text-sm text-placeholder"
-            />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="QuantidadePasseios" className="font-bold">
-              Quantidade de Passeios
-            </FieldLabel>
-            <Input
-              id="QuantidadePasseios"
-              type="number"
-              readOnly
-              placeholder="Quantidade de Passeios"
-              value={quantidadePasseios}
-              className="h-10 cursor-not-allowed rounded-sm border-(--color-input-border-muted) bg-(--color-input-disabled-bg) text-sm text-placeholder"
-            />
-          </Field>
+          <CampoQuantidadeSomenteLeitura
+            id="QuantidadeInscritos"
+            rotulo="Quantidade de Inscritos"
+            valor={edicaoQuery.data?.quantidadeInscritos ?? 0}
+          />
+          <CampoQuantidadeSomenteLeitura
+            id="QuantidadeAtendimentoEfetivo"
+            rotulo="Quantidade de Atendimento Efetivo"
+            valor={edicaoQuery.data?.quantidadeAtendimentoEfetivo ?? 0}
+          />
+          <CampoQuantidadeSomenteLeitura
+            id="QuantidadePasseios"
+            rotulo="Quantidade de Passeios"
+            valor={edicaoQuery.data?.quantidadePasseios ?? 0}
+          />
         </div>
 
         <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
-          <Field>
-            <FieldLabel htmlFor="QuantidadeApresentacoes" className="font-bold">
-              Quantidade de Apresentações
-            </FieldLabel>
-            <Input
-              id="QuantidadeApresentacoes"
-              type="number"
-              readOnly
-              placeholder="Quantidade de Apresentações"
-              value={quantidadeApresentacoes}
-              className="h-10 cursor-not-allowed rounded-sm border-(--color-input-border-muted) bg-(--color-input-disabled-bg) text-sm text-placeholder"
-            />
-          </Field>
+          <CampoQuantidadeSomenteLeitura
+            id="QuantidadeApresentacoes"
+            rotulo="Quantidade de Apresentações"
+            valor={edicaoQuery.data?.quantidadeApresentacoes ?? 0}
+          />
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2 max-md:flex-col-reverse max-md:[&>button]:w-full">

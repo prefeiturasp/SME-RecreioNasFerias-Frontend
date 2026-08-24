@@ -11,16 +11,6 @@ export type EdicaoPrograma = {
   quantidadeApresentacoes: number
 }
 
-export type QuantidadesEdicaoPrograma = Pick<
-  EdicaoPrograma,
-  | 'quantidadeInscritos'
-  | 'quantidadeAtendimentoEfetivo'
-  | 'quantidadePasseios'
-  | 'quantidadeApresentacoes'
->
-
-export type NovaEdicaoPrograma = Omit<EdicaoPrograma, 'id'>
-
 export type DadosCadastroEdicaoPrograma = {
   nome: string
   dataInicioEdicao: string
@@ -28,4 +18,3 @@ export type DadosCadastroEdicaoPrograma = {
   dataInicioInscricoes: string
   dataFimInscricoes: string
 }
-
