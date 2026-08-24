@@ -1,9 +1,9 @@
+import { useNavigate, useParams } from 'react-router-dom'
 import IconeSetaVoltar from '@/assets/icone-seta-voltar.png'
 import { Cabecalho } from '@/components/Cabecalho'
 import { EdicaoForm } from '@/components/edicaoPrograma/EdicaoForm'
 import { MapaVisual } from '@/components/MapaVisual'
 import { MenuLateral } from '@/components/MenuLateral'
-import { useNavigate, useParams } from 'react-router-dom'
 import {
   AreaConteudo,
   BotaoVoltar,

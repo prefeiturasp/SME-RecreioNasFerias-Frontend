@@ -1,23 +1,23 @@
 import { useEffect } from 'react'
-import { CloseIcon } from '../../components/icons'
+import { CloseIcon } from '@/components/icons'
 import {
   BotaoFecharMensagemSucesso,
-  MensagemSucessoAoCriarNovaEdicaoPrograma as ContainerMensagemSucesso,
+  MensagemSucessoEdicaoPrograma as ContainerMensagemSucesso,
 } from './style'
 
 const TEMPO_EXIBICAO_MS = 3000
 
-type MensagemSucessoAoCriarNovaEdicaoProgramaProps = {
+type MensagemSucessoEdicaoProgramaProps = {
   visivel: boolean
   onFechar: () => void
   mensagem?: string
 }
 
-export function MensagemSucessoAoCriarNovaEdicaoPrograma({
+export function MensagemSucessoEdicaoPrograma({
   visivel,
   onFechar,
   mensagem = 'Edição do Programa cadastrado com sucesso!',
-}: Readonly<MensagemSucessoAoCriarNovaEdicaoProgramaProps>) {
+}: Readonly<MensagemSucessoEdicaoProgramaProps>) {
   useEffect(() => {
     if (!visivel) return
 

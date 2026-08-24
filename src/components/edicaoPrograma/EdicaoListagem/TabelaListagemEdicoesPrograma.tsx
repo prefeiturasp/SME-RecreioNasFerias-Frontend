@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { iconeLapisEditar } from '@/assets'
 import { IconeOrdenacaoTabela } from '@/components/icons'
-import { PaginacaoListagem } from '@/components/ListagemTabela/PaginacaoListagem'
+import { PaginacaoEdicoesPrograma } from './PaginacaoEdicoesPrograma'
 import {
   BotaoAcaoListagem,
   BotaoOrdenarColuna,
@@ -170,8 +170,7 @@ export function TabelaListagemEdicoesPrograma({
         </TabelaListagem>
       </ContainerTabelaListagem>
       {totalPaginas > 0 && (
-        <PaginacaoListagem
-          rotuloAcessivel="Paginação da listagem de edições"
+        <PaginacaoEdicoesPrograma
           paginaAtual={paginaAtual}
           totalPaginas={totalPaginas}
           itensPorPagina={itensPorPagina}

@@ -1,9 +1,9 @@
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { MensagemSucessoAoCriarNovaEdicaoPrograma } from './MensagemSucessoAoCriarNovaEdicaoPrograma'
+import { MensagemSucessoEdicaoPrograma } from './MensagemSucessoEdicaoPrograma'
 
-describe('MensagemSucessoAoCriarNovaEdicaoPrograma', () => {
+describe('MensagemSucessoEdicaoPrograma', () => {
   beforeEach(() => {
     vi.useFakeTimers()
   })
@@ -13,20 +13,13 @@ describe('MensagemSucessoAoCriarNovaEdicaoPrograma', () => {
   })
 
   it('não renderiza quando invisível', () => {
-    render(
-      <MensagemSucessoAoCriarNovaEdicaoPrograma
-        visivel={false}
-        onFechar={vi.fn()}
-      />,
-    )
+    render(<MensagemSucessoEdicaoPrograma visivel={false} onFechar={vi.fn()} />)
 
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
   it('renderiza mensagem e botão de fechar quando visível', () => {
-    render(
-      <MensagemSucessoAoCriarNovaEdicaoPrograma visivel onFechar={vi.fn()} />,
-    )
+    render(<MensagemSucessoEdicaoPrograma visivel onFechar={vi.fn()} />)
 
     expect(screen.getByRole('status')).toBeInTheDocument()
     expect(
@@ -39,7 +32,7 @@ describe('MensagemSucessoAoCriarNovaEdicaoPrograma', () => {
 
   it('renderiza mensagem personalizada quando informada', () => {
     render(
-      <MensagemSucessoAoCriarNovaEdicaoPrograma
+      <MensagemSucessoEdicaoPrograma
         visivel
         mensagem="Edição do Programa atualizada com sucesso!"
         onFechar={vi.fn()}
@@ -59,9 +52,7 @@ describe('MensagemSucessoAoCriarNovaEdicaoPrograma', () => {
     const usuario = userEvent.setup()
     const onFechar = vi.fn()
 
-    render(
-      <MensagemSucessoAoCriarNovaEdicaoPrograma visivel onFechar={onFechar} />,
-    )
+    render(<MensagemSucessoEdicaoPrograma visivel onFechar={onFechar} />)
 
     await usuario.click(
       screen.getByRole('button', { name: /fechar mensagem de sucesso/i }),
@@ -73,9 +64,7 @@ describe('MensagemSucessoAoCriarNovaEdicaoPrograma', () => {
   it('chama onFechar automaticamente após 3 segundos', () => {
     const onFechar = vi.fn()
 
-    render(
-      <MensagemSucessoAoCriarNovaEdicaoPrograma visivel onFechar={onFechar} />,
-    )
+    render(<MensagemSucessoEdicaoPrograma visivel onFechar={onFechar} />)
 
     act(() => {
       vi.advanceTimersByTime(2999)

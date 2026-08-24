@@ -21,7 +21,7 @@ vi.mock('@/components/MapaVisual', () => ({
 
 vi.mock('@/components/edicaoPrograma/EdicaoForm', () => ({
   EdicaoForm: ({ edicaoId }: { edicaoId?: string }) => (
-    <form aria-label="formulário de edição de edição">{edicaoId}</form>
+    <form aria-label="formulário de edição do programa">{edicaoId}</form>
   ),
 }))
 
@@ -51,7 +51,7 @@ describe('PaginaEditarEdicaoPrograma', () => {
       }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('form', { name: 'formulário de edição de edição' }),
+      screen.getByRole('form', { name: 'formulário de edição do programa' }),
     ).toHaveTextContent(idEdicao)
     expect(
       screen.getByRole('button', { name: /voltar para edições do programa/i }),

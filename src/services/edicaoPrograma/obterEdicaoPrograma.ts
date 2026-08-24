@@ -13,11 +13,15 @@ export class ErroObterEdicaoPrograma extends Error {
   }
 }
 
+function rotaObterEdicao(uuid: string) {
+  return `/api/v1/edicoes/${uuid}/`
+}
+
 export async function obterEdicaoPrograma(
   uuid: string,
 ): Promise<EdicaoPrograma> {
   try {
-    const { data } = await api.get(`/api/v1/edicoes/${uuid}/`)
+    const { data } = await api.get(rotaObterEdicao(uuid))
 
     const edicao = interpretarItemEdicaoPrograma(data as unknown)
 

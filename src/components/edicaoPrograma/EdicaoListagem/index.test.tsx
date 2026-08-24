@@ -26,7 +26,9 @@ vi.mock(
   },
 )
 
-function criarEdicao(sobrescritas: Partial<EdicaoPrograma> = {}): EdicaoPrograma {
+function criarEdicao(
+  sobrescritas: Partial<EdicaoPrograma> = {},
+): EdicaoPrograma {
   return {
     id: '1',
     nome: 'Janeiro 2026',
@@ -116,6 +118,31 @@ describe('EdicaoListagem', () => {
 
     expect(await screen.findByText('Edição 11')).toBeInTheDocument()
     expect(screen.queryByText('Edição 1')).not.toBeInTheDocument()
+    expect(listarEdicoesProgramaMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('altera itens por página no cliente sem nova requisição', async () => {
+    const usuario = userEvent.setup()
+    const edicoes = Array.from({ length: 11 }, (_, indice) =>
+      criarEdicao({
+        id: String(indice + 1),
+        nome: `Edição ${indice + 1}`,
+      }),
+    )
+    listarEdicoesProgramaMock.mockResolvedValue(edicoes)
+
+    renderEdicaoListagem()
+
+    expect(await screen.findByText('Edição 1')).toBeInTheDocument()
+    expect(screen.queryByText('Edição 11')).not.toBeInTheDocument()
+
+    await usuario.click(
+      screen.getByRole('combobox', { name: /itens por página/i }),
+    )
+    await usuario.click(await screen.findByRole('option', { name: '20' }))
+
+    expect(await screen.findByText('Edição 11')).toBeInTheDocument()
+    expect(screen.getByText('Edição 1')).toBeInTheDocument()
     expect(listarEdicoesProgramaMock).toHaveBeenCalledTimes(1)
   })
 

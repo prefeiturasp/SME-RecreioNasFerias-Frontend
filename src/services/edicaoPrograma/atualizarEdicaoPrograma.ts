@@ -33,13 +33,17 @@ function montarPayloadEdicao(
   }
 }
 
+function rotaAtualizarEdicao(uuid: string) {
+  return `/api/v1/edicoes/${uuid}/`
+}
+
 export async function atualizarEdicaoPrograma(
   uuid: string,
   dados: DadosCadastroEdicaoPrograma,
 ): Promise<EdicaoPrograma> {
   try {
     const { data } = await api.put(
-      `/api/v1/edicoes/${uuid}/`,
+      rotaAtualizarEdicao(uuid),
       montarPayloadEdicao(dados),
     )
 

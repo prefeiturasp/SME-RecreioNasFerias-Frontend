@@ -1,6 +1,6 @@
+import { useMutation } from '@tanstack/react-query'
 import { atualizarEdicaoPrograma } from '@/services/edicaoPrograma/atualizarEdicaoPrograma'
 import type { DadosCadastroEdicaoPrograma } from '@/services/edicaoPrograma/types'
-import { useMutation } from '@tanstack/react-query'
 
 export function usePutEdicaoPrograma(uuid: string | undefined) {
   return useMutation({

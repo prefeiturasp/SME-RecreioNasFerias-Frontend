@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import IconeSetaVoltar from '../../assets/icone-seta-voltar.png'
-import { Cabecalho } from '../../components/Cabecalho'
-import { EdicaoListagem } from '../../components/edicaoPrograma/EdicaoListagem'
-import { MapaVisual } from '../../components/MapaVisual'
-import { MenuLateral } from '../../components/MenuLateral'
-import { MensagemSucessoAoCriarNovaEdicaoPrograma } from './MensagemSucessoAoCriarNovaEdicaoPrograma'
+import IconeSetaVoltar from '@/assets/icone-seta-voltar.png'
+import { Cabecalho } from '@/components/Cabecalho'
+import { EdicaoListagem } from '@/components/edicaoPrograma/EdicaoListagem'
+import { MapaVisual } from '@/components/MapaVisual'
+import { MenuLateral } from '@/components/MenuLateral'
+import { MensagemSucessoEdicaoPrograma } from './MensagemSucessoEdicaoPrograma'
 import {
   AreaConteudo,
   BotaoCadastrarNovaEdicao,
@@ -68,7 +68,7 @@ export default function PaginaEdicoesPrograma() {
         <Cabecalho />
         <AreaConteudo>
           <MapaVisual niveis={[...NIVEIS_MAPA_VISUAL]} />
-          <MensagemSucessoAoCriarNovaEdicaoPrograma
+          <MensagemSucessoEdicaoPrograma
             visivel={Boolean(mensagemSucesso)}
             mensagem={mensagemSucesso ?? undefined}
             onFechar={fecharMensagemSucesso}

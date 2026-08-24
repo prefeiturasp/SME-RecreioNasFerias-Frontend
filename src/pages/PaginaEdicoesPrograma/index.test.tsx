@@ -3,19 +3,19 @@ import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import PaginaEdicoesPrograma from './index'
 
-vi.mock('../../components/MenuLateral', () => ({
+vi.mock('@/components/MenuLateral', () => ({
   MenuLateral: () => <aside aria-label="menu lateral">Menu lateral</aside>,
 }))
 
-vi.mock('../../components/Cabecalho', () => ({
+vi.mock('@/components/Cabecalho', () => ({
   Cabecalho: () => <header>Header principal</header>,
 }))
 
-vi.mock('../../components/MapaVisual', () => ({
+vi.mock('@/components/MapaVisual', () => ({
   MapaVisual: () => <nav aria-label="Mapa do site">Mapa visual</nav>,
 }))
 
-vi.mock('../../components/edicaoPrograma/EdicaoListagem', () => ({
+vi.mock('@/components/edicaoPrograma/EdicaoListagem', () => ({
   EdicaoListagem: () => <div>Listagem de edições</div>,
 }))
 

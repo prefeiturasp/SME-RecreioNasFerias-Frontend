@@ -1,9 +1,31 @@
 import { z } from 'zod'
-import {
-  validarFimInscricoesAteFimEdicao,
-  validarPeriodoEdicao,
-  validarPeriodoInscricoes,
-} from '@/services/edicaoPrograma/validarCadastroEdicao'
+
+function validarPeriodo(
+  dataInicio: string,
+  dataFim: string,
+  nomePeriodo: string,
+): string | null {
+  if (!dataInicio || !dataFim) return null
+
+  if (dataInicio > dataFim) {
+    return `No ${nomePeriodo}, a data "De" não pode ser maior que a data "Até".`
+  }
+
+  return null
+}
+
+function validarFimInscricoesAteFimEdicao(
+  dataFimInscricoes: string,
+  dataFimEdicao: string,
+): string | null {
+  if (!dataFimInscricoes || !dataFimEdicao) return null
+
+  if (dataFimInscricoes > dataFimEdicao) {
+    return 'A data fim das inscrições não pode ser posterior à data fim da edição.'
+  }
+
+  return null
+}
 
 const formSchema = z
   .object({
@@ -23,13 +45,18 @@ const formSchema = z
     const erros = [
       [
         'dataFimEdicao',
-        validarPeriodoEdicao(dados.dataInicioEdicao, dados.dataFimEdicao),
+        validarPeriodo(
+          dados.dataInicioEdicao,
+          dados.dataFimEdicao,
+          'período da edição',
+        ),
       ],
       [
         'dataFimInscricoes',
-        validarPeriodoInscricoes(
+        validarPeriodo(
           dados.dataInicioInscricoes,
           dados.dataFimInscricoes,
+          'período das inscrições',
         ),
       ],
       [
