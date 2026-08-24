@@ -1,27 +1,22 @@
 import { useMemo, useState } from 'react'
 
-import { iconeLapisEditar } from '../../assets'
-
-import { IconeOrdenacaoTabela } from '../../components/icons'
-
-import { formatarPeriodo } from '../../services/edicaoPrograma/formatarPeriodo'
-
-import type { EdicaoPrograma } from '../../services/edicaoPrograma/types'
-
-import { PaginacaoListagemEdicoes } from './PaginacaoListagemEdicoes'
-
+import { iconeLapisEditar } from '@/assets'
+import { IconeOrdenacaoTabela } from '@/components/icons'
+import { PaginacaoListagem } from '@/components/ListagemTabela/PaginacaoListagem'
 import {
-  BotaoAcaoEdicao,
+  BotaoAcaoListagem as BotaoAcaoEdicao,
   BotaoOrdenarColuna,
-  CabecalhoTabelaEdicoes,
-  CelulaAcoesEdicao,
-  ContainerTabelaEdicoes,
-  CorpoTabelaEdicoes,
-  GrupoAcoesEdicao,
+  CabecalhoTabelaListagem as CabecalhoTabelaEdicoes,
+  CelulaAcoesListagem as CelulaAcoesEdicao,
+  ContainerTabelaListagem as ContainerTabelaEdicoes,
+  CorpoTabelaListagem as CorpoTabelaEdicoes,
+  GrupoAcoesListagem as GrupoAcoesEdicao,
   MensagemListagemVazia,
-  TabelaEdicoes,
-  TituloListagemEdicoes,
-} from './tabelaListagemStyles'
+  TabelaListagem as TabelaEdicoes,
+  TituloListagem as TituloListagemEdicoes,
+} from '@/components/ListagemTabela/style'
+import { formatarPeriodo } from '@/services/edicaoPrograma/formatarPeriodo'
+import type { EdicaoPrograma } from '@/services/edicaoPrograma/types'
 
 type ColunaOrdenacao =
   | 'nome'
@@ -214,7 +209,8 @@ export function TabelaListagemEdicoesPrograma({
       </ContainerTabelaEdicoes>
 
       {totalPaginas > 0 && (
-        <PaginacaoListagemEdicoes
+        <PaginacaoListagem
+          rotuloAcessivel="Paginação da listagem de edições"
           paginaAtual={paginaAtual}
           totalPaginas={totalPaginas}
           itensPorPagina={itensPorPagina}

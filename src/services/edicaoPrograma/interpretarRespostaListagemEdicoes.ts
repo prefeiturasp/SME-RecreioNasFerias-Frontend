@@ -1,4 +1,4 @@
-import type { EdicaoPrograma, ListagemEdicoesPrograma } from './types'
+import type { EdicaoPrograma } from './types'
 
 type PeriodoApi = {
   de: string
@@ -64,38 +64,3 @@ export function interpretarRespostaEdicaoPrograma(
   return mapearEdicaoPrograma(dados)
 }
 
-export function interpretarRespostaListagemEdicoes(
-  dados: unknown,
-): EdicaoPrograma[] {
-  if (!Array.isArray(dados)) return []
-
-  return dados.filter(ehEdicaoProgramaApiValida).map(mapearEdicaoPrograma)
-}
-
-export function interpretarRespostaListagemEdicoesPaginada(
-  dados: unknown,
-): ListagemEdicoesPrograma | null {
-  if (!dados || typeof dados !== 'object') return null
-
-  const resposta = dados as Record<string, unknown>
-
-  if (
-    !Array.isArray(resposta.results) ||
-    typeof resposta.page !== 'number' ||
-    typeof resposta.pageSize !== 'number' ||
-    typeof resposta.total !== 'number' ||
-    typeof resposta.totalPages !== 'number'
-  ) {
-    return null
-  }
-
-  return {
-    edicoes: resposta.results
-      .filter(ehEdicaoProgramaApiValida)
-      .map(mapearEdicaoPrograma),
-    pagina: resposta.page,
-    tamanhoPagina: resposta.pageSize,
-    total: resposta.total,
-    totalPaginas: resposta.totalPages,
-  }
-}

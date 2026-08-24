@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 
 import { describe, expect, it, vi } from 'vitest'
 
-import type { EdicaoPrograma } from '../../services/edicaoPrograma/types'
+import type { EdicaoPrograma } from '@/services/edicaoPrograma/types'
 
 import { TabelaListagemEdicoesPrograma } from './TabelaListagemEdicoesPrograma'
 

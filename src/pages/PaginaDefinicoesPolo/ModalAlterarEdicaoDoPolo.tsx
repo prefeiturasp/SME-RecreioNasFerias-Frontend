@@ -19,7 +19,6 @@ import {
 } from './modalAlterarEdicaoDoPoloStyles'
 
 const NOME_EDICAO_SEM_VINCULO = '-'
-const TAMANHO_PAGINA_EDICOES = 100
 
 type ModalAlterarEdicaoDoPoloProps = {
   aberto: boolean
@@ -62,16 +61,13 @@ export function ModalAlterarEdicaoDoPolo({
     let cancelado = false
     setEstaCarregandoOpcoes(true)
 
-    void listarEdicoesPrograma({
-      pagina: 1,
-      tamanhoPagina: TAMANHO_PAGINA_EDICOES,
-    })
-      .then((listagem) => {
+    void listarEdicoesPrograma()
+      .then((edicoes) => {
         if (cancelado) return
 
         const nomes = Array.from(
           new Set(
-            listagem.edicoes
+            edicoes
               .map((edicao) => edicao.nome.trim())
               .filter((nome) => nome !== ''),
           ),

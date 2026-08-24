@@ -11,23 +11,21 @@ vi.mock('../api/http', () => ({
 
 const apiGetMock = vi.mocked(api.get)
 
-const respostaListagemExemplo = {
-  results: [
-    {
-      id: '11111111-1111-1111-1111-111111111111',
-      nome: 'Janeiro 2026',
-      periodoEdicao: { de: '2026-01-01', ate: '2026-01-31' },
-      periodoInscricoes: { de: '2025-12-01', ate: '2025-12-31' },
-      quantidadeInscritos: 50,
-      quantidadeAtendimentoEfetivo: 40,
-      quantidadePasseios: null,
-      quantidadeApresentacoes: null,
-    },
-  ],
-  page: 1,
-  pageSize: 10,
-  total: 1,
-  totalPages: 1,
+const itemListagemExemplo = {
+  uuid: '04153eb1-5f40-4f0d-8b59-1290ba4684a0',
+  nome: 'Programa teste',
+  data_inicio: '2026-08-02',
+  data_fim: '2026-08-08',
+  inscricoes_inicio: '2026-08-02',
+  inscricoes_fim: '2026-08-08',
+  quantidade_inscritos: 0,
+  quantidade_atendimento_efetivo: 0,
+  quantidade_passeios: 0,
+  quantidade_apresentacoes: 0,
+  status: 'encerrada',
+  ativo: true,
+  criado_em: '2026-08-24T10:28:48.821542-03:00',
+  atualizado_em: '2026-08-24T10:28:48.821553-03:00',
 }
 
 describe('listarEdicoesPrograma', () => {
@@ -35,41 +33,39 @@ describe('listarEdicoesPrograma', () => {
     apiGetMock.mockReset()
   })
 
-  it('envia requisição autenticada e mapeia a resposta da API', async () => {
-    apiGetMock.mockResolvedValue({ data: respostaListagemExemplo })
+  it('envia GET sem paginação e mapeia o array da API', async () => {
+    apiGetMock.mockResolvedValue({ data: [itemListagemExemplo] })
 
-    await expect(listarEdicoesPrograma()).resolves.toEqual({
-      edicoes: [
-        {
-          id: '11111111-1111-1111-1111-111111111111',
-          nome: 'Janeiro 2026',
-          dataInicioEdicao: '2026-01-01',
-          dataFimEdicao: '2026-01-31',
-          dataInicioInscricoes: '2025-12-01',
-          dataFimInscricoes: '2025-12-31',
-          quantidadeInscritos: 50,
-          quantidadeAtendimentoEfetivo: 40,
-          quantidadePasseios: 0,
-          quantidadeApresentacoes: 0,
-        },
-      ],
-      pagina: 1,
-      tamanhoPagina: 10,
-      total: 1,
-      totalPaginas: 1,
-    })
+    await expect(listarEdicoesPrograma()).resolves.toEqual([
+      {
+        id: '04153eb1-5f40-4f0d-8b59-1290ba4684a0',
+        nome: 'Programa teste',
+        dataInicioEdicao: '2026-08-02',
+        dataFimEdicao: '2026-08-08',
+        dataInicioInscricoes: '2026-08-02',
+        dataFimInscricoes: '2026-08-08',
+        quantidadeInscritos: 0,
+        quantidadeAtendimentoEfetivo: 0,
+        quantidadePasseios: 0,
+        quantidadeApresentacoes: 0,
+      },
+    ])
 
     expect(apiGetMock).toHaveBeenCalledTimes(1)
-    expect(apiGetMock).toHaveBeenCalledWith('/api/v1/edicoes/', {
-      params: { page: '1', pageSize: '10' },
-    })
+    expect(apiGetMock).toHaveBeenCalledWith('/api/v1/edicoes/')
+  })
+
+  it('retorna lista vazia quando a API devolve array vazio', async () => {
+    apiGetMock.mockResolvedValue({ data: [] })
+
+    await expect(listarEdicoesPrograma()).resolves.toEqual([])
   })
 
   it('lança erro quando a API retorna falha', async () => {
     apiGetMock.mockRejectedValue({
       response: {
         status: 401,
-        data: { detail: 'Credenciais inválidas.' },
+        data: { detalhe: 'Credenciais inválidas.' },
       },
     })
 
@@ -81,31 +77,27 @@ describe('listarEdicoesPrograma', () => {
     })
   })
 
-  it('envia parâmetros de paginação customizados', async () => {
-    apiGetMock.mockResolvedValue({ data: respostaListagemExemplo })
+  it('não inventa mensagem quando o corpo de erro está vazio', async () => {
+    apiGetMock.mockRejectedValue({ response: { status: 500, data: {} } })
 
-    await listarEdicoesPrograma({ pagina: 2, tamanhoPagina: 20 })
-
-    expect(apiGetMock).toHaveBeenCalledWith('/api/v1/edicoes/', {
-      params: { page: '2', pageSize: '20' },
+    await expect(listarEdicoesPrograma()).rejects.toMatchObject({
+      mensagemUsuario: '',
     })
   })
 
-  it('lança erro quando a resposta de listagem é inválida', async () => {
-    apiGetMock.mockResolvedValue({ data: { results: 'invalido' } })
+  it('lança erro sem mensagem quando a resposta não é um array', async () => {
+    apiGetMock.mockResolvedValue({ data: { results: [] } })
 
     await expect(listarEdicoesPrograma()).rejects.toMatchObject({
-      mensagemUsuario: 'Resposta de listagem inválida.',
+      mensagemUsuario: '',
     })
   })
 
-  it('usa o texto bruto quando o corpo de erro é uma string', async () => {
-    apiGetMock.mockRejectedValue({
-      response: { status: 500, data: 'Erro interno do servidor' },
-    })
+  it('lança erro sem mensagem quando um item da lista é inválido', async () => {
+    apiGetMock.mockResolvedValue({ data: [{ nome: 'sem uuid' }] })
 
     await expect(listarEdicoesPrograma()).rejects.toMatchObject({
-      mensagemUsuario: 'Erro interno do servidor',
+      mensagemUsuario: '',
     })
   })
 })

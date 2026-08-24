@@ -1,12 +1,5 @@
 import type { EdicaoPrograma } from './types'
 
-export const QUANTIDADES_MOCK_CADASTRO_EDICAO = {
-  quantidadeInscritos: 0,
-  quantidadeAtendimentoEfetivo: 0,
-  quantidadePasseios: 0,
-  quantidadeApresentacoes: 0,
-} as const
-
 export const EDICOES_PROGRAMA_MOCK: EdicaoPrograma[] = [
   {
     id: 'mock-edicao-janeiro-2026',

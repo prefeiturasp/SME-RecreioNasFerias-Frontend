@@ -1,5 +1,6 @@
 import { extrairMensagemDeErro } from '../api/extrairMensagemDeErro'
 import { api } from '../api/http'
+import { interpretarItemEdicaoPrograma } from './interpretarItemEdicaoPrograma'
 import type { DadosCadastroEdicaoPrograma, EdicaoPrograma } from './types'
 
 const ROTA_CADASTRO_EDICAO = '/api/v1/edicoes/'
@@ -34,40 +35,6 @@ function montarPayloadEdicao(
   }
 }
 
-function interpretarRespostaCadastroEdicaoPrograma(
-  dados: unknown,
-): EdicaoPrograma | null {
-  if (!dados || typeof dados !== 'object') return null
-
-  const resposta = dados as Record<string, unknown>
-  const { id, nome, data_inicio, data_fim, inscricoes_inicio, inscricoes_fim } =
-    resposta
-
-  if (
-    typeof id !== 'string' ||
-    typeof nome !== 'string' ||
-    typeof data_inicio !== 'string' ||
-    typeof data_fim !== 'string' ||
-    typeof inscricoes_inicio !== 'string' ||
-    typeof inscricoes_fim !== 'string'
-  ) {
-    return null
-  }
-
-  return {
-    id,
-    nome,
-    dataInicioEdicao: data_inicio,
-    dataFimEdicao: data_fim,
-    dataInicioInscricoes: inscricoes_inicio,
-    dataFimInscricoes: inscricoes_fim,
-    quantidadeInscritos: 0,
-    quantidadeAtendimentoEfetivo: 0,
-    quantidadePasseios: 0,
-    quantidadeApresentacoes: 0,
-  }
-}
-
 export async function cadastrarEdicaoPrograma(
   dados: DadosCadastroEdicaoPrograma,
 ): Promise<EdicaoPrograma> {
@@ -77,7 +44,7 @@ export async function cadastrarEdicaoPrograma(
       montarPayloadEdicao(dados),
     )
 
-    const edicao = interpretarRespostaCadastroEdicaoPrograma(data as unknown)
+    const edicao = interpretarItemEdicaoPrograma(data as unknown)
 
     if (!edicao) {
       throw new ErroCadastroEdicaoPrograma('')

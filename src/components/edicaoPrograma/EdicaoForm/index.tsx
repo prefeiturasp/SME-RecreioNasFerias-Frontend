@@ -116,7 +116,7 @@ export function EdicaoForm() {
   function onSubmit(data: FormValues) {
     cadastroMutation.mutate(data, {
       onSuccess: () => {
-        navigate('/edicoes-programa')
+        navigate('/edicoes-programa', { state: { edicaoCadastrada: true } })
       },
     })
   }

@@ -20,12 +20,20 @@ const dadosEdicaoExemplo = {
 } as const
 
 const respostaCadastroExemplo = {
-  id: '22222222-2222-2222-2222-222222222222',
+  uuid: '22222222-2222-2222-2222-222222222222',
   nome: 'Edição Julho 2026',
   data_inicio: '2026-07-01',
   data_fim: '2026-07-31',
   inscricoes_inicio: '2026-06-01',
   inscricoes_fim: '2026-06-20',
+  quantidade_inscritos: 0,
+  quantidade_atendimento_efetivo: 0,
+  quantidade_passeios: 0,
+  quantidade_apresentacoes: 0,
+  status: 'planejada',
+  ativo: true,
+  criado_em: '2026-08-24T13:52:23.280Z',
+  atualizado_em: '2026-08-24T13:52:23.280Z',
 }
 
 describe('cadastrarEdicaoPrograma', () => {

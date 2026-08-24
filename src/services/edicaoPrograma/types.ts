@@ -29,15 +29,3 @@ export type DadosCadastroEdicaoPrograma = {
   dataFimInscricoes: string
 }
 
-export type ParametrosListagemEdicoesPrograma = {
-  pagina?: number
-  tamanhoPagina?: number
-}
-
-export type ListagemEdicoesPrograma = {
-  edicoes: EdicaoPrograma[]
-  pagina: number
-  tamanhoPagina: number
-  total: number
-  totalPaginas: number
-}

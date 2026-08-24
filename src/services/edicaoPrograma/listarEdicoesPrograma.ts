@@ -1,10 +1,7 @@
 import { extrairMensagemDeErro } from '../api/extrairMensagemDeErro'
 import { api } from '../api/http'
-import { interpretarRespostaListagemEdicoesPaginada } from './interpretarRespostaListagemEdicoes'
-import type {
-  ListagemEdicoesPrograma,
-  ParametrosListagemEdicoesPrograma,
-} from './types'
+import { interpretarItemEdicaoPrograma } from './interpretarItemEdicaoPrograma'
+import type { EdicaoPrograma } from './types'
 
 const ROTA_LISTAGEM_EDICOES = '/api/v1/edicoes/'
 
@@ -18,33 +15,32 @@ export class ErroListagemEdicoesPrograma extends Error {
   }
 }
 
-export async function listarEdicoesPrograma({
-  pagina = 1,
-  tamanhoPagina = 10,
-}: ParametrosListagemEdicoesPrograma = {}): Promise<ListagemEdicoesPrograma> {
+export async function listarEdicoesPrograma(): Promise<EdicaoPrograma[]> {
   try {
-    const { data } = await api.get(ROTA_LISTAGEM_EDICOES, {
-      params: {
-        page: String(pagina),
-        pageSize: String(tamanhoPagina),
-      },
-    })
+    const { data } = await api.get(ROTA_LISTAGEM_EDICOES)
 
-    const listagem = interpretarRespostaListagemEdicoesPaginada(data as unknown)
-
-    if (!listagem) {
-      throw new ErroListagemEdicoesPrograma('Resposta de listagem inválida.')
+    if (!Array.isArray(data)) {
+      throw new ErroListagemEdicoesPrograma('')
     }
 
-    return listagem
+    const edicoes: EdicaoPrograma[] = []
+
+    for (const item of data) {
+      const edicao = interpretarItemEdicaoPrograma(item)
+
+      if (!edicao) {
+        throw new ErroListagemEdicoesPrograma('')
+      }
+
+      edicoes.push(edicao)
+    }
+
+    return edicoes
   } catch (error) {
     if (error instanceof ErroListagemEdicoesPrograma) {
       throw error
     }
 
-    throw new ErroListagemEdicoesPrograma(
-      extrairMensagemDeErro(error) ||
-        'Não foi possível carregar as edições do programa.',
-    )
+    throw new ErroListagemEdicoesPrograma(extrairMensagemDeErro(error))
   }
 }

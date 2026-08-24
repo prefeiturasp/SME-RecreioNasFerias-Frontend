@@ -15,38 +15,32 @@ vi.mock('../../services/edicaoPrograma/listarEdicoesPrograma', () => ({
 describe('ModalAlterarEdicaoDoPolo', () => {
   beforeEach(() => {
     listarEdicoesProgramaMock.mockReset()
-    listarEdicoesProgramaMock.mockResolvedValue({
-      edicoes: [
-        {
-          id: '1',
-          nome: 'Janeiro 2025',
-          dataInicioEdicao: '2025-01-01',
-          dataFimEdicao: '2025-01-31',
-          dataInicioInscricoes: '2024-12-01',
-          dataFimInscricoes: '2024-12-20',
-          quantidadeInscritos: 0,
-          quantidadeAtendimentoEfetivo: 0,
-          quantidadePasseios: 0,
-          quantidadeApresentacoes: 0,
-        },
-        {
-          id: '2',
-          nome: 'Julho 2025',
-          dataInicioEdicao: '2025-07-01',
-          dataFimEdicao: '2025-07-31',
-          dataInicioInscricoes: '2025-06-01',
-          dataFimInscricoes: '2025-06-20',
-          quantidadeInscritos: 0,
-          quantidadeAtendimentoEfetivo: 0,
-          quantidadePasseios: 0,
-          quantidadeApresentacoes: 0,
-        },
-      ],
-      pagina: 1,
-      tamanhoPagina: 100,
-      total: 2,
-      totalPaginas: 1,
-    })
+    listarEdicoesProgramaMock.mockResolvedValue([
+      {
+        id: '1',
+        nome: 'Janeiro 2025',
+        dataInicioEdicao: '2025-01-01',
+        dataFimEdicao: '2025-01-31',
+        dataInicioInscricoes: '2024-12-01',
+        dataFimInscricoes: '2024-12-20',
+        quantidadeInscritos: 0,
+        quantidadeAtendimentoEfetivo: 0,
+        quantidadePasseios: 0,
+        quantidadeApresentacoes: 0,
+      },
+      {
+        id: '2',
+        nome: 'Julho 2025',
+        dataInicioEdicao: '2025-07-01',
+        dataFimEdicao: '2025-07-31',
+        dataInicioInscricoes: '2025-06-01',
+        dataFimInscricoes: '2025-06-20',
+        quantidadeInscritos: 0,
+        quantidadeAtendimentoEfetivo: 0,
+        quantidadePasseios: 0,
+        quantidadeApresentacoes: 0,
+      },
+    ])
   })
 
   it('não renderiza quando aberto é false', () => {
