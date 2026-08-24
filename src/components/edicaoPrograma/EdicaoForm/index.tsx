@@ -55,7 +55,7 @@ function CampoQuantidadeSomenteLeitura({
         readOnly
         placeholder={rotulo}
         value={valor}
-        className="h-10 cursor-not-allowed rounded-sm border-(--color-input-border-muted) bg-(--color-input-disabled-bg) text-sm text-placeholder"
+        className="h-10 cursor-not-allowed rounded-sm border-(--color-input-border-muted) bg-(--color-input-disabled-bg) text-placeholder"
       />
     </Field>
   )
@@ -94,7 +94,7 @@ function GrupoPeriodo({
             placeholder="De"
             aria-label={rotuloInicio}
             aria-invalid={inicio.fieldState.invalid}
-            className="h-10 rounded-sm border-(--color-input-border-muted) px-2 shadow-none hover:bg-background hover:text-foreground [&_svg]:size-5 [&_svg]:text-brand-dark"
+            className="h-10 rounded-sm border-(--color-input-border-muted) px-2 hover:bg-background [&_svg]:size-5 [&_svg]:text-brand-dark"
             onChange={(iso) => {
               onCampoAlterado()
               inicio.field.onChange(iso)
@@ -102,10 +102,7 @@ function GrupoPeriodo({
             onBlur={inicio.field.onBlur}
           />
           {inicio.fieldState.invalid && (
-            <FieldError
-              className="text-xs"
-              errors={[inicio.fieldState.error]}
-            />
+            <FieldError errors={[inicio.fieldState.error]} />
           )}
         </div>
         <div className="flex flex-col gap-1">
@@ -115,7 +112,7 @@ function GrupoPeriodo({
             placeholder="Até"
             aria-label={rotuloFim}
             aria-invalid={fim.fieldState.invalid}
-            className="h-10 rounded-sm border-(--color-input-border-muted) px-2 shadow-none hover:bg-background hover:text-foreground [&_svg]:size-5 [&_svg]:text-brand-dark"
+            className="h-10 rounded-sm border-(--color-input-border-muted) px-2 hover:bg-background [&_svg]:size-5 [&_svg]:text-brand-dark"
             onChange={(iso) => {
               onCampoAlterado()
               fim.field.onChange(iso)
@@ -123,7 +120,7 @@ function GrupoPeriodo({
             onBlur={fim.field.onBlur}
           />
           {fim.fieldState.invalid && (
-            <FieldError className="text-xs" errors={[fim.fieldState.error]} />
+            <FieldError errors={[fim.fieldState.error]} />
           )}
         </div>
       </div>
@@ -220,7 +217,7 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
       onSubmit={form.handleSubmit(onSubmit)}
       className="rounded-sm bg-background p-8 shadow-(--shadow-card) max-md:p-4"
     >
-      <FieldGroup className="gap-5.5">
+      <FieldGroup>
         {mensagemErroApi ? <AlertaErroApi mensagem={mensagemErroApi} /> : null}
 
         <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
@@ -238,17 +235,14 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
                     id="NomeDaEdicao"
                     placeholder="Digite o Nome da Edição do Programa"
                     aria-invalid={fieldState.invalid}
-                    className="h-10 rounded-sm border-(--color-input-border-muted) text-sm"
+                    className="h-10 rounded-sm border-(--color-input-border-muted)"
                     onChange={(event) => {
                       limparErroDaMutation()
                       field.onChange(event)
                     }}
                   />
                   {fieldState.invalid && (
-                    <FieldError
-                      className="text-xs"
-                      errors={[fieldState.error]}
-                    />
+                    <FieldError errors={[fieldState.error]} />
                   )}
                 </div>
               </Field>
