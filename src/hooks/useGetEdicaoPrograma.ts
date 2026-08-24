@@ -4,7 +4,13 @@ import { obterEdicaoPrograma } from '@/services/edicaoPrograma/obterEdicaoProgra
 export function useGetEdicaoPrograma(uuid: string | undefined) {
   return useQuery({
     queryKey: ['edicaoPrograma', uuid],
-    queryFn: () => obterEdicaoPrograma(uuid as string),
+    queryFn: () => {
+      if (!uuid) {
+        throw new Error('UUID da edição não informado.')
+      }
+
+      return obterEdicaoPrograma(uuid)
+    },
     enabled: Boolean(uuid),
   })
 }

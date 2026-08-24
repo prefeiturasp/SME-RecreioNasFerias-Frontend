@@ -4,8 +4,13 @@ import type { DadosCadastroEdicaoPrograma } from '@/services/edicaoPrograma/type
 
 export function usePutEdicaoPrograma(uuid: string | undefined) {
   return useMutation({
-    mutationFn: (dados: DadosCadastroEdicaoPrograma) =>
-      atualizarEdicaoPrograma(uuid as string, dados),
+    mutationFn: (dados: DadosCadastroEdicaoPrograma) => {
+      if (!uuid) {
+        throw new Error('UUID da edição não informado.')
+      }
+
+      return atualizarEdicaoPrograma(uuid, dados)
+    },
   })
 }
 
