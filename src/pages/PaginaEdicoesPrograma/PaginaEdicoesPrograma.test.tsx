@@ -24,7 +24,7 @@ const { listarEdicoesProgramaMock } = vi.hoisted(() => ({
   listarEdicoesProgramaMock: vi.fn(),
 }))
 
-vi.mock('../../services/edicaoPrograma/api', () => ({
+vi.mock('../../services/edicaoPrograma/listarEdicoesPrograma', () => ({
   listarEdicoesPrograma: listarEdicoesProgramaMock,
 }))
 

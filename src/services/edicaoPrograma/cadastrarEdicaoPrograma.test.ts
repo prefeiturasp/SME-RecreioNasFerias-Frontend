@@ -4,7 +4,6 @@ import {
   cadastrarEdicaoPrograma,
   ErroCadastroEdicaoPrograma,
 } from './cadastrarEdicaoPrograma'
-import { QUANTIDADES_MOCK_CADASTRO_EDICAO } from './mocks'
 
 vi.mock('../api/http', () => ({
   api: { get: vi.fn(), post: vi.fn(), put: vi.fn() },
@@ -23,12 +22,10 @@ const dadosEdicaoExemplo = {
 const respostaCadastroExemplo = {
   id: '22222222-2222-2222-2222-222222222222',
   nome: 'Edição Julho 2026',
-  periodoEdicao: { de: '2026-07-01', ate: '2026-07-31' },
-  periodoInscricoes: { de: '2026-06-01', ate: '2026-06-20' },
-  quantidadeInscritos: null,
-  quantidadeAtendimentoEfetivo: null,
-  quantidadePasseios: null,
-  quantidadeApresentacoes: null,
+  data_inicio: '2026-07-01',
+  data_fim: '2026-07-31',
+  inscricoes_inicio: '2026-06-01',
+  inscricoes_fim: '2026-06-20',
 }
 
 describe('cadastrarEdicaoPrograma', () => {
@@ -53,11 +50,12 @@ describe('cadastrarEdicaoPrograma', () => {
     })
 
     expect(apiPostMock).toHaveBeenCalledTimes(1)
-    expect(apiPostMock).toHaveBeenCalledWith('/api/edicoes/', {
+    expect(apiPostMock).toHaveBeenCalledWith('/api/v1/edicoes/', {
       nome: 'Edição Julho 2026',
-      periodoEdicao: { de: '2026-07-01', ate: '2026-07-31' },
-      periodoInscricoes: { de: '2026-06-01', ate: '2026-06-20' },
-      ...QUANTIDADES_MOCK_CADASTRO_EDICAO,
+      data_inicio: '2026-07-01',
+      data_fim: '2026-07-31',
+      inscricoes_inicio: '2026-06-01',
+      inscricoes_fim: '2026-06-20',
     })
   })
 

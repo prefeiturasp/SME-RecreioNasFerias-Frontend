@@ -12,7 +12,7 @@ import { MapaVisual } from '../../components/MapaVisual'
 
 import { MenuLateral } from '../../components/MenuLateral'
 
-import { listarEdicoesPrograma } from '../../services/edicaoPrograma/api'
+import { listarEdicoesPrograma } from '../../services/edicaoPrograma/listarEdicoesPrograma'
 
 import type { EdicaoPrograma } from '../../services/edicaoPrograma/types'
 

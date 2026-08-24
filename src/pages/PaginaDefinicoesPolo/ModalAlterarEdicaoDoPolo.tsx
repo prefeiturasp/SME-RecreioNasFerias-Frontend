@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { ChevronDownIcon, CloseIcon } from '../../components/icons'
 import { IndicadorCarregamento } from '../../components/IndicadorCarregamento'
-import { listarEdicoesPrograma } from '../../services/edicaoPrograma/api'
+import { listarEdicoesPrograma } from '../../services/edicaoPrograma/listarEdicoesPrograma'
 import {
   BotaoAlterarModalAlterarEdicao,
   BotaoFecharModalAlterarEdicao,

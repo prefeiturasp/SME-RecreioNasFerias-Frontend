@@ -46,7 +46,7 @@ vi.mock('../../services/definicaoPolo/api', async (importOriginal) => {
   }
 })
 
-vi.mock('../../services/edicaoPrograma/api', () => ({
+vi.mock('../../services/edicaoPrograma/listarEdicoesPrograma', () => ({
   listarEdicoesPrograma: listarEdicoesProgramaMock,
 }))
 

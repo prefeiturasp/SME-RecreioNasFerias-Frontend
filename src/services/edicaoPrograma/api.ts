@@ -1,26 +1,11 @@
 import { extrairMensagemDeErro } from '../api/extrairMensagemDeErro'
 import { api } from '../api/http'
-import {
-  interpretarRespostaEdicaoPrograma,
-  interpretarRespostaListagemEdicoesPaginada,
-} from './interpretarRespostaListagemEdicoes'
+import { interpretarRespostaEdicaoPrograma } from './interpretarRespostaListagemEdicoes'
 import type {
   DadosCadastroEdicaoPrograma,
   EdicaoPrograma,
-  ListagemEdicoesPrograma,
-  ParametrosListagemEdicoesPrograma,
   QuantidadesEdicaoPrograma,
 } from './types'
-
-export class ErroListagemEdicoesPrograma extends Error {
-  readonly mensagemUsuario: string
-
-  constructor(mensagemUsuario: string) {
-    super('LISTAGEM_EDICOES_FAILED')
-    this.name = 'ErroListagemEdicoesPrograma'
-    this.mensagemUsuario = mensagemUsuario
-  }
-}
 
 export class ErroObterEdicaoPrograma extends Error {
   readonly mensagemUsuario: string
@@ -111,37 +96,6 @@ export async function atualizarEdicaoPrograma(
     throw new ErroAtualizacaoEdicaoPrograma(
       extrairMensagemDeErro(error) ||
         'Não foi possível atualizar a edição do programa.',
-    )
-  }
-}
-
-export async function listarEdicoesPrograma({
-  pagina = 1,
-  tamanhoPagina = 10,
-}: ParametrosListagemEdicoesPrograma = {}): Promise<ListagemEdicoesPrograma> {
-  try {
-    const { data } = await api.get('/api/edicoes/', {
-      params: {
-        page: String(pagina),
-        pageSize: String(tamanhoPagina),
-      },
-    })
-
-    const listagem = interpretarRespostaListagemEdicoesPaginada(data as unknown)
-
-    if (!listagem) {
-      throw new ErroListagemEdicoesPrograma('Resposta de listagem inválida.')
-    }
-
-    return listagem
-  } catch (error) {
-    if (error instanceof ErroListagemEdicoesPrograma) {
-      throw error
-    }
-
-    throw new ErroListagemEdicoesPrograma(
-      extrairMensagemDeErro(error) ||
-        'Não foi possível carregar as edições do programa.',
     )
   }
 }
