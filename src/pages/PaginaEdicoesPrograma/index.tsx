@@ -18,6 +18,16 @@ import {
 } from './style'
 import type { EstadoNavegacaoEdicoesPrograma } from './types'
 
+const MENSAGEM_SUCESSO_CADASTRO = 'Edição do Programa cadastrado com sucesso!'
+const MENSAGEM_SUCESSO_ATUALIZACAO =
+  'Edição do Programa atualizada com sucesso!'
+
+function obterMensagemSucesso(estado: EstadoNavegacaoEdicoesPrograma | null) {
+  if (estado?.edicaoCadastrada) return MENSAGEM_SUCESSO_CADASTRO
+  if (estado?.edicaoAtualizada) return MENSAGEM_SUCESSO_ATUALIZACAO
+  return null
+}
+
 const NIVEIS_MAPA_VISUAL = [
   { rotulo: 'Início', caminho: '/inicio' },
   { rotulo: 'Cadastros' },
@@ -29,19 +39,27 @@ export default function PaginaEdicoesPrograma() {
   const location = useLocation()
   const estadoNavegacao =
     location.state as EstadoNavegacaoEdicoesPrograma | null
-  const [mensagemSucessoVisivel, setMensagemSucessoVisivel] = useState(
-    Boolean(estadoNavegacao?.edicaoCadastrada),
+  const [mensagemSucesso, setMensagemSucesso] = useState(
+    obterMensagemSucesso(estadoNavegacao),
   )
 
   const fecharMensagemSucesso = useCallback(() => {
-    setMensagemSucessoVisivel(false)
+    setMensagemSucesso(null)
   }, [])
 
   useEffect(() => {
-    if (!estadoNavegacao?.edicaoCadastrada) return
+    if (
+      !estadoNavegacao?.edicaoCadastrada &&
+      !estadoNavegacao?.edicaoAtualizada
+    )
+      return
 
     navigate('/edicoes-programa', { replace: true })
-  }, [estadoNavegacao?.edicaoCadastrada, navigate])
+  }, [
+    estadoNavegacao?.edicaoCadastrada,
+    estadoNavegacao?.edicaoAtualizada,
+    navigate,
+  ])
 
   return (
     <ContainerPaginaEdicoesPrograma>
@@ -51,7 +69,8 @@ export default function PaginaEdicoesPrograma() {
         <AreaConteudo>
           <MapaVisual niveis={[...NIVEIS_MAPA_VISUAL]} />
           <MensagemSucessoAoCriarNovaEdicaoPrograma
-            visivel={mensagemSucessoVisivel}
+            visivel={Boolean(mensagemSucesso)}
+            mensagem={mensagemSucesso ?? undefined}
             onFechar={fecharMensagemSucesso}
           />
           <section>

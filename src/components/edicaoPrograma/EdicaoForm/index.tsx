@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect } from 'react'
 import {
   Controller,
   useController,
@@ -9,6 +10,7 @@ import { useNavigate } from 'react-router-dom'
 import type { FormValues } from './schema'
 import formSchema from './schema'
 
+import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { DatePicker } from '@/components/ui/date-picker'
@@ -19,8 +21,12 @@ import {
   FieldLabel,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { useGetEdicaoPrograma } from '@/hooks/useGetEdicaoPrograma'
 import { usePostEdicaoPrograma } from '@/hooks/usePostEdicaoPrograma'
+import { usePutEdicaoPrograma } from '@/hooks/usePutEdicaoPrograma'
+import { ErroAtualizacaoEdicaoPrograma } from '@/services/edicaoPrograma/atualizarEdicaoPrograma'
 import { ErroCadastroEdicaoPrograma } from '@/services/edicaoPrograma/cadastrarEdicaoPrograma'
+import { ErroObterEdicaoPrograma } from '@/services/edicaoPrograma/obterEdicaoPrograma'
 
 function GrupoPeriodo({
   rotulo,
@@ -92,7 +98,11 @@ function GrupoPeriodo({
   )
 }
 
-export function EdicaoForm() {
+type EdicaoFormProps = {
+  edicaoId?: string
+}
+
+export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
   const navigate = useNavigate()
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -105,20 +115,87 @@ export function EdicaoForm() {
     },
   })
 
+  const edicaoQuery = useGetEdicaoPrograma(edicaoId)
   const cadastroMutation = usePostEdicaoPrograma()
+  const atualizacaoMutation = usePutEdicaoPrograma(edicaoId)
+
+  useEffect(() => {
+    if (!edicaoQuery.data) return
+
+    form.reset({
+      nome: edicaoQuery.data.nome,
+      dataInicioEdicao: edicaoQuery.data.dataInicioEdicao,
+      dataFimEdicao: edicaoQuery.data.dataFimEdicao,
+      dataInicioInscricoes: edicaoQuery.data.dataInicioInscricoes,
+      dataFimInscricoes: edicaoQuery.data.dataFimInscricoes,
+    })
+  }, [edicaoQuery.data, form])
+
+  const salvando = cadastroMutation.isPending || atualizacaoMutation.isPending
+  const quantidadeInscritos = edicaoQuery.data?.quantidadeInscritos ?? 0
+  const quantidadeAtendimentoEfetivo =
+    edicaoQuery.data?.quantidadeAtendimentoEfetivo ?? 0
+  const quantidadePasseios = edicaoQuery.data?.quantidadePasseios ?? 0
+  const quantidadeApresentacoes = edicaoQuery.data?.quantidadeApresentacoes ?? 0
+
+  const mensagemErroObter =
+    edicaoQuery.error instanceof ErroObterEdicaoPrograma
+      ? edicaoQuery.error.mensagemUsuario
+      : ''
+  const mensagemErroCadastro =
+    cadastroMutation.error instanceof ErroCadastroEdicaoPrograma
+      ? cadastroMutation.error.mensagemUsuario
+      : ''
+  const mensagemErroAtualizacao =
+    atualizacaoMutation.error instanceof ErroAtualizacaoEdicaoPrograma
+      ? atualizacaoMutation.error.mensagemUsuario
+      : ''
+  const mensagemErroApi =
+    mensagemErroCadastro || mensagemErroAtualizacao || mensagemErroObter
 
   function limparErroDaMutation() {
     if (cadastroMutation.isError) {
       cadastroMutation.reset()
     }
+    if (atualizacaoMutation.isError) {
+      atualizacaoMutation.reset()
+    }
   }
 
   function onSubmit(data: FormValues) {
+    if (edicaoId) {
+      atualizacaoMutation.mutate(data, {
+        onSuccess: () => {
+          navigate('/edicoes-programa', { state: { edicaoAtualizada: true } })
+        },
+      })
+      return
+    }
+
     cadastroMutation.mutate(data, {
       onSuccess: () => {
         navigate('/edicoes-programa', { state: { edicaoCadastrada: true } })
       },
     })
+  }
+
+  if (edicaoId && edicaoQuery.isPending) {
+    return <IndicadorCarregamento mensagem="Carregando edição do programa..." />
+  }
+
+  if (edicaoId && !edicaoQuery.data) {
+    if (!mensagemErroObter) return null
+
+    return (
+      <Alert
+        variant="destructive"
+        className="border-[#e8b4b8] bg-[#f8d7da] text-center font-bold text-[#721c24]"
+      >
+        <AlertDescription className="text-[#721c24]">
+          {mensagemErroObter}
+        </AlertDescription>
+      </Alert>
+    )
   }
 
   return (
@@ -127,17 +204,16 @@ export function EdicaoForm() {
       className="rounded-sm bg-background p-8 shadow-(--shadow-card) max-md:p-4"
     >
       <FieldGroup className="gap-5.5">
-        {cadastroMutation.error instanceof ErroCadastroEdicaoPrograma &&
-          cadastroMutation.error.mensagemUsuario && (
-            <Alert
-              variant="destructive"
-              className="border-[#e8b4b8] bg-[#f8d7da] text-center font-bold text-[#721c24]"
-            >
-              <AlertDescription className="text-[#721c24]">
-                {cadastroMutation.error.mensagemUsuario}
-              </AlertDescription>
-            </Alert>
-          )}
+        {mensagemErroApi ? (
+          <Alert
+            variant="destructive"
+            className="border-[#e8b4b8] bg-[#f8d7da] text-center font-bold text-[#721c24]"
+          >
+            <AlertDescription className="text-[#721c24]">
+              {mensagemErroApi}
+            </AlertDescription>
+          </Alert>
+        ) : null}
 
         <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
           <Controller
@@ -202,7 +278,7 @@ export function EdicaoForm() {
               type="number"
               readOnly
               placeholder="Quantidade de Inscritos"
-              value={0}
+              value={quantidadeInscritos}
               className="h-10 cursor-not-allowed rounded-sm border-(--color-input-border-muted) bg-(--color-input-disabled-bg) text-sm text-placeholder"
             />
           </Field>
@@ -218,7 +294,7 @@ export function EdicaoForm() {
               type="number"
               readOnly
               placeholder="Quantidade de Atendimento Efetivo"
-              value={0}
+              value={quantidadeAtendimentoEfetivo}
               className="h-10 cursor-not-allowed rounded-sm border-(--color-input-border-muted) bg-(--color-input-disabled-bg) text-sm text-placeholder"
             />
           </Field>
@@ -231,7 +307,7 @@ export function EdicaoForm() {
               type="number"
               readOnly
               placeholder="Quantidade de Passeios"
-              value={0}
+              value={quantidadePasseios}
               className="h-10 cursor-not-allowed rounded-sm border-(--color-input-border-muted) bg-(--color-input-disabled-bg) text-sm text-placeholder"
             />
           </Field>
@@ -247,7 +323,7 @@ export function EdicaoForm() {
               type="number"
               readOnly
               placeholder="Quantidade de Apresentações"
-              value={0}
+              value={quantidadeApresentacoes}
               className="h-10 cursor-not-allowed rounded-sm border-(--color-input-border-muted) bg-(--color-input-disabled-bg) text-sm text-placeholder"
             />
           </Field>
@@ -265,9 +341,9 @@ export function EdicaoForm() {
           <Button
             type="submit"
             className="h-9.5 rounded-sm bg-brand-dark px-4 font-bold text-background hover:bg-brand-dark-hover disabled:bg-(--color-button-primary-disabled-bg) disabled:opacity-100"
-            disabled={cadastroMutation.isPending}
+            disabled={salvando}
           >
-            {cadastroMutation.isPending ? 'Salvando...' : 'Salvar'}
+            {salvando ? 'Salvando...' : 'Salvar'}
           </Button>
         </div>
       </FieldGroup>

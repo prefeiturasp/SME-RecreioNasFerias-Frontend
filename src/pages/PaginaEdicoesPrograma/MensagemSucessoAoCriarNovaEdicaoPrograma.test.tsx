@@ -37,6 +37,23 @@ describe('MensagemSucessoAoCriarNovaEdicaoPrograma', () => {
     ).toBeInTheDocument()
   })
 
+  it('renderiza mensagem personalizada quando informada', () => {
+    render(
+      <MensagemSucessoAoCriarNovaEdicaoPrograma
+        visivel
+        mensagem="Edição do Programa atualizada com sucesso!"
+        onFechar={vi.fn()}
+      />,
+    )
+
+    expect(
+      screen.getByText(/edição do programa atualizada com sucesso/i),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText(/edição do programa cadastrado com sucesso/i),
+    ).not.toBeInTheDocument()
+  })
+
   it('chama onFechar ao clicar no botão de fechar', async () => {
     vi.useRealTimers()
     const usuario = userEvent.setup()

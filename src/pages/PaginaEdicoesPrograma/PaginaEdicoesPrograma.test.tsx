@@ -64,4 +64,23 @@ describe('PaginaEdicoesPrograma', () => {
       screen.getByText(/edição do programa cadastrado com sucesso/i),
     ).toBeInTheDocument()
   })
+
+  it('exibe mensagem de sucesso ao retornar da atualização', () => {
+    render(
+      <MemoryRouter
+        initialEntries={[
+          {
+            pathname: '/edicoes-programa',
+            state: { edicaoAtualizada: true },
+          },
+        ]}
+      >
+        <PaginaEdicoesPrograma />
+      </MemoryRouter>,
+    )
+
+    expect(
+      screen.getByText(/edição do programa atualizada com sucesso/i),
+    ).toBeInTheDocument()
+  })
 })

@@ -1,16 +1,8 @@
 export {
   AreaConteudo,
-  BotaoCancelarFormulario,
-  BotaoSalvarFormulario,
   BotaoVoltar,
   CabecalhoAreaInternaConteudo,
   ContainerPaginaEdicoesPrograma,
-  FormularioCadastroNovaEdicao,
-  InputNumericoFormularioCadastroNovaEdicao,
-  InputTextoFormularioCadastroNovaEdicao,
-  LinhaDeControlesFormularioCadastroNovaEdicao,
-  LinhaFormularioCadastroNovaEdicao,
-  MensagemErroFormulario,
   RotuloBotaoVoltar,
   SecaoPrincipal,
 } from '../shared/edicoesProgramaStyles'

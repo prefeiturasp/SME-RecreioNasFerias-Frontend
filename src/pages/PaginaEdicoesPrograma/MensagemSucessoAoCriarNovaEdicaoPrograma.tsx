@@ -10,11 +10,13 @@ const TEMPO_EXIBICAO_MS = 3000
 type MensagemSucessoAoCriarNovaEdicaoProgramaProps = {
   visivel: boolean
   onFechar: () => void
+  mensagem?: string
 }
 
 export function MensagemSucessoAoCriarNovaEdicaoPrograma({
   visivel,
   onFechar,
+  mensagem = 'Edição do Programa cadastrado com sucesso!',
 }: Readonly<MensagemSucessoAoCriarNovaEdicaoProgramaProps>) {
   useEffect(() => {
     if (!visivel) return
@@ -27,7 +29,7 @@ export function MensagemSucessoAoCriarNovaEdicaoPrograma({
 
   return (
     <ContainerMensagemSucesso aria-live="polite">
-      <p>Edição do Programa cadastrado com sucesso!</p>
+      <p>{mensagem}</p>
       <BotaoFecharMensagemSucesso
         type="button"
         aria-label="Fechar mensagem de sucesso"
