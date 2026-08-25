@@ -20,6 +20,15 @@ describe('EdicaoForm schema', () => {
     expect(formSchema.safeParse(dadosValidos).success).toBe(true)
   })
 
+  it('rejeita nome composto só por espaços', () => {
+    expect(
+      mensagensDeErro({
+        ...dadosValidos,
+        nome: '   ',
+      }),
+    ).toContain('Nome da edição é obrigatório')
+  })
+
   it('aceita inscrições que começam depois do início da edição e terminam no fim da edição', () => {
     expect(
       formSchema.safeParse({

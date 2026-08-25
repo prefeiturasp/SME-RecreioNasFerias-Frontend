@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '../api/http'
-import {
-  atualizarEdicaoPrograma,
-  ErroAtualizacaoEdicaoPrograma,
-} from './atualizarEdicaoPrograma'
+import { atualizarEdicaoPrograma } from './atualizarEdicaoPrograma'
 
 vi.mock('../api/http', () => ({
   api: { get: vi.fn(), post: vi.fn(), put: vi.fn() },
@@ -81,12 +78,10 @@ describe('atualizarEdicaoPrograma', () => {
 
     await expect(
       atualizarEdicaoPrograma(idEdicao, dadosEdicaoExemplo),
-    ).rejects.toBeInstanceOf(ErroAtualizacaoEdicaoPrograma)
-
-    await expect(
-      atualizarEdicaoPrograma(idEdicao, dadosEdicaoExemplo),
     ).rejects.toMatchObject({
-      mensagemUsuario: 'Já existe uma edição com este nome.',
+      response: {
+        data: { detalhe: 'Já existe uma edição com este nome.' },
+      },
     })
   })
 
@@ -95,9 +90,7 @@ describe('atualizarEdicaoPrograma', () => {
 
     await expect(
       atualizarEdicaoPrograma(idEdicao, dadosEdicaoExemplo),
-    ).rejects.toMatchObject({
-      mensagemUsuario: '',
-    })
+    ).rejects.toThrow()
   })
 
   it('não inventa mensagem quando o corpo de erro está vazio', async () => {
@@ -106,7 +99,7 @@ describe('atualizarEdicaoPrograma', () => {
     await expect(
       atualizarEdicaoPrograma(idEdicao, dadosEdicaoExemplo),
     ).rejects.toMatchObject({
-      mensagemUsuario: '',
+      response: { data: {} },
     })
   })
 })

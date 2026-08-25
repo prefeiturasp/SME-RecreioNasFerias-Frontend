@@ -5,9 +5,6 @@ import { format, isValid, parse } from 'date-fns'
 import { ptBR as dateFnsPtBR } from 'date-fns/locale'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ErroAtualizacaoEdicaoPrograma } from '@/services/edicaoPrograma/atualizarEdicaoPrograma'
-import { ErroCadastroEdicaoPrograma } from '@/services/edicaoPrograma/cadastrarEdicaoPrograma'
-import { ErroObterEdicaoPrograma } from '@/services/edicaoPrograma/obterEdicaoPrograma'
 import type { EdicaoPrograma } from '@/services/edicaoPrograma/types'
 import { EdicaoForm } from './index'
 
@@ -328,9 +325,9 @@ describe('EdicaoForm', () => {
 
   it('exibe mensagem de erro quando o cadastro falha', async () => {
     const usuario = userEvent.setup()
-    cadastrarEdicaoProgramaMock.mockRejectedValue(
-      new ErroCadastroEdicaoPrograma('Já existe uma edição com este nome.'),
-    )
+    cadastrarEdicaoProgramaMock.mockRejectedValue({
+      response: { data: { detalhe: 'Já existe uma edição com este nome.' } },
+    })
     renderCadastroEdicaoForm()
 
     await preencherFormularioValido(usuario)
@@ -344,9 +341,9 @@ describe('EdicaoForm', () => {
 
   it('não exibe alerta quando o backend não envia detalhe', async () => {
     const usuario = userEvent.setup()
-    cadastrarEdicaoProgramaMock.mockRejectedValue(
-      new ErroCadastroEdicaoPrograma(''),
-    )
+    cadastrarEdicaoProgramaMock.mockRejectedValue({
+      response: { data: {} },
+    })
     renderCadastroEdicaoForm()
 
     await preencherFormularioValido(usuario)
@@ -475,9 +472,9 @@ describe('EdicaoForm em edição', () => {
   })
 
   it('exibe mensagem de erro quando a consulta falha', async () => {
-    obterEdicaoProgramaMock.mockRejectedValue(
-      new ErroObterEdicaoPrograma('Edição não encontrada.'),
-    )
+    obterEdicaoProgramaMock.mockRejectedValue({
+      response: { data: { detalhe: 'Edição não encontrada.' } },
+    })
 
     renderEdicaoForm(edicaoCarregada.id)
 
@@ -490,7 +487,9 @@ describe('EdicaoForm em edição', () => {
   })
 
   it('não exibe alerta quando o GET não envia detalhe', async () => {
-    obterEdicaoProgramaMock.mockRejectedValue(new ErroObterEdicaoPrograma(''))
+    obterEdicaoProgramaMock.mockRejectedValue({
+      response: { data: {} },
+    })
 
     renderEdicaoForm(edicaoCarregada.id)
 
@@ -505,9 +504,9 @@ describe('EdicaoForm em edição', () => {
 
   it('exibe mensagem de erro quando a atualização falha', async () => {
     const usuario = userEvent.setup()
-    atualizarEdicaoProgramaMock.mockRejectedValue(
-      new ErroAtualizacaoEdicaoPrograma('Não foi possível salvar a edição.'),
-    )
+    atualizarEdicaoProgramaMock.mockRejectedValue({
+      response: { data: { detalhe: 'Não foi possível salvar a edição.' } },
+    })
 
     renderEdicaoForm(edicaoCarregada.id)
 
@@ -524,9 +523,9 @@ describe('EdicaoForm em edição', () => {
 
   it('não exibe alerta quando o PUT não envia detalhe', async () => {
     const usuario = userEvent.setup()
-    atualizarEdicaoProgramaMock.mockRejectedValue(
-      new ErroAtualizacaoEdicaoPrograma(''),
-    )
+    atualizarEdicaoProgramaMock.mockRejectedValue({
+      response: { data: {} },
+    })
 
     renderEdicaoForm(edicaoCarregada.id)
 

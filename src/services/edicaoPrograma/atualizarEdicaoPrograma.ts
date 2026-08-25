@@ -1,17 +1,6 @@
-import { extrairMensagemDeErro } from '../api/extrairMensagemDeErro'
 import { api } from '../api/http'
 import { interpretarItemEdicaoPrograma } from './interpretarItemEdicaoPrograma'
 import type { DadosCadastroEdicaoPrograma, EdicaoPrograma } from './types'
-
-export class ErroAtualizacaoEdicaoPrograma extends Error {
-  readonly mensagemUsuario: string
-
-  constructor(mensagemUsuario: string) {
-    super('ATUALIZACAO_EDICAO_FAILED')
-    this.name = 'ErroAtualizacaoEdicaoPrograma'
-    this.mensagemUsuario = mensagemUsuario
-  }
-}
 
 type PayloadAtualizacaoEdicaoPrograma = {
   nome: string
@@ -41,24 +30,16 @@ export async function atualizarEdicaoPrograma(
   uuid: string,
   dados: DadosCadastroEdicaoPrograma,
 ): Promise<EdicaoPrograma> {
-  try {
-    const { data } = await api.put(
-      rotaAtualizarEdicao(uuid),
-      montarPayloadEdicao(dados),
-    )
+  const { data } = await api.put(
+    rotaAtualizarEdicao(uuid),
+    montarPayloadEdicao(dados),
+  )
 
-    const edicao = interpretarItemEdicaoPrograma(data as unknown)
+  const edicao = interpretarItemEdicaoPrograma(data as unknown)
 
-    if (!edicao) {
-      throw new ErroAtualizacaoEdicaoPrograma('')
-    }
-
-    return edicao
-  } catch (error) {
-    if (error instanceof ErroAtualizacaoEdicaoPrograma) {
-      throw error
-    }
-
-    throw new ErroAtualizacaoEdicaoPrograma(extrairMensagemDeErro(error))
+  if (!edicao) {
+    throw new Error()
   }
+
+  return edicao
 }

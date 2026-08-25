@@ -29,7 +29,7 @@ function validarFimInscricoesAteFimEdicao(
 
 const formSchema = z
   .object({
-    nome: z.string().min(1, 'Nome da edição é obrigatório'),
+    nome: z.string().trim().min(1, 'Nome da edição é obrigatório'),
     dataInicioEdicao: z
       .string()
       .min(1, 'Data de início da edição é obrigatória'),

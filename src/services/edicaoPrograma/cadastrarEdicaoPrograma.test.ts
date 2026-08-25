@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '../api/http'
-import {
-  cadastrarEdicaoPrograma,
-  ErroCadastroEdicaoPrograma,
-} from './cadastrarEdicaoPrograma'
+import { cadastrarEdicaoPrograma } from './cadastrarEdicaoPrograma'
 
 vi.mock('../api/http', () => ({
   api: { get: vi.fn(), post: vi.fn(), put: vi.fn() },
@@ -83,29 +80,17 @@ describe('cadastrarEdicaoPrograma', () => {
         dataInicioInscricoes: '2026-01-01',
         dataFimInscricoes: '2026-01-20',
       }),
-    ).rejects.toBeInstanceOf(ErroCadastroEdicaoPrograma)
-
-    await expect(
-      cadastrarEdicaoPrograma({
-        nome: 'Edição Verão 2026',
-        dataInicioEdicao: '2026-02-01',
-        dataFimEdicao: '2026-02-15',
-        dataInicioInscricoes: '2026-01-01',
-        dataFimInscricoes: '2026-01-20',
-      }),
     ).rejects.toMatchObject({
-      mensagemUsuario: 'Já existe uma edição com este nome.',
+      response: {
+        data: { detalhe: 'Já existe uma edição com este nome.' },
+      },
     })
   })
 
   it('lança erro quando a resposta de cadastro é inválida', async () => {
     apiPostMock.mockResolvedValue({ data: { nome: 'sem id' } })
 
-    await expect(
-      cadastrarEdicaoPrograma(dadosEdicaoExemplo),
-    ).rejects.toMatchObject({
-      mensagemUsuario: '',
-    })
+    await expect(cadastrarEdicaoPrograma(dadosEdicaoExemplo)).rejects.toThrow()
   })
 
   it('não inventa mensagem quando o corpo de erro está vazio', async () => {
@@ -114,7 +99,7 @@ describe('cadastrarEdicaoPrograma', () => {
     await expect(
       cadastrarEdicaoPrograma(dadosEdicaoExemplo),
     ).rejects.toMatchObject({
-      mensagemUsuario: '',
+      response: { data: {} },
     })
   })
 })

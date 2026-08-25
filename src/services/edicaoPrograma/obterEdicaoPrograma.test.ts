@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '../api/http'
-import {
-  ErroObterEdicaoPrograma,
-  obterEdicaoPrograma,
-} from './obterEdicaoPrograma'
+import { obterEdicaoPrograma } from './obterEdicaoPrograma'
 
 vi.mock('../api/http', () => ({
   api: { get: vi.fn(), post: vi.fn(), put: vi.fn() },
@@ -63,27 +60,24 @@ describe('obterEdicaoPrograma', () => {
       },
     })
 
-    await expect(obterEdicaoPrograma(idEdicao)).rejects.toBeInstanceOf(
-      ErroObterEdicaoPrograma,
-    )
     await expect(obterEdicaoPrograma(idEdicao)).rejects.toMatchObject({
-      mensagemUsuario: 'Edição não encontrada.',
+      response: {
+        data: { detalhe: 'Edição não encontrada.' },
+      },
     })
   })
 
   it('lança erro quando a resposta de consulta é inválida', async () => {
     apiGetMock.mockResolvedValue({ data: { nome: 'sem uuid' } })
 
-    await expect(obterEdicaoPrograma(idEdicao)).rejects.toMatchObject({
-      mensagemUsuario: '',
-    })
+    await expect(obterEdicaoPrograma(idEdicao)).rejects.toThrow()
   })
 
   it('não inventa mensagem quando o corpo de erro está vazio', async () => {
     apiGetMock.mockRejectedValue({ response: { status: 500, data: {} } })
 
     await expect(obterEdicaoPrograma(idEdicao)).rejects.toMatchObject({
-      mensagemUsuario: '',
+      response: { data: {} },
     })
   })
 })
