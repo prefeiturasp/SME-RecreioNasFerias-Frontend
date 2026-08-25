@@ -12,16 +12,16 @@ const apiGetMock = vi.mocked(api.get)
 const idEdicao = '11111111-1111-1111-1111-111111111111'
 
 const respostaObterExemplo: EdicaoPrograma = {
-  id: idEdicao,
+  uuid: idEdicao,
   nome: 'Janeiro 2026',
-  dataInicioEdicao: '2026-01-01',
-  dataFimEdicao: '2026-01-31',
-  dataInicioInscricoes: '2025-12-01',
-  dataFimInscricoes: '2025-12-31',
-  quantidadeInscritos: 50,
-  quantidadeAtendimentoEfetivo: 40,
-  quantidadePasseios: 5,
-  quantidadeApresentacoes: 2,
+  data_inicio: '2026-01-01',
+  data_fim: '2026-01-31',
+  inscricoes_inicio: '2025-12-01',
+  inscricoes_fim: '2025-12-31',
+  quantidade_inscritos: 50,
+  quantidade_atendimento_efetivo: 40,
+  quantidade_passeios: 5,
+  quantidade_apresentacoes: 2,
 }
 
 describe('obterEdicaoPrograma', () => {

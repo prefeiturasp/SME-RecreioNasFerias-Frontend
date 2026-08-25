@@ -11,4 +11,9 @@ describe('formatarPeriodo', () => {
       '26/01/2026 - 26/02/2026',
     )
   })
+
+  it('não quebra quando a data está ausente', () => {
+    expect(formatarDataBr(undefined)).toBe('')
+    expect(formatarPeriodo(undefined, undefined)).toBe(' - ')
+  })
 })

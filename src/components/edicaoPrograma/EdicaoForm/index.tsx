@@ -46,10 +46,10 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
 
     form.reset({
       nome: edicaoQuery.data.nome,
-      dataInicioEdicao: edicaoQuery.data.dataInicioEdicao,
-      dataFimEdicao: edicaoQuery.data.dataFimEdicao,
-      dataInicioInscricoes: edicaoQuery.data.dataInicioInscricoes,
-      dataFimInscricoes: edicaoQuery.data.dataFimInscricoes,
+      dataInicioEdicao: edicaoQuery.data.data_inicio,
+      dataFimEdicao: edicaoQuery.data.data_fim,
+      dataInicioInscricoes: edicaoQuery.data.inscricoes_inicio,
+      dataFimInscricoes: edicaoQuery.data.inscricoes_fim,
     })
   }, [edicaoQuery.data, form])
 
@@ -252,7 +252,7 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
               id="QuantidadeInscritos"
               type="number"
               readOnly
-              value={edicaoQuery.data?.quantidadeInscritos ?? 0}
+              value={edicaoQuery.data?.quantidade_inscritos ?? 0}
               className="h-10 cursor-not-allowed rounded-sm border-input-border-muted bg-input-disabled-bg text-placeholder"
             />
           </Field>
@@ -267,7 +267,7 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
               id="QuantidadeAtendimentoEfetivo"
               type="number"
               readOnly
-              value={edicaoQuery.data?.quantidadeAtendimentoEfetivo ?? 0}
+              value={edicaoQuery.data?.quantidade_atendimento_efetivo ?? 0}
               className="h-10 cursor-not-allowed rounded-sm border-input-border-muted bg-input-disabled-bg text-placeholder"
             />
           </Field>
@@ -279,7 +279,7 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
               id="QuantidadePasseios"
               type="number"
               readOnly
-              value={edicaoQuery.data?.quantidadePasseios ?? 0}
+              value={edicaoQuery.data?.quantidade_passeios ?? 0}
               className="h-10 cursor-not-allowed rounded-sm border-input-border-muted bg-input-disabled-bg text-placeholder"
             />
           </Field>
@@ -294,7 +294,7 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
               id="QuantidadeApresentacoes"
               type="number"
               readOnly
-              value={edicaoQuery.data?.quantidadeApresentacoes ?? 0}
+              value={edicaoQuery.data?.quantidade_apresentacoes ?? 0}
               className="h-10 cursor-not-allowed rounded-sm border-input-border-muted bg-input-disabled-bg text-placeholder"
             />
           </Field>

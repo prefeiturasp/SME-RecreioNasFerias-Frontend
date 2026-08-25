@@ -29,24 +29,24 @@ function criarEdicao(
   sobrescritas: Partial<EdicaoPrograma> = {},
 ): EdicaoPrograma {
   return {
-    id: '1',
+    uuid: '1',
     nome: 'Janeiro 2026',
-    dataInicioEdicao: '2026-01-01',
-    dataFimEdicao: '2026-01-31',
-    dataInicioInscricoes: '2025-12-01',
-    dataFimInscricoes: '2025-12-31',
-    quantidadeInscritos: 0,
-    quantidadeAtendimentoEfetivo: 0,
-    quantidadePasseios: 0,
-    quantidadeApresentacoes: 0,
+    data_inicio: '2026-01-01',
+    data_fim: '2026-01-31',
+    inscricoes_inicio: '2025-12-01',
+    inscricoes_fim: '2025-12-31',
+    quantidade_inscritos: 0,
+    quantidade_atendimento_efetivo: 0,
+    quantidade_passeios: 0,
+    quantidade_apresentacoes: 0,
     ...sobrescritas,
   }
 }
 
 const edicoesExemplo = [
-  criarEdicao({ id: '1', nome: 'Janeiro 2026' }),
-  criarEdicao({ id: '2', nome: 'Fevereiro 2026' }),
-  criarEdicao({ id: '3', nome: 'Março 2026' }),
+  criarEdicao({ uuid: '1', nome: 'Janeiro 2026' }),
+  criarEdicao({ uuid: '2', nome: 'Fevereiro 2026' }),
+  criarEdicao({ uuid: '3', nome: 'Março 2026' }),
 ]
 
 function renderEdicaoListagem() {
@@ -125,7 +125,7 @@ describe('EdicaoListagem', () => {
     const usuario = userEvent.setup()
     const edicoes = Array.from({ length: 11 }, (_, indice) =>
       criarEdicao({
-        id: String(indice + 1),
+        uuid: String(indice + 1),
         nome: `Edição ${String(indice + 1).padStart(2, '0')}`,
       }),
     )
@@ -147,7 +147,7 @@ describe('EdicaoListagem', () => {
     const usuario = userEvent.setup()
     const edicoes = Array.from({ length: 11 }, (_, indice) =>
       criarEdicao({
-        id: String(indice + 1),
+        uuid: String(indice + 1),
         nome: `Edição ${String(indice + 1).padStart(2, '0')}`,
       }),
     )
@@ -176,7 +176,7 @@ describe('EdicaoListagem', () => {
     const usuario = userEvent.setup()
     const edicoes = Array.from({ length: 11 }, (_, indice) =>
       criarEdicao({
-        id: String(indice + 1),
+        uuid: String(indice + 1),
         nome: `Edição ${String(indice + 1).padStart(2, '0')}`,
       }),
     )

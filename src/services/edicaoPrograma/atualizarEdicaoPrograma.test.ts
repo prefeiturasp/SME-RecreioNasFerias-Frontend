@@ -20,16 +20,16 @@ const dadosEdicaoExemplo = {
 } as const
 
 const respostaAtualizacaoExemplo: EdicaoPrograma = {
-  id: idEdicao,
+  uuid: idEdicao,
   nome: 'Edição Julho 2026',
-  dataInicioEdicao: '2026-07-01',
-  dataFimEdicao: '2026-07-31',
-  dataInicioInscricoes: '2026-06-01',
-  dataFimInscricoes: '2026-06-20',
-  quantidadeInscritos: 12,
-  quantidadeAtendimentoEfetivo: 10,
-  quantidadePasseios: 3,
-  quantidadeApresentacoes: 2,
+  data_inicio: '2026-07-01',
+  data_fim: '2026-07-31',
+  inscricoes_inicio: '2026-06-01',
+  inscricoes_fim: '2026-06-20',
+  quantidade_inscritos: 12,
+  quantidade_atendimento_efetivo: 10,
+  quantidade_passeios: 3,
+  quantidade_apresentacoes: 2,
 }
 
 describe('atualizarEdicaoPrograma', () => {

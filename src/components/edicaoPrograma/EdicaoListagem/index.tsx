@@ -23,28 +23,28 @@ const COLUNAS = [
   {
     id: 'periodoEdicao',
     rotulo: 'Período da Edição do Programa',
-    valorOrdenacao: (edicao) => edicao.dataInicioEdicao,
+    valorOrdenacao: (edicao) => edicao.data_inicio,
     renderizar: (edicao) =>
-      formatarPeriodo(edicao.dataInicioEdicao, edicao.dataFimEdicao),
+      formatarPeriodo(edicao.data_inicio, edicao.data_fim),
   },
   {
     id: 'periodoInscricoes',
     rotulo: 'Período das Inscrições',
-    valorOrdenacao: (edicao) => edicao.dataInicioInscricoes,
+    valorOrdenacao: (edicao) => edicao.inscricoes_inicio,
     renderizar: (edicao) =>
-      formatarPeriodo(edicao.dataInicioInscricoes, edicao.dataFimInscricoes),
+      formatarPeriodo(edicao.inscricoes_inicio, edicao.inscricoes_fim),
   },
   {
     id: 'quantidadeInscritos',
     rotulo: 'Quantidade de Inscritos',
-    valorOrdenacao: (edicao) => edicao.quantidadeInscritos,
-    renderizar: (edicao) => edicao.quantidadeInscritos,
+    valorOrdenacao: (edicao) => edicao.quantidade_inscritos,
+    renderizar: (edicao) => edicao.quantidade_inscritos,
   },
   {
     id: 'quantidadeAtendimentoEfetivo',
     rotulo: 'Quantidade de Atendimento Efetivo',
-    valorOrdenacao: (edicao) => edicao.quantidadeAtendimentoEfetivo,
-    renderizar: (edicao) => edicao.quantidadeAtendimentoEfetivo,
+    valorOrdenacao: (edicao) => edicao.quantidade_atendimento_efetivo,
+    renderizar: (edicao) => edicao.quantidade_atendimento_efetivo,
   },
 ] as const satisfies readonly DefinicaoColuna<EdicaoPrograma>[]
 
@@ -79,7 +79,7 @@ export function EdicaoListagem() {
     <TabelaListagem
       itens={edicoes}
       colunas={COLUNAS}
-      obterId={(edicao) => edicao.id}
+      obterId={(edicao) => edicao.uuid}
       colunaOrdenacaoInicial="nome"
       paginaAtual={paginaAjustada}
       totalPaginas={totalPaginas}
@@ -95,7 +95,7 @@ export function EdicaoListagem() {
           className="text-brand-dark"
         >
           <Link
-            to={`/editar-edicao-programa/${edicao.id}`}
+            to={`/editar-edicao-programa/${edicao.uuid}`}
             aria-label={`Editar edição ${edicao.nome}`}
           >
             <img

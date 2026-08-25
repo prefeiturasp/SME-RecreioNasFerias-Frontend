@@ -64,16 +64,16 @@ vi.mock(
 )
 
 const edicaoCarregada: EdicaoPrograma = {
-  id: '11111111-1111-1111-1111-111111111111',
+  uuid: '11111111-1111-1111-1111-111111111111',
   nome: 'Edição Teste',
-  dataInicioEdicao: '2026-06-10',
-  dataFimEdicao: '2026-06-20',
-  dataInicioInscricoes: '2026-05-01',
-  dataFimInscricoes: '2026-05-31',
-  quantidadeInscritos: 50,
-  quantidadeAtendimentoEfetivo: 40,
-  quantidadePasseios: 5,
-  quantidadeApresentacoes: 2,
+  data_inicio: '2026-06-10',
+  data_fim: '2026-06-20',
+  inscricoes_inicio: '2026-05-01',
+  inscricoes_fim: '2026-05-31',
+  quantidade_inscritos: 50,
+  quantidade_atendimento_efetivo: 40,
+  quantidade_passeios: 5,
+  quantidade_apresentacoes: 2,
 }
 
 function parseIsoLocal(iso: string) {
@@ -186,16 +186,16 @@ describe('EdicaoForm', () => {
     obterEdicaoProgramaMock.mockReset()
     atualizarEdicaoProgramaMock.mockReset()
     cadastrarEdicaoProgramaMock.mockResolvedValue({
-      id: '1',
+      uuid: '1',
       nome: 'Edição Teste',
-      dataInicioEdicao: '2026-06-10',
-      dataFimEdicao: '2026-06-20',
-      dataInicioInscricoes: '2026-05-01',
-      dataFimInscricoes: '2026-05-31',
-      quantidadeInscritos: 0,
-      quantidadeAtendimentoEfetivo: 0,
-      quantidadePasseios: 0,
-      quantidadeApresentacoes: 0,
+      data_inicio: '2026-06-10',
+      data_fim: '2026-06-20',
+      inscricoes_inicio: '2026-05-01',
+      inscricoes_fim: '2026-05-31',
+      quantidade_inscritos: 0,
+      quantidade_atendimento_efetivo: 0,
+      quantidade_passeios: 0,
+      quantidade_apresentacoes: 0,
     })
   })
 
@@ -364,16 +364,16 @@ describe('EdicaoForm', () => {
         new Promise((resolve) => {
           resolver = () =>
             resolve({
-              id: '1',
+              uuid: '1',
               nome: 'Edição Teste',
-              dataInicioEdicao: '2026-06-10',
-              dataFimEdicao: '2026-06-20',
-              dataInicioInscricoes: '2026-05-01',
-              dataFimInscricoes: '2026-05-31',
-              quantidadeInscritos: 0,
-              quantidadeAtendimentoEfetivo: 0,
-              quantidadePasseios: 0,
-              quantidadeApresentacoes: 0,
+              data_inicio: '2026-06-10',
+              data_fim: '2026-06-20',
+              inscricoes_inicio: '2026-05-01',
+              inscricoes_fim: '2026-05-31',
+              quantidade_inscritos: 0,
+              quantidade_atendimento_efetivo: 0,
+              quantidade_passeios: 0,
+              quantidade_apresentacoes: 0,
             })
         }),
     )
@@ -400,7 +400,7 @@ describe('EdicaoForm em edição', () => {
   })
 
   it('preenche o formulário com os dados do GET', async () => {
-    renderEdicaoForm(edicaoCarregada.id)
+    renderEdicaoForm(edicaoCarregada.uuid)
 
     expect(await screen.findByDisplayValue('Edição Teste')).toBeInTheDocument()
     expect(
@@ -422,7 +422,7 @@ describe('EdicaoForm em edição', () => {
     expect(screen.getByLabelText(/quantidade de passeios/i)).toHaveValue(5)
     expect(screen.getByLabelText(/quantidade de apresentações/i)).toHaveValue(2)
     expect(screen.getByRole('button', { name: 'Salvar' })).toBeEnabled()
-    expect(obterEdicaoProgramaMock).toHaveBeenCalledWith(edicaoCarregada.id)
+    expect(obterEdicaoProgramaMock).toHaveBeenCalledWith(edicaoCarregada.uuid)
   })
 
   it('exibe indicador de carregamento enquanto o GET não retorna', () => {
@@ -433,7 +433,7 @@ describe('EdicaoForm em edição', () => {
         }),
     )
 
-    renderEdicaoForm(edicaoCarregada.id)
+    renderEdicaoForm(edicaoCarregada.uuid)
 
     expect(
       screen.getByText('Carregando edição do programa...'),
@@ -445,7 +445,7 @@ describe('EdicaoForm em edição', () => {
 
   it('atualiza a edição via PUT e redireciona com toast de atualização', async () => {
     const usuario = userEvent.setup()
-    renderEdicaoForm(edicaoCarregada.id)
+    renderEdicaoForm(edicaoCarregada.uuid)
 
     const campoNome = await screen.findByLabelText(/nome da edição/i)
     await usuario.clear(campoNome)
@@ -454,7 +454,7 @@ describe('EdicaoForm em edição', () => {
 
     await waitFor(() => {
       expect(atualizarEdicaoProgramaMock).toHaveBeenCalledWith(
-        edicaoCarregada.id,
+        edicaoCarregada.uuid,
         {
           nome: 'Edição Atualizada',
           dataInicioEdicao: '2026-06-10',
@@ -476,7 +476,7 @@ describe('EdicaoForm em edição', () => {
       response: { data: { detalhe: 'Edição não encontrada.' } },
     })
 
-    renderEdicaoForm(edicaoCarregada.id)
+    renderEdicaoForm(edicaoCarregada.uuid)
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Edição não encontrada.',
@@ -491,7 +491,7 @@ describe('EdicaoForm em edição', () => {
       response: { data: {} },
     })
 
-    renderEdicaoForm(edicaoCarregada.id)
+    renderEdicaoForm(edicaoCarregada.uuid)
 
     await waitFor(() => {
       expect(obterEdicaoProgramaMock).toHaveBeenCalled()
@@ -508,7 +508,7 @@ describe('EdicaoForm em edição', () => {
       response: { data: { detalhe: 'Não foi possível salvar a edição.' } },
     })
 
-    renderEdicaoForm(edicaoCarregada.id)
+    renderEdicaoForm(edicaoCarregada.uuid)
 
     const campoNome = await screen.findByLabelText(/nome da edição/i)
     await usuario.clear(campoNome)
@@ -527,7 +527,7 @@ describe('EdicaoForm em edição', () => {
       response: { data: {} },
     })
 
-    renderEdicaoForm(edicaoCarregada.id)
+    renderEdicaoForm(edicaoCarregada.uuid)
 
     const campoNome = await screen.findByLabelText(/nome da edição/i)
     await usuario.clear(campoNome)

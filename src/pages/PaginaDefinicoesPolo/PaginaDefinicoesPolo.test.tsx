@@ -134,16 +134,16 @@ describe('PaginaDefinicoesPolo', () => {
     atualizarDefinicoesPoloEmLoteMock.mockResolvedValue({ atualizados: 1 })
     listarEdicoesProgramaMock.mockResolvedValue([
       {
-        id: 'ed-1',
+        uuid: 'ed-1',
         nome: 'Janeiro 2025',
-        dataInicioEdicao: '2025-01-01',
-        dataFimEdicao: '2025-01-31',
-        dataInicioInscricoes: '2024-12-01',
-        dataFimInscricoes: '2024-12-20',
-        quantidadeInscritos: 0,
-        quantidadeAtendimentoEfetivo: 0,
-        quantidadePasseios: 0,
-        quantidadeApresentacoes: 0,
+        data_inicio: '2025-01-01',
+        data_fim: '2025-01-31',
+        inscricoes_inicio: '2024-12-01',
+        inscricoes_fim: '2024-12-20',
+        quantidade_inscritos: 0,
+        quantidade_atendimento_efetivo: 0,
+        quantidade_passeios: 0,
+        quantidade_apresentacoes: 0,
       },
     ])
   })
