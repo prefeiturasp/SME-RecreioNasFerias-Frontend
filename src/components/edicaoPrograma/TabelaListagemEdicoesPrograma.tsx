@@ -14,7 +14,7 @@ import type { EdicaoPrograma } from '@/services/edicaoPrograma/types'
 import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { PaginacaoEdicoesPrograma } from './PaginacaoEdicoesPrograma'
+import { Paginacao } from '@/components/Paginacao'
 
 type DirecaoOrdenacao = 'asc' | 'desc'
 
@@ -250,10 +250,11 @@ export function TabelaListagemEdicoesPrograma({
           ))}
         </TableBody>
       </Table>
-      <PaginacaoEdicoesPrograma
+      <Paginacao
         paginaAtual={paginaAtual}
         totalPaginas={totalPaginas}
         itensPorPagina={itensPorPagina}
+        rotuloAcessivel="Paginação da listagem de edições"
         onMudarPagina={onMudarPagina}
         onMudarItensPorPagina={onMudarItensPorPagina}
       />

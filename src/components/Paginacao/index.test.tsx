@@ -1,15 +1,15 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { PaginacaoEdicoesPrograma } from './PaginacaoEdicoesPrograma'
+import { Paginacao } from './index'
 
-describe('PaginacaoEdicoesPrograma', () => {
+describe('Paginacao', () => {
   it('usa o Pagination do shadcn e notifica mudança de página', async () => {
     const usuario = userEvent.setup()
     const onMudarPagina = vi.fn()
 
     render(
-      <PaginacaoEdicoesPrograma
+      <Paginacao
         paginaAtual={1}
         totalPaginas={20}
         itensPorPagina={10}
@@ -20,7 +20,7 @@ describe('PaginacaoEdicoesPrograma', () => {
 
     expect(
       screen.getByRole('navigation', {
-        name: /paginação da listagem de edições/i,
+        name: /paginação da listagem/i,
       }),
     ).toBeInTheDocument()
     expect(
@@ -35,12 +35,31 @@ describe('PaginacaoEdicoesPrograma', () => {
     expect(onMudarPagina).toHaveBeenCalledWith(3)
   })
 
+  it('aceita rótulo acessível específico da listagem', () => {
+    render(
+      <Paginacao
+        paginaAtual={1}
+        totalPaginas={2}
+        itensPorPagina={10}
+        rotuloAcessivel="Paginação da listagem de edições"
+        onMudarPagina={vi.fn()}
+        onMudarItensPorPagina={vi.fn()}
+      />,
+    )
+
+    expect(
+      screen.getByRole('navigation', {
+        name: /paginação da listagem de edições/i,
+      }),
+    ).toBeInTheDocument()
+  })
+
   it('notifica mudança de itens por página pelo Select do shadcn', async () => {
     const usuario = userEvent.setup()
     const onMudarItensPorPagina = vi.fn()
 
     render(
-      <PaginacaoEdicoesPrograma
+      <Paginacao
         paginaAtual={1}
         totalPaginas={2}
         itensPorPagina={10}
@@ -59,7 +78,7 @@ describe('PaginacaoEdicoesPrograma', () => {
 
   it('desabilita próxima página na última página', () => {
     render(
-      <PaginacaoEdicoesPrograma
+      <Paginacao
         paginaAtual={3}
         totalPaginas={3}
         itensPorPagina={10}

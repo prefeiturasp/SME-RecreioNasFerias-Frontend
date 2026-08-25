@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
-import { OPCOES_ITENS_POR_PAGINA } from './PaginacaoEdicoesPrograma'
-import { TabelaListagemEdicoesPrograma } from './TabelaListagemEdicoesPrograma'
+import { OPCOES_ITENS_POR_PAGINA } from '@/components/Paginacao'
+import { TabelaListagemEdicoesPrograma } from '../TabelaListagemEdicoesPrograma'
 
 export function EdicaoListagem() {
   const listagemQuery = useGetEdicoesPrograma()

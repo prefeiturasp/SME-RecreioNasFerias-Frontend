@@ -1,4 +1,5 @@
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { OPCOES_ITENS_POR_PAGINA } from '@/components/ListagemTabela/constantesPaginacao'
 import { montarPaginasVisiveis } from '@/components/ListagemTabela/montarPaginasVisiveis'
 import { Button } from '@/components/ui/button'
 import {
@@ -16,35 +17,29 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
-export const OPCOES_ITENS_POR_PAGINA = [10, 20, 50] as const
+export { OPCOES_ITENS_POR_PAGINA }
 
-const classeBotaoPagina =
-  'rounded-sm border-border focus-visible:border-border focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0'
-
-const classeBotaoNavegacao = cn(
-  classeBotaoPagina,
-  'text-brand-dark hover:border-brand-dark hover:bg-accent hover:text-brand-dark disabled:pointer-events-auto disabled:cursor-not-allowed disabled:text-placeholder disabled:opacity-60',
-)
-
-type PaginacaoEdicoesProgramaProps = {
+type PaginacaoProps = {
   paginaAtual: number
   totalPaginas: number
   itensPorPagina: number
+  rotuloAcessivel?: string
   onMudarPagina: (pagina: number) => void
   onMudarItensPorPagina: (itensPorPagina: number) => void
 }
 
-export function PaginacaoEdicoesPrograma({
+export function Paginacao({
   paginaAtual,
   totalPaginas,
   itensPorPagina,
+  rotuloAcessivel = 'Paginação da listagem',
   onMudarPagina,
   onMudarItensPorPagina,
-}: Readonly<PaginacaoEdicoesProgramaProps>) {
+}: Readonly<PaginacaoProps>) {
   const paginasVisiveis = montarPaginasVisiveis(paginaAtual, totalPaginas)
 
   return (
-    <Pagination aria-label="Paginação da listagem de edições" className="mt-6">
+    <Pagination aria-label={rotuloAcessivel} className="mt-6">
       <PaginationContent className="flex-wrap justify-center gap-1.5">
         <PaginationItem>
           <Button
@@ -53,7 +48,7 @@ export function PaginacaoEdicoesPrograma({
             size="icon"
             aria-label="Página anterior"
             disabled={paginaAtual <= 1}
-            className={classeBotaoNavegacao}
+            className="text-brand-dark"
             onClick={() => onMudarPagina(paginaAtual - 1)}
           >
             <ChevronLeftIcon />
@@ -64,7 +59,7 @@ export function PaginacaoEdicoesPrograma({
           if (item.tipo === 'ellipsis') {
             return (
               <PaginationItem key={item.chave}>
-                <PaginationEllipsis className="text-foreground" />
+                <PaginationEllipsis />
               </PaginationItem>
             )
           }
@@ -80,11 +75,9 @@ export function PaginacaoEdicoesPrograma({
                 aria-label={`Página ${item.numero}`}
                 aria-current={ativa ? 'page' : undefined}
                 className={cn(
-                  classeBotaoPagina,
                   'min-w-8 w-auto px-1.5',
-                  ativa
-                    ? 'border-brand-dark bg-brand-dark font-bold text-background hover:border-brand-dark hover:bg-brand-dark-hover hover:text-background'
-                    : 'hover:border-brand-dark hover:bg-accent',
+                  ativa &&
+                    'border-brand-dark bg-brand-dark font-bold text-background hover:border-brand-dark hover:bg-brand-dark-hover hover:text-background',
                 )}
                 onClick={() => onMudarPagina(item.numero)}
               >
@@ -101,7 +94,7 @@ export function PaginacaoEdicoesPrograma({
             size="icon"
             aria-label="Próxima página"
             disabled={paginaAtual >= totalPaginas}
-            className={classeBotaoNavegacao}
+            className="text-brand-dark"
             onClick={() => onMudarPagina(paginaAtual + 1)}
           >
             <ChevronRightIcon />
@@ -113,19 +106,12 @@ export function PaginacaoEdicoesPrograma({
             value={String(itensPorPagina)}
             onValueChange={(valor) => onMudarItensPorPagina(Number(valor))}
           >
-            <SelectTrigger
-              aria-label="Itens por página"
-              className="min-w-18 rounded-sm border-border bg-background py-0 pr-7 pl-3 focus-visible:border-border focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary dark:bg-background [&_svg]:text-foreground"
-            >
+            <SelectTrigger aria-label="Itens por página" className="min-w-18">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="rounded-sm">
+            <SelectContent>
               {OPCOES_ITENS_POR_PAGINA.map((opcao) => (
-                <SelectItem
-                  key={opcao}
-                  value={String(opcao)}
-                  className="rounded-sm"
-                >
+                <SelectItem key={opcao} value={String(opcao)}>
                   {opcao}
                 </SelectItem>
               ))}
