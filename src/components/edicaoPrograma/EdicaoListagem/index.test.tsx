@@ -120,6 +120,35 @@ describe('EdicaoListagem', () => {
     expect(listarEdicoesProgramaMock).toHaveBeenCalledTimes(1)
   })
 
+  it('volta para a primeira página ao ordenar', async () => {
+    const usuario = userEvent.setup()
+    const edicoes = Array.from({ length: 11 }, (_, indice) =>
+      criarEdicao({
+        id: String(indice + 1),
+        nome: `Edição ${String(indice + 1).padStart(2, '0')}`,
+      }),
+    )
+    listarEdicoesProgramaMock.mockResolvedValue(edicoes)
+
+    renderEdicaoListagem()
+
+    expect(await screen.findByText('Edição 01')).toBeInTheDocument()
+    expect(screen.queryByText('Edição 11')).not.toBeInTheDocument()
+
+    await usuario.click(screen.getByRole('button', { name: /^página 2$/i }))
+
+    expect(await screen.findByText('Edição 11')).toBeInTheDocument()
+    expect(screen.queryByText('Edição 01')).not.toBeInTheDocument()
+
+    await usuario.click(
+      screen.getByRole('button', { name: /ordenar por nome da edição/i }),
+    )
+
+    expect(await screen.findByText('Edição 11')).toBeInTheDocument()
+    expect(screen.getByText('Edição 10')).toBeInTheDocument()
+    expect(screen.queryByText('Edição 01')).not.toBeInTheDocument()
+  })
+
   it('altera itens por página no cliente sem nova requisição', async () => {
     const usuario = userEvent.setup()
     const edicoes = Array.from({ length: 11 }, (_, indice) =>

@@ -1,12 +1,5 @@
 import { iconeLapisEditar } from '@/assets'
-import { IconeOrdenacaoTabela } from '@/components/icons'
-import {
-  BotaoAcaoListagem,
-  BotaoOrdenarColuna,
-  GrupoAcoesListagem,
-  MensagemListagemVazia,
-  TituloListagem,
-} from '@/components/ListagemTabela/style'
+import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -15,19 +8,59 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { cn } from '@/lib/utils'
 import { formatarPeriodo } from '@/services/edicaoPrograma/formatarPeriodo'
 import type { EdicaoPrograma } from '@/services/edicaoPrograma/types'
-import { useMemo, useState } from 'react'
+import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from 'lucide-react'
+import { useMemo, useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { PaginacaoEdicoesPrograma } from './PaginacaoEdicoesPrograma'
 
-type ColunaOrdenacao =
-  | 'nome'
-  | 'periodoEdicao'
-  | 'periodoInscricoes'
-  | 'quantidadeInscritos'
-  | 'quantidadeAtendimentoEfetivo'
-
 type DirecaoOrdenacao = 'asc' | 'desc'
+
+type DefinicaoColuna = {
+  id: string
+  rotulo: string
+  valorOrdenacao: (edicao: EdicaoPrograma) => string | number
+  renderizar: (edicao: EdicaoPrograma) => ReactNode
+}
+
+const COLUNAS = [
+  {
+    id: 'nome',
+    rotulo: 'Nome da Edição do Programa',
+    valorOrdenacao: (edicao) => edicao.nome,
+    renderizar: (edicao) => edicao.nome,
+  },
+  {
+    id: 'periodoEdicao',
+    rotulo: 'Período da Edição do Programa',
+    valorOrdenacao: (edicao) => edicao.dataInicioEdicao,
+    renderizar: (edicao) =>
+      formatarPeriodo(edicao.dataInicioEdicao, edicao.dataFimEdicao),
+  },
+  {
+    id: 'periodoInscricoes',
+    rotulo: 'Período das Inscrições',
+    valorOrdenacao: (edicao) => edicao.dataInicioInscricoes,
+    renderizar: (edicao) =>
+      formatarPeriodo(edicao.dataInicioInscricoes, edicao.dataFimInscricoes),
+  },
+  {
+    id: 'quantidadeInscritos',
+    rotulo: 'Quantidade de Inscritos',
+    valorOrdenacao: (edicao) => edicao.quantidadeInscritos,
+    renderizar: (edicao) => edicao.quantidadeInscritos,
+  },
+  {
+    id: 'quantidadeAtendimentoEfetivo',
+    rotulo: 'Quantidade de Atendimento Efetivo',
+    valorOrdenacao: (edicao) => edicao.quantidadeAtendimentoEfetivo,
+    renderizar: (edicao) => edicao.quantidadeAtendimentoEfetivo,
+  },
+] as const satisfies readonly DefinicaoColuna[]
+
+type ColunaOrdenacao = (typeof COLUNAS)[number]['id']
 
 type TabelaListagemEdicoesProgramaProps = {
   edicoes: EdicaoPrograma[]
@@ -36,36 +69,59 @@ type TabelaListagemEdicoesProgramaProps = {
   itensPorPagina: number
   onMudarPagina: (pagina: number) => void
   onMudarItensPorPagina: (itensPorPagina: number) => void
-  onEditarEdicao: (idEdicao: string) => void
 }
 
-const COLUNAS_ORDENAVEIS: { id: ColunaOrdenacao; rotulo: string }[] = [
-  { id: 'nome', rotulo: 'Nome da Edição do Programa' },
-  { id: 'periodoEdicao', rotulo: 'Período da Edição do Programa' },
-  { id: 'periodoInscricoes', rotulo: 'Período das Inscrições' },
-  { id: 'quantidadeInscritos', rotulo: 'Quantidade de Inscritos' },
-  {
-    id: 'quantidadeAtendimentoEfetivo',
-    rotulo: 'Quantidade de Atendimento Efetivo',
-  },
-]
-
-function obterValorOrdenacao(
-  edicao: EdicaoPrograma,
-  coluna: ColunaOrdenacao,
-): string | number {
-  switch (coluna) {
-    case 'nome':
-      return edicao.nome.toLowerCase()
-    case 'periodoEdicao':
-      return edicao.dataInicioEdicao
-    case 'periodoInscricoes':
-      return edicao.dataInicioInscricoes
-    case 'quantidadeInscritos':
-      return edicao.quantidadeInscritos
-    case 'quantidadeAtendimentoEfetivo':
-      return edicao.quantidadeAtendimentoEfetivo
+function rotuloBotaoOrdenacao(
+  rotulo: string,
+  colunaAtiva: boolean,
+  direcao: DirecaoOrdenacao,
+) {
+  if (!colunaAtiva) {
+    return `Ordenar por ${rotulo}`
   }
+
+  const ordem = direcao === 'asc' ? 'crescente' : 'decrescente'
+  return `Ordenar por ${rotulo}, ordem ${ordem}`
+}
+
+function ariaSortDaColuna(
+  colunaAtiva: boolean,
+  direcao: DirecaoOrdenacao,
+): 'ascending' | 'descending' | 'none' {
+  if (!colunaAtiva) {
+    return 'none'
+  }
+
+  return direcao === 'asc' ? 'ascending' : 'descending'
+}
+
+function compararValoresOrdenacao(
+  valorA: string | number,
+  valorB: string | number,
+  direcao: DirecaoOrdenacao,
+) {
+  const fator = direcao === 'asc' ? 1 : -1
+
+  if (typeof valorA === 'string' && typeof valorB === 'string') {
+    return (
+      valorA.localeCompare(valorB, 'pt-BR', { sensitivity: 'base' }) * fator
+    )
+  }
+
+  if (valorA < valorB) return -1 * fator
+  if (valorA > valorB) return 1 * fator
+  return 0
+}
+
+function IconeDirecaoOrdenacao({
+  colunaAtiva,
+  direcao,
+}: Readonly<{ colunaAtiva: boolean; direcao: DirecaoOrdenacao }>) {
+  if (!colunaAtiva) {
+    return <ArrowUpDownIcon className="text-placeholder" />
+  }
+
+  return direcao === 'asc' ? <ArrowUpIcon /> : <ArrowDownIcon />
 }
 
 export function TabelaListagemEdicoesPrograma({
@@ -75,7 +131,6 @@ export function TabelaListagemEdicoesPrograma({
   itensPorPagina,
   onMudarPagina,
   onMudarItensPorPagina,
-  onEditarEdicao,
 }: Readonly<TabelaListagemEdicoesProgramaProps>) {
   const [colunaOrdenacao, setColunaOrdenacao] =
     useState<ColunaOrdenacao>('nome')
@@ -83,18 +138,16 @@ export function TabelaListagemEdicoesPrograma({
     useState<DirecaoOrdenacao>('asc')
 
   const edicoesOrdenadas = useMemo(() => {
-    const copia = [...edicoes]
+    const definicaoColuna =
+      COLUNAS.find((coluna) => coluna.id === colunaOrdenacao) ?? COLUNAS[0]
 
-    copia.sort((a, b) => {
-      const valorA = obterValorOrdenacao(a, colunaOrdenacao)
-      const valorB = obterValorOrdenacao(b, colunaOrdenacao)
-
-      if (valorA < valorB) return direcaoOrdenacao === 'asc' ? -1 : 1
-      if (valorA > valorB) return direcaoOrdenacao === 'asc' ? 1 : -1
-      return 0
-    })
-
-    return copia
+    return edicoes.toSorted((a, b) =>
+      compararValoresOrdenacao(
+        definicaoColuna.valorOrdenacao(a),
+        definicaoColuna.valorOrdenacao(b),
+        direcaoOrdenacao,
+      ),
+    )
   }, [colunaOrdenacao, direcaoOrdenacao, edicoes])
 
   const inicio = (paginaAtual - 1) * itensPorPagina
@@ -106,82 +159,104 @@ export function TabelaListagemEdicoesPrograma({
   function alternarOrdenacao(coluna: ColunaOrdenacao) {
     if (colunaOrdenacao === coluna) {
       setDirecaoOrdenacao((atual) => (atual === 'asc' ? 'desc' : 'asc'))
-      return
+    } else {
+      setColunaOrdenacao(coluna)
+      setDirecaoOrdenacao('asc')
     }
 
-    setColunaOrdenacao(coluna)
-    setDirecaoOrdenacao('asc')
+    onMudarPagina(1)
   }
 
-  if (edicoes.length === 0) {
+  const listagemVazia = edicoes.length === 0
+
+  if (listagemVazia) {
     return (
-      <>
-        <TituloListagem>Edições do programa</TituloListagem>
-        <MensagemListagemVazia>Sem dados</MensagemListagemVazia>
-      </>
+      <output className="block text-center text-sm text-foreground">
+        Sem dados
+      </output>
     )
   }
 
   return (
     <>
-      <TituloListagem>Edições do programa</TituloListagem>
       <Table className="min-w-4xl border-collapse bg-background">
-        <TableHeader className="bg-[#f1f3f5] [&_tr]:border-0 [&_th]:h-auto [&_th]:border [&_th]:border-[#e1e1e1] [&_th]:px-4 [&_th]:py-3 [&_th]:font-bold [&_th]:text-foreground">
+        <TableHeader className="bg-muted [&_tr]:border-0 [&_th]:h-auto [&_th]:border [&_th]:border-border [&_th]:px-4 [&_th]:py-3 [&_th]:font-bold [&_th]:text-foreground">
           <TableRow className="hover:bg-transparent">
-            {COLUNAS_ORDENAVEIS.map(({ id, rotulo }) => (
-              <TableHead key={id} scope="col">
-                <BotaoOrdenarColuna
-                  type="button"
-                  aria-label={`Ordenar por ${rotulo}`}
-                  onClick={() => alternarOrdenacao(id)}
+            {COLUNAS.map(({ id, rotulo }) => {
+              const colunaAtiva = colunaOrdenacao === id
+
+              return (
+                <TableHead
+                  key={id}
+                  scope="col"
+                  aria-sort={ariaSortDaColuna(colunaAtiva, direcaoOrdenacao)}
                 >
-                  {rotulo}
-                  <IconeOrdenacaoTabela />
-                </BotaoOrdenarColuna>
-              </TableHead>
-            ))}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      'font-bold',
+                      colunaAtiva && 'text-brand-dark',
+                    )}
+                    aria-label={rotuloBotaoOrdenacao(
+                      rotulo,
+                      colunaAtiva,
+                      direcaoOrdenacao,
+                    )}
+                    onClick={() => alternarOrdenacao(id)}
+                  >
+                    {rotulo}
+                    <IconeDirecaoOrdenacao
+                      colunaAtiva={colunaAtiva}
+                      direcao={direcaoOrdenacao}
+                    />
+                  </Button>
+                </TableHead>
+              )
+            })}
             <TableHead scope="col">Ações</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody className="[&_td]:border [&_td]:border-[#e1e1e1] [&_td]:px-4 [&_td]:py-3 [&_td]:text-foreground">
+        <TableBody className="[&_td]:border [&_td]:border-border [&_td]:px-4 [&_td]:py-3 [&_td]:text-foreground">
           {edicoesDaPagina.map((edicao) => (
             <TableRow key={edicao.id}>
-              <TableCell>{edicao.nome}</TableCell>
-              <TableCell>
-                {formatarPeriodo(edicao.dataInicioEdicao, edicao.dataFimEdicao)}
-              </TableCell>
-              <TableCell>
-                {formatarPeriodo(
-                  edicao.dataInicioInscricoes,
-                  edicao.dataFimInscricoes,
-                )}
-              </TableCell>
-              <TableCell>{edicao.quantidadeInscritos}</TableCell>
-              <TableCell>{edicao.quantidadeAtendimentoEfetivo}</TableCell>
+              {COLUNAS.map((coluna) => (
+                <TableCell key={coluna.id}>
+                  {coluna.renderizar(edicao)}
+                </TableCell>
+              ))}
               <TableCell className="text-center">
-                <GrupoAcoesListagem>
-                  <BotaoAcaoListagem
-                    type="button"
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="icon-sm"
+                  className="text-brand-dark"
+                >
+                  <Link
+                    to={`/editar-edicao-programa/${edicao.id}`}
                     aria-label={`Editar edição ${edicao.nome}`}
-                    onClick={() => onEditarEdicao(edicao.id)}
                   >
-                    <img src={iconeLapisEditar} alt="" aria-hidden="true" />
-                  </BotaoAcaoListagem>
-                </GrupoAcoesListagem>
+                    <img
+                      src={iconeLapisEditar}
+                      alt=""
+                      aria-hidden="true"
+                      className="size-5"
+                    />
+                  </Link>
+                </Button>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-      {totalPaginas > 0 && (
-        <PaginacaoEdicoesPrograma
-          paginaAtual={paginaAtual}
-          totalPaginas={totalPaginas}
-          itensPorPagina={itensPorPagina}
-          onMudarPagina={onMudarPagina}
-          onMudarItensPorPagina={onMudarItensPorPagina}
-        />
-      )}
+      <PaginacaoEdicoesPrograma
+        paginaAtual={paginaAtual}
+        totalPaginas={totalPaginas}
+        itensPorPagina={itensPorPagina}
+        onMudarPagina={onMudarPagina}
+        onMudarItensPorPagina={onMudarItensPorPagina}
+      />
     </>
   )
 }

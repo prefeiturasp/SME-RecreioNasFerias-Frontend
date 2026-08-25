@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
@@ -7,7 +6,6 @@ import { OPCOES_ITENS_POR_PAGINA } from './PaginacaoEdicoesPrograma'
 import { TabelaListagemEdicoesPrograma } from './TabelaListagemEdicoesPrograma'
 
 export function EdicaoListagem() {
-  const navigate = useNavigate()
   const listagemQuery = useGetEdicoesPrograma()
   const [paginaAtual, setPaginaAtual] = useState(1)
   const [itensPorPagina, setItensPorPagina] = useState<number>(
@@ -42,9 +40,6 @@ export function EdicaoListagem() {
       itensPorPagina={itensPorPagina}
       onMudarPagina={setPaginaAtual}
       onMudarItensPorPagina={mudarItensPorPagina}
-      onEditarEdicao={(idEdicao) =>
-        navigate(`/editar-edicao-programa/${idEdicao}`)
-      }
     />
   )
 }
