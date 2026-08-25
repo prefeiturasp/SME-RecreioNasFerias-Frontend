@@ -10,7 +10,7 @@ import {
 } from '@/components/TabelaListagem'
 import { Button } from '@/components/ui/button'
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
-import { formatarPeriodo } from '@/services/edicaoPrograma/formatarPeriodo'
+import { formatarPeriodo } from '@/lib/formatarPeriodo'
 import type { EdicaoPrograma } from '@/services/edicaoPrograma/types'
 
 const COLUNAS = [

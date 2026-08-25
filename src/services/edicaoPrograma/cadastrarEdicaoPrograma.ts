@@ -1,42 +1,16 @@
 import { api } from '../api/http'
-import { interpretarItemEdicaoPrograma } from './interpretarItemEdicaoPrograma'
 import type { DadosCadastroEdicaoPrograma, EdicaoPrograma } from './types'
 
-const ROTA_CADASTRO_EDICAO = '/api/v1/edicoes/'
-
-type PayloadCadastroEdicaoPrograma = {
-  nome: string
-  data_inicio: string
-  data_fim: string
-  inscricoes_inicio: string
-  inscricoes_fim: string
-}
-
-function montarPayloadEdicao(
+export async function cadastrarEdicaoPrograma(
   dados: DadosCadastroEdicaoPrograma,
-): PayloadCadastroEdicaoPrograma {
-  return {
+): Promise<EdicaoPrograma> {
+  const { data } = await api.post<EdicaoPrograma>('/api/v1/edicoes/', {
     nome: dados.nome,
     data_inicio: dados.dataInicioEdicao,
     data_fim: dados.dataFimEdicao,
     inscricoes_inicio: dados.dataInicioInscricoes,
     inscricoes_fim: dados.dataFimInscricoes,
-  }
-}
+  })
 
-export async function cadastrarEdicaoPrograma(
-  dados: DadosCadastroEdicaoPrograma,
-): Promise<EdicaoPrograma> {
-  const { data } = await api.post(
-    ROTA_CADASTRO_EDICAO,
-    montarPayloadEdicao(dados),
-  )
-
-  const edicao = interpretarItemEdicaoPrograma(data as unknown)
-
-  if (!edicao) {
-    throw new Error()
-  }
-
-  return edicao
+  return data
 }

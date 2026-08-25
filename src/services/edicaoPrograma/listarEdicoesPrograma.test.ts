@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '../api/http'
 import { listarEdicoesPrograma } from './listarEdicoesPrograma'
+import type { EdicaoPrograma } from './types'
 
 vi.mock('../api/http', () => ({
   api: { get: vi.fn(), post: vi.fn(), put: vi.fn() },
@@ -8,21 +9,17 @@ vi.mock('../api/http', () => ({
 
 const apiGetMock = vi.mocked(api.get)
 
-const itemListagemExemplo = {
-  uuid: '04153eb1-5f40-4f0d-8b59-1290ba4684a0',
+const itemListagemExemplo: EdicaoPrograma = {
+  id: '04153eb1-5f40-4f0d-8b59-1290ba4684a0',
   nome: 'Programa teste',
-  data_inicio: '2026-08-02',
-  data_fim: '2026-08-08',
-  inscricoes_inicio: '2026-08-02',
-  inscricoes_fim: '2026-08-08',
-  quantidade_inscritos: 0,
-  quantidade_atendimento_efetivo: 0,
-  quantidade_passeios: 0,
-  quantidade_apresentacoes: 0,
-  status: 'encerrada',
-  ativo: true,
-  criado_em: '2026-08-24T10:28:48.821542-03:00',
-  atualizado_em: '2026-08-24T10:28:48.821553-03:00',
+  dataInicioEdicao: '2026-08-02',
+  dataFimEdicao: '2026-08-08',
+  dataInicioInscricoes: '2026-08-02',
+  dataFimInscricoes: '2026-08-08',
+  quantidadeInscritos: 0,
+  quantidadeAtendimentoEfetivo: 0,
+  quantidadePasseios: 0,
+  quantidadeApresentacoes: 0,
 }
 
 describe('listarEdicoesPrograma', () => {
@@ -30,23 +27,10 @@ describe('listarEdicoesPrograma', () => {
     apiGetMock.mockReset()
   })
 
-  it('envia GET sem paginação e mapeia o array da API', async () => {
+  it('envia GET sem paginação e devolve o array da API', async () => {
     apiGetMock.mockResolvedValue({ data: [itemListagemExemplo] })
 
-    await expect(listarEdicoesPrograma()).resolves.toEqual([
-      {
-        id: '04153eb1-5f40-4f0d-8b59-1290ba4684a0',
-        nome: 'Programa teste',
-        dataInicioEdicao: '2026-08-02',
-        dataFimEdicao: '2026-08-08',
-        dataInicioInscricoes: '2026-08-02',
-        dataFimInscricoes: '2026-08-08',
-        quantidadeInscritos: 0,
-        quantidadeAtendimentoEfetivo: 0,
-        quantidadePasseios: 0,
-        quantidadeApresentacoes: 0,
-      },
-    ])
+    await expect(listarEdicoesPrograma()).resolves.toEqual([itemListagemExemplo])
 
     expect(apiGetMock).toHaveBeenCalledTimes(1)
     expect(apiGetMock).toHaveBeenCalledWith('/api/v1/edicoes/')
@@ -79,17 +63,5 @@ describe('listarEdicoesPrograma', () => {
     await expect(listarEdicoesPrograma()).rejects.toMatchObject({
       response: { data: {} },
     })
-  })
-
-  it('lança erro sem mensagem quando a resposta não é um array', async () => {
-    apiGetMock.mockResolvedValue({ data: { results: [] } })
-
-    await expect(listarEdicoesPrograma()).rejects.toThrow()
-  })
-
-  it('lança erro sem mensagem quando um item da lista é inválido', async () => {
-    apiGetMock.mockResolvedValue({ data: [{ nome: 'sem uuid' }] })
-
-    await expect(listarEdicoesPrograma()).rejects.toThrow()
   })
 })

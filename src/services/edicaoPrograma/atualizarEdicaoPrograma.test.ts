@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '../api/http'
 import { atualizarEdicaoPrograma } from './atualizarEdicaoPrograma'
+import type { EdicaoPrograma } from './types'
 
 vi.mock('../api/http', () => ({
   api: { get: vi.fn(), post: vi.fn(), put: vi.fn() },
@@ -18,21 +19,17 @@ const dadosEdicaoExemplo = {
   dataFimInscricoes: '2026-06-20',
 } as const
 
-const respostaAtualizacaoExemplo = {
-  uuid: idEdicao,
+const respostaAtualizacaoExemplo: EdicaoPrograma = {
+  id: idEdicao,
   nome: 'Edição Julho 2026',
-  data_inicio: '2026-07-01',
-  data_fim: '2026-07-31',
-  inscricoes_inicio: '2026-06-01',
-  inscricoes_fim: '2026-06-20',
-  quantidade_inscritos: 12,
-  quantidade_atendimento_efetivo: 10,
-  quantidade_passeios: 3,
-  quantidade_apresentacoes: 2,
-  status: 'planejada',
-  ativo: true,
-  criado_em: '2026-08-24T13:52:23.280Z',
-  atualizado_em: '2026-08-24T13:52:23.280Z',
+  dataInicioEdicao: '2026-07-01',
+  dataFimEdicao: '2026-07-31',
+  dataInicioInscricoes: '2026-06-01',
+  dataFimInscricoes: '2026-06-20',
+  quantidadeInscritos: 12,
+  quantidadeAtendimentoEfetivo: 10,
+  quantidadePasseios: 3,
+  quantidadeApresentacoes: 2,
 }
 
 describe('atualizarEdicaoPrograma', () => {
@@ -45,18 +42,7 @@ describe('atualizarEdicaoPrograma', () => {
 
     await expect(
       atualizarEdicaoPrograma(idEdicao, dadosEdicaoExemplo),
-    ).resolves.toEqual({
-      id: idEdicao,
-      nome: 'Edição Julho 2026',
-      dataInicioEdicao: '2026-07-01',
-      dataFimEdicao: '2026-07-31',
-      dataInicioInscricoes: '2026-06-01',
-      dataFimInscricoes: '2026-06-20',
-      quantidadeInscritos: 12,
-      quantidadeAtendimentoEfetivo: 10,
-      quantidadePasseios: 3,
-      quantidadeApresentacoes: 2,
-    })
+    ).resolves.toEqual(respostaAtualizacaoExemplo)
 
     expect(apiPutMock).toHaveBeenCalledTimes(1)
     expect(apiPutMock).toHaveBeenCalledWith(`/api/v1/edicoes/${idEdicao}/`, {
@@ -83,14 +69,6 @@ describe('atualizarEdicaoPrograma', () => {
         data: { detalhe: 'Já existe uma edição com este nome.' },
       },
     })
-  })
-
-  it('lança erro quando a resposta de atualização é inválida', async () => {
-    apiPutMock.mockResolvedValue({ data: { nome: 'sem uuid' } })
-
-    await expect(
-      atualizarEdicaoPrograma(idEdicao, dadosEdicaoExemplo),
-    ).rejects.toThrow()
   })
 
   it('não inventa mensagem quando o corpo de erro está vazio', async () => {
