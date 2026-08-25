@@ -150,7 +150,7 @@ export function TabelaListagem<T>({
 
   return (
     <>
-      <Table className="min-w-4xl border-collapse">
+      <Table className="min-w-4xl border-collapse bg-background">
         <TableHeader className="bg-muted [&_tr]:border-0">
           <TableRow className="hover:bg-transparent">
             {colunas.map(({ id, rotulo }) => {
@@ -161,7 +161,7 @@ export function TabelaListagem<T>({
                   key={id}
                   scope="col"
                   aria-sort={ariaSortDaColuna(colunaAtiva, direcaoOrdenacao)}
-                  className="h-auto border px-4 py-3 font-bold"
+                  className="h-auto border border-border px-4 py-3 font-bold"
                 >
                   <Button
                     type="button"
@@ -188,7 +188,10 @@ export function TabelaListagem<T>({
               )
             })}
             {renderizarAcoes ? (
-              <TableHead scope="col" className="h-auto border px-4 py-3 font-bold">
+              <TableHead
+                scope="col"
+                className="h-auto border border-border px-4 py-3 font-bold"
+              >
                 {rotuloAcoes}
               </TableHead>
             ) : null}
@@ -198,12 +201,12 @@ export function TabelaListagem<T>({
           {itensDaPagina.map((item) => (
             <TableRow key={obterId(item)} className="border-0">
               {colunas.map((coluna) => (
-                <TableCell key={coluna.id} className="border px-4 py-3">
+                <TableCell key={coluna.id} className="border border-border px-4 py-3">
                   {coluna.renderizar(item)}
                 </TableCell>
               ))}
               {renderizarAcoes ? (
-                <TableCell className="border px-4 py-3 text-center">
+                <TableCell className="border border-border px-4 py-3 text-center">
                   {renderizarAcoes(item)}
                 </TableCell>
               ) : null}
