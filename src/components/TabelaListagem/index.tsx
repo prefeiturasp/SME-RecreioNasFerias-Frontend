@@ -1,4 +1,4 @@
-import { iconeLapisEditar } from '@/assets'
+import { Paginacao } from '@/components/Paginacao'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -9,66 +9,32 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
-import { formatarPeriodo } from '@/services/edicaoPrograma/formatarPeriodo'
-import type { EdicaoPrograma } from '@/services/edicaoPrograma/types'
 import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
-import { Paginacao } from '@/components/Paginacao'
 
 type DirecaoOrdenacao = 'asc' | 'desc'
 
-type DefinicaoColuna = {
+export type DefinicaoColuna<T> = {
   id: string
   rotulo: string
-  valorOrdenacao: (edicao: EdicaoPrograma) => string | number
-  renderizar: (edicao: EdicaoPrograma) => ReactNode
+  valorOrdenacao: (item: T) => string | number
+  renderizar: (item: T) => ReactNode
 }
 
-const COLUNAS = [
-  {
-    id: 'nome',
-    rotulo: 'Nome da Edição do Programa',
-    valorOrdenacao: (edicao) => edicao.nome,
-    renderizar: (edicao) => edicao.nome,
-  },
-  {
-    id: 'periodoEdicao',
-    rotulo: 'Período da Edição do Programa',
-    valorOrdenacao: (edicao) => edicao.dataInicioEdicao,
-    renderizar: (edicao) =>
-      formatarPeriodo(edicao.dataInicioEdicao, edicao.dataFimEdicao),
-  },
-  {
-    id: 'periodoInscricoes',
-    rotulo: 'Período das Inscrições',
-    valorOrdenacao: (edicao) => edicao.dataInicioInscricoes,
-    renderizar: (edicao) =>
-      formatarPeriodo(edicao.dataInicioInscricoes, edicao.dataFimInscricoes),
-  },
-  {
-    id: 'quantidadeInscritos',
-    rotulo: 'Quantidade de Inscritos',
-    valorOrdenacao: (edicao) => edicao.quantidadeInscritos,
-    renderizar: (edicao) => edicao.quantidadeInscritos,
-  },
-  {
-    id: 'quantidadeAtendimentoEfetivo',
-    rotulo: 'Quantidade de Atendimento Efetivo',
-    valorOrdenacao: (edicao) => edicao.quantidadeAtendimentoEfetivo,
-    renderizar: (edicao) => edicao.quantidadeAtendimentoEfetivo,
-  },
-] as const satisfies readonly DefinicaoColuna[]
-
-type ColunaOrdenacao = (typeof COLUNAS)[number]['id']
-
-type TabelaListagemEdicoesProgramaProps = {
-  edicoes: EdicaoPrograma[]
+type TabelaListagemProps<T> = {
+  itens: T[]
+  colunas: readonly DefinicaoColuna<T>[]
+  obterId: (item: T) => string
+  colunaOrdenacaoInicial?: string
   paginaAtual: number
   totalPaginas: number
   itensPorPagina: number
   onMudarPagina: (pagina: number) => void
   onMudarItensPorPagina: (itensPorPagina: number) => void
+  rotuloAcessivelPaginacao?: string
+  rotuloAcoes?: string
+  renderizarAcoes?: (item: T) => ReactNode
+  mensagemVazia?: string
 }
 
 function rotuloBotaoOrdenacao(
@@ -124,39 +90,48 @@ function IconeDirecaoOrdenacao({
   return direcao === 'asc' ? <ArrowUpIcon /> : <ArrowDownIcon />
 }
 
-export function TabelaListagemEdicoesPrograma({
-  edicoes,
+export function TabelaListagem<T>({
+  itens,
+  colunas,
+  obterId,
+  colunaOrdenacaoInicial,
   paginaAtual,
   totalPaginas,
   itensPorPagina,
   onMudarPagina,
   onMudarItensPorPagina,
-}: Readonly<TabelaListagemEdicoesProgramaProps>) {
-  const [colunaOrdenacao, setColunaOrdenacao] =
-    useState<ColunaOrdenacao>('nome')
+  rotuloAcessivelPaginacao,
+  rotuloAcoes = 'Ações',
+  renderizarAcoes,
+  mensagemVazia = 'Sem dados',
+}: Readonly<TabelaListagemProps<T>>) {
+  const [colunaOrdenacao, setColunaOrdenacao] = useState(
+    colunaOrdenacaoInicial ?? colunas[0]?.id ?? '',
+  )
   const [direcaoOrdenacao, setDirecaoOrdenacao] =
     useState<DirecaoOrdenacao>('asc')
 
-  const edicoesOrdenadas = useMemo(() => {
+  const itensOrdenados = useMemo(() => {
     const definicaoColuna =
-      COLUNAS.find((coluna) => coluna.id === colunaOrdenacao) ?? COLUNAS[0]
+      colunas.find((coluna) => coluna.id === colunaOrdenacao) ?? colunas[0]
 
-    return edicoes.toSorted((a, b) =>
+    if (!definicaoColuna) {
+      return itens
+    }
+
+    return itens.toSorted((a, b) =>
       compararValoresOrdenacao(
         definicaoColuna.valorOrdenacao(a),
         definicaoColuna.valorOrdenacao(b),
         direcaoOrdenacao,
       ),
     )
-  }, [colunaOrdenacao, direcaoOrdenacao, edicoes])
+  }, [colunaOrdenacao, colunas, direcaoOrdenacao, itens])
 
   const inicio = (paginaAtual - 1) * itensPorPagina
-  const edicoesDaPagina = edicoesOrdenadas.slice(
-    inicio,
-    inicio + itensPorPagina,
-  )
+  const itensDaPagina = itensOrdenados.slice(inicio, inicio + itensPorPagina)
 
-  function alternarOrdenacao(coluna: ColunaOrdenacao) {
+  function alternarOrdenacao(coluna: string) {
     if (colunaOrdenacao === coluna) {
       setDirecaoOrdenacao((atual) => (atual === 'asc' ? 'desc' : 'asc'))
     } else {
@@ -167,22 +142,18 @@ export function TabelaListagemEdicoesPrograma({
     onMudarPagina(1)
   }
 
-  const listagemVazia = edicoes.length === 0
-
-  if (listagemVazia) {
+  if (itens.length === 0) {
     return (
-      <output className="block text-center text-sm text-foreground">
-        Sem dados
-      </output>
+      <output className="block text-center text-sm">{mensagemVazia}</output>
     )
   }
 
   return (
     <>
-      <Table className="min-w-4xl border-collapse bg-background">
-        <TableHeader className="bg-muted [&_tr]:border-0 [&_th]:h-auto [&_th]:border [&_th]:border-border [&_th]:px-4 [&_th]:py-3 [&_th]:font-bold [&_th]:text-foreground">
+      <Table className="min-w-4xl border-collapse">
+        <TableHeader className="bg-muted [&_tr]:border-0">
           <TableRow className="hover:bg-transparent">
-            {COLUNAS.map(({ id, rotulo }) => {
+            {colunas.map(({ id, rotulo }) => {
               const colunaAtiva = colunaOrdenacao === id
 
               return (
@@ -190,6 +161,7 @@ export function TabelaListagemEdicoesPrograma({
                   key={id}
                   scope="col"
                   aria-sort={ariaSortDaColuna(colunaAtiva, direcaoOrdenacao)}
+                  className="h-auto border px-4 py-3 font-bold"
                 >
                   <Button
                     type="button"
@@ -215,37 +187,26 @@ export function TabelaListagemEdicoesPrograma({
                 </TableHead>
               )
             })}
-            <TableHead scope="col">Ações</TableHead>
+            {renderizarAcoes ? (
+              <TableHead scope="col" className="h-auto border px-4 py-3 font-bold">
+                {rotuloAcoes}
+              </TableHead>
+            ) : null}
           </TableRow>
         </TableHeader>
-        <TableBody className="[&_td]:border [&_td]:border-border [&_td]:px-4 [&_td]:py-3 [&_td]:text-foreground">
-          {edicoesDaPagina.map((edicao) => (
-            <TableRow key={edicao.id}>
-              {COLUNAS.map((coluna) => (
-                <TableCell key={coluna.id}>
-                  {coluna.renderizar(edicao)}
+        <TableBody>
+          {itensDaPagina.map((item) => (
+            <TableRow key={obterId(item)} className="border-0">
+              {colunas.map((coluna) => (
+                <TableCell key={coluna.id} className="border px-4 py-3">
+                  {coluna.renderizar(item)}
                 </TableCell>
               ))}
-              <TableCell className="text-center">
-                <Button
-                  asChild
-                  variant="ghost"
-                  size="icon-sm"
-                  className="text-brand-dark"
-                >
-                  <Link
-                    to={`/editar-edicao-programa/${edicao.id}`}
-                    aria-label={`Editar edição ${edicao.nome}`}
-                  >
-                    <img
-                      src={iconeLapisEditar}
-                      alt=""
-                      aria-hidden="true"
-                      className="size-5"
-                    />
-                  </Link>
-                </Button>
-              </TableCell>
+              {renderizarAcoes ? (
+                <TableCell className="border px-4 py-3 text-center">
+                  {renderizarAcoes(item)}
+                </TableCell>
+              ) : null}
             </TableRow>
           ))}
         </TableBody>
@@ -254,7 +215,7 @@ export function TabelaListagemEdicoesPrograma({
         paginaAtual={paginaAtual}
         totalPaginas={totalPaginas}
         itensPorPagina={itensPorPagina}
-        rotuloAcessivel="Paginação da listagem de edições"
+        rotuloAcessivel={rotuloAcessivelPaginacao}
         onMudarPagina={onMudarPagina}
         onMudarItensPorPagina={onMudarItensPorPagina}
       />

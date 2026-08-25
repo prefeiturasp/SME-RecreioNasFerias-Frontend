@@ -92,9 +92,32 @@ describe('EdicaoListagem', () => {
     renderEdicaoListagem()
 
     expect(await screen.findByRole('table')).toBeInTheDocument()
+    expect(
+      screen.getByRole('columnheader', { name: /nome da edição/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('columnheader', { name: /período da edição/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('columnheader', { name: /período das inscrições/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('columnheader', { name: /quantidade de inscritos/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('columnheader', {
+        name: /quantidade de atendimento efetivo/i,
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('columnheader', { name: /ações/i }),
+    ).toBeInTheDocument()
     expect(screen.getByText('Janeiro 2026')).toBeInTheDocument()
     expect(screen.getByText('Fevereiro 2026')).toBeInTheDocument()
     expect(screen.getByText('Março 2026')).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: /editar edição janeiro 2026/i }),
+    ).toHaveAttribute('href', '/editar-edicao-programa/1')
     expect(screen.queryByText(/sem dados/i)).not.toBeInTheDocument()
   })
 
