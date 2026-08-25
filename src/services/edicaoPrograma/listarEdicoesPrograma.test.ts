@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '../api/http'
-import {
-  ErroListagemEdicoesPrograma,
-  listarEdicoesPrograma,
-} from './listarEdicoesPrograma'
+import { listarEdicoesPrograma } from './listarEdicoesPrograma'
 
 vi.mock('../api/http', () => ({
   api: { get: vi.fn(), post: vi.fn(), put: vi.fn() },
@@ -69,11 +66,10 @@ describe('listarEdicoesPrograma', () => {
       },
     })
 
-    await expect(listarEdicoesPrograma()).rejects.toBeInstanceOf(
-      ErroListagemEdicoesPrograma,
-    )
     await expect(listarEdicoesPrograma()).rejects.toMatchObject({
-      mensagemUsuario: 'Credenciais inválidas.',
+      response: {
+        data: { detalhe: 'Credenciais inválidas.' },
+      },
     })
   })
 
@@ -81,23 +77,19 @@ describe('listarEdicoesPrograma', () => {
     apiGetMock.mockRejectedValue({ response: { status: 500, data: {} } })
 
     await expect(listarEdicoesPrograma()).rejects.toMatchObject({
-      mensagemUsuario: '',
+      response: { data: {} },
     })
   })
 
   it('lança erro sem mensagem quando a resposta não é um array', async () => {
     apiGetMock.mockResolvedValue({ data: { results: [] } })
 
-    await expect(listarEdicoesPrograma()).rejects.toMatchObject({
-      mensagemUsuario: '',
-    })
+    await expect(listarEdicoesPrograma()).rejects.toThrow()
   })
 
   it('lança erro sem mensagem quando um item da lista é inválido', async () => {
     apiGetMock.mockResolvedValue({ data: [{ nome: 'sem uuid' }] })
 
-    await expect(listarEdicoesPrograma()).rejects.toMatchObject({
-      mensagemUsuario: '',
-    })
+    await expect(listarEdicoesPrograma()).rejects.toThrow()
   })
 })

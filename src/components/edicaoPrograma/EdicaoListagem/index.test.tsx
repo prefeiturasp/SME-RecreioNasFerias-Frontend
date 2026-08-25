@@ -1,9 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ErroListagemEdicoesPrograma } from '@/services/edicaoPrograma/listarEdicoesPrograma'
 import type { EdicaoPrograma } from '@/services/edicaoPrograma/types'
 import { EdicaoListagem } from './index'
 
@@ -104,20 +103,20 @@ describe('EdicaoListagem', () => {
     const edicoes = Array.from({ length: 11 }, (_, indice) =>
       criarEdicao({
         id: String(indice + 1),
-        nome: `Edição ${indice + 1}`,
+        nome: `Edição ${String(indice + 1).padStart(2, '0')}`,
       }),
     )
     listarEdicoesProgramaMock.mockResolvedValue(edicoes)
 
     renderEdicaoListagem()
 
-    expect(await screen.findByText('Edição 1')).toBeInTheDocument()
+    expect(await screen.findByText('Edição 01')).toBeInTheDocument()
     expect(screen.queryByText('Edição 11')).not.toBeInTheDocument()
 
     await usuario.click(screen.getByRole('button', { name: /^página 2$/i }))
 
     expect(await screen.findByText('Edição 11')).toBeInTheDocument()
-    expect(screen.queryByText('Edição 1')).not.toBeInTheDocument()
+    expect(screen.queryByText('Edição 01')).not.toBeInTheDocument()
     expect(listarEdicoesProgramaMock).toHaveBeenCalledTimes(1)
   })
 
@@ -126,14 +125,14 @@ describe('EdicaoListagem', () => {
     const edicoes = Array.from({ length: 11 }, (_, indice) =>
       criarEdicao({
         id: String(indice + 1),
-        nome: `Edição ${indice + 1}`,
+        nome: `Edição ${String(indice + 1).padStart(2, '0')}`,
       }),
     )
     listarEdicoesProgramaMock.mockResolvedValue(edicoes)
 
     renderEdicaoListagem()
 
-    expect(await screen.findByText('Edição 1')).toBeInTheDocument()
+    expect(await screen.findByText('Edição 01')).toBeInTheDocument()
     expect(screen.queryByText('Edição 11')).not.toBeInTheDocument()
 
     await usuario.click(
@@ -142,31 +141,48 @@ describe('EdicaoListagem', () => {
     await usuario.click(await screen.findByRole('option', { name: '20' }))
 
     expect(await screen.findByText('Edição 11')).toBeInTheDocument()
-    expect(screen.getByText('Edição 1')).toBeInTheDocument()
+    expect(screen.getByText('Edição 01')).toBeInTheDocument()
     expect(listarEdicoesProgramaMock).toHaveBeenCalledTimes(1)
   })
 
   it('exibe detalhe da API quando a listagem falha', async () => {
-    listarEdicoesProgramaMock.mockRejectedValue(
-      new ErroListagemEdicoesPrograma('Falha ao carregar edições.'),
-    )
+    listarEdicoesProgramaMock.mockRejectedValue({
+      response: { data: { detalhe: 'Falha ao carregar edições.' } },
+    })
 
     renderEdicaoListagem()
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Falha ao carregar edições.',
     )
-    expect(screen.getByText(/sem dados/i)).toBeInTheDocument()
+    expect(screen.queryByText(/sem dados/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 
-  it('não exibe alerta quando o backend não envia detalhe', async () => {
-    listarEdicoesProgramaMock.mockRejectedValue(
-      new ErroListagemEdicoesPrograma(''),
-    )
+  it('não exibe alerta nem listagem vazia quando o backend não envia detalhe', async () => {
+    listarEdicoesProgramaMock.mockRejectedValue({
+      response: { data: {} },
+    })
+
+    renderEdicaoListagem()
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/carregando edições do programa/i),
+      ).not.toBeInTheDocument()
+    })
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.queryByText(/sem dados/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  })
+
+  it('exibe sem dados quando a API retorna lista vazia', async () => {
+    listarEdicoesProgramaMock.mockResolvedValue([])
 
     renderEdicaoListagem()
 
     expect(await screen.findByText(/sem dados/i)).toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 })

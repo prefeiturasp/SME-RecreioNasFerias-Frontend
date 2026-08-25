@@ -142,4 +142,30 @@ describe('TabelaListagemEdicoesPrograma', () => {
 
     expect(linhas()[0]).toHaveTextContent('Março 2026')
   })
+
+  it('ordena a lista inteira antes de paginar', () => {
+    const edicoes: EdicaoPrograma[] = [
+      { ...edicaoExemplo, id: 'z', nome: 'Zebra 2026' },
+      ...Array.from({ length: 10 }, (_, indice) => ({
+        ...edicaoExemplo,
+        id: String(indice),
+        nome: `Abril ${indice}`,
+      })),
+    ]
+
+    render(
+      <TabelaListagemEdicoesPrograma
+        edicoes={edicoes}
+        paginaAtual={1}
+        totalPaginas={2}
+        itensPorPagina={10}
+        onMudarPagina={vi.fn()}
+        onMudarItensPorPagina={vi.fn()}
+        onEditarEdicao={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByText('Abril 0')).toBeInTheDocument()
+    expect(screen.queryByText('Zebra 2026')).not.toBeInTheDocument()
+  })
 })

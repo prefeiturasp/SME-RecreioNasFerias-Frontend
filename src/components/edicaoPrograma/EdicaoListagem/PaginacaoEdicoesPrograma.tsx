@@ -1,10 +1,10 @@
-import { ChevronLeftIcon, ChevronRightIcon } from '@/components/icons'
-import { OPCOES_ITENS_POR_PAGINA } from '@/components/ListagemTabela/constantesPaginacao'
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 import { montarPaginasVisiveis } from '@/components/ListagemTabela/montarPaginasVisiveis'
 import { Button } from '@/components/ui/button'
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
 } from '@/components/ui/pagination'
 import {
@@ -15,6 +15,16 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+
+export const OPCOES_ITENS_POR_PAGINA = [10, 20, 50] as const
+
+const classeBotaoPagina =
+  'rounded-sm border-border focus-visible:border-border focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0'
+
+const classeBotaoNavegacao = cn(
+  classeBotaoPagina,
+  'text-brand-dark hover:border-brand-dark hover:bg-accent hover:text-brand-dark disabled:pointer-events-auto disabled:cursor-not-allowed disabled:text-placeholder disabled:opacity-60',
+)
 
 type PaginacaoEdicoesProgramaProps = {
   paginaAtual: number
@@ -43,7 +53,7 @@ export function PaginacaoEdicoesPrograma({
             size="icon"
             aria-label="Página anterior"
             disabled={paginaAtual <= 1}
-            className="rounded-sm border-[#e1e1e1] text-brand-dark hover:border-brand-dark hover:bg-(--color-button-outline-hover-bg) hover:text-brand-dark focus-visible:border-[#e1e1e1] focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:text-placeholder disabled:opacity-60"
+            className={classeBotaoNavegacao}
             onClick={() => onMudarPagina(paginaAtual - 1)}
           >
             <ChevronLeftIcon />
@@ -54,12 +64,7 @@ export function PaginacaoEdicoesPrograma({
           if (item.tipo === 'ellipsis') {
             return (
               <PaginationItem key={item.chave}>
-                <span
-                  aria-hidden="true"
-                  className="inline-flex h-8 min-w-8 items-center justify-center text-sm text-foreground"
-                >
-                  ...
-                </span>
+                <PaginationEllipsis className="text-foreground" />
               </PaginationItem>
             )
           }
@@ -75,10 +80,11 @@ export function PaginacaoEdicoesPrograma({
                 aria-label={`Página ${item.numero}`}
                 aria-current={ativa ? 'page' : undefined}
                 className={cn(
-                  'min-w-8 w-auto rounded-sm px-1.5 focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0',
+                  classeBotaoPagina,
+                  'min-w-8 w-auto px-1.5',
                   ativa
-                    ? 'border-brand-dark bg-brand-dark font-bold text-background hover:border-brand-dark hover:bg-brand-dark-hover hover:text-background focus-visible:border-brand-dark'
-                    : 'border-[#e1e1e1] font-normal hover:border-brand-dark hover:bg-(--color-button-outline-hover-bg) focus-visible:border-[#e1e1e1]',
+                    ? 'border-brand-dark bg-brand-dark font-bold text-background hover:border-brand-dark hover:bg-brand-dark-hover hover:text-background'
+                    : 'hover:border-brand-dark hover:bg-accent',
                 )}
                 onClick={() => onMudarPagina(item.numero)}
               >
@@ -95,7 +101,7 @@ export function PaginacaoEdicoesPrograma({
             size="icon"
             aria-label="Próxima página"
             disabled={paginaAtual >= totalPaginas}
-            className="rounded-sm border-[#e1e1e1] text-brand-dark hover:border-brand-dark hover:bg-(--color-button-outline-hover-bg) hover:text-brand-dark focus-visible:border-[#e1e1e1] focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0 disabled:pointer-events-auto disabled:cursor-not-allowed disabled:text-placeholder disabled:opacity-60"
+            className={classeBotaoNavegacao}
             onClick={() => onMudarPagina(paginaAtual + 1)}
           >
             <ChevronRightIcon />
@@ -109,7 +115,7 @@ export function PaginacaoEdicoesPrograma({
           >
             <SelectTrigger
               aria-label="Itens por página"
-              className="min-w-18 rounded-sm border-[#e1e1e1] bg-background py-0 pr-7 pl-3 focus-visible:border-[#e1e1e1] focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary dark:bg-background [&_svg]:text-foreground"
+              className="min-w-18 rounded-sm border-border bg-background py-0 pr-7 pl-3 focus-visible:border-border focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary dark:bg-background [&_svg]:text-foreground"
             >
               <SelectValue />
             </SelectTrigger>
