@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
-export { OPCOES_ITENS_POR_PAGINA }
+export { OPCOES_ITENS_POR_PAGINA } from '@/components/ListagemTabela/constantesPaginacao'
 
 type PaginacaoProps = {
   paginaAtual: number
