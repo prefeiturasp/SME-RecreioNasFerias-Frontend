@@ -13,10 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { OPCOES_ITENS_POR_PAGINA } from '@/constants/paginacao'
 import { cn } from '@/lib/utils'
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
-
-export const OPCOES_ITENS_POR_PAGINA = [10, 20, 50] as const
 
 type PaginacaoProps = {
   paginaAtual: number

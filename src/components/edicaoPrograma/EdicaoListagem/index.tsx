@@ -1,12 +1,12 @@
 import { iconeLapisEditar } from '@/assets'
 import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
-import { OPCOES_ITENS_POR_PAGINA } from '@/components/Paginacao'
 import {
   TabelaListagem,
   type DefinicaoColuna,
 } from '@/components/TabelaListagem'
 import { Button } from '@/components/ui/button'
+import { OPCOES_ITENS_POR_PAGINA } from '@/constants/paginacao'
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
 import { formatarPeriodo } from '@/lib/formatarPeriodo'
 import type { EdicaoPrograma } from '@/services/edicaoPrograma/types'

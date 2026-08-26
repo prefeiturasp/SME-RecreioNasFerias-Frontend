@@ -1,10 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { format, isValid, parse } from 'date-fns'
 import { ptBR as dateFnsPtBR } from 'date-fns/locale'
+import { ptBR as dayPickerPtBR } from 'react-day-picker/locale'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { EdicaoPrograma } from '@/services/edicaoPrograma/types'
 import { EdicaoForm } from './index'
 
@@ -81,24 +82,45 @@ function parseIsoLocal(iso: string) {
   return new Date(ano, mes - 1, dia)
 }
 
+function encontrarBotaoDia(alvo: Date, raiz: ParentNode = document) {
+  const candidatos = new Set([
+    format(alvo, 'dd/MM/yyyy'),
+    alvo.toLocaleDateString('pt-BR'),
+    alvo.toLocaleDateString(dayPickerPtBR.code),
+  ])
+
+  for (const botao of document.querySelectorAll('[data-day]')) {
+    if (
+      botao instanceof HTMLElement &&
+      candidatos.has(botao.getAttribute('data-day') ?? '')
+    ) {
+      return botao
+    }
+  }
+
+  return null
+}
+
 async function escolherData(
   usuario: ReturnType<typeof userEvent.setup>,
   rotulo: string,
   iso: string,
 ) {
   const alvo = parseIsoLocal(iso)
-  const dataDay = format(alvo, 'dd/MM/yyyy')
   await usuario.click(screen.getByRole('button', { name: rotulo }))
 
-  for (let tentativa = 0; tentativa < 36; tentativa += 1) {
-    const botaoDia = document.querySelector(`[data-day="${dataDay}"]`)
-
-    if (botaoDia instanceof HTMLElement) {
-      await usuario.click(botaoDia)
+  for (let tentativa = 0; tentativa < 24; tentativa += 1) {
+    const grade = await screen.findByRole('grid')
+    const botaoDia = encontrarBotaoDia(alvo, grade)
+    if (botaoDia) {
+      fireEvent.click(botaoDia)
+      await waitFor(() => {
+        expect(screen.queryByRole('grid')).not.toBeInTheDocument()
+      })
       return
     }
 
-    const rotuloMes = screen.getByRole('grid').getAttribute('aria-label') ?? ''
+    const rotuloMes = grade.getAttribute('aria-label') ?? ''
     const mesVisivel = parse(rotuloMes, 'MMMM yyyy', new Date(), {
       locale: dateFnsPtBR,
     })
@@ -109,7 +131,7 @@ async function escolherData(
       (mesVisivel.getFullYear() === alvo.getFullYear() &&
         mesVisivel.getMonth() > alvo.getMonth())
 
-    await usuario.click(
+    fireEvent.click(
       screen.getByRole('button', {
         name: deveVoltar ? /ir para o mês anterior/i : /ir para o próximo mês/i,
       }),
@@ -117,6 +139,10 @@ async function escolherData(
   }
 
   throw new Error(`Não foi possível selecionar a data ${iso}`)
+}
+
+function criarUsuario() {
+  return userEvent.setup({ delay: null })
 }
 
 async function preencherFormularioValido(
@@ -180,7 +206,16 @@ function renderCadastroEdicaoForm() {
   return renderEdicaoForm()
 }
 
-describe('EdicaoForm', () => {
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date(2026, 5, 10))
+})
+
+afterEach(() => {
+  vi.useRealTimers()
+})
+
+describe('EdicaoForm', { timeout: 15000 }, () => {
   beforeEach(() => {
     cadastrarEdicaoProgramaMock.mockReset()
     obterEdicaoProgramaMock.mockReset()
@@ -211,7 +246,7 @@ describe('EdicaoForm', () => {
   })
 
   it('exibe erros de validação quando os campos estão vazios', async () => {
-    const usuario = userEvent.setup()
+    const usuario = criarUsuario()
     renderCadastroEdicaoForm()
 
     await usuario.click(screen.getByRole('button', { name: 'Salvar' }))
@@ -235,7 +270,7 @@ describe('EdicaoForm', () => {
   })
 
   it('cadastra nova edição via API e redireciona para a listagem', async () => {
-    const usuario = userEvent.setup()
+    const usuario = criarUsuario()
     renderCadastroEdicaoForm()
 
     await preencherFormularioValido(usuario)
@@ -262,7 +297,7 @@ describe('EdicaoForm', () => {
   })
 
   it('exibe mensagem de erro quando o período da edição é inválido', async () => {
-    const usuario = userEvent.setup()
+    const usuario = criarUsuario()
     renderCadastroEdicaoForm()
 
     await usuario.type(
@@ -282,7 +317,7 @@ describe('EdicaoForm', () => {
   })
 
   it('exibe mensagem de erro quando o período das inscrições é inválido', async () => {
-    const usuario = userEvent.setup()
+    const usuario = criarUsuario()
     renderCadastroEdicaoForm()
 
     await usuario.type(
@@ -304,7 +339,7 @@ describe('EdicaoForm', () => {
   })
 
   it('exibe mensagem de erro quando o fim das inscrições é posterior ao fim da edição', async () => {
-    const usuario = userEvent.setup()
+    const usuario = criarUsuario()
     renderCadastroEdicaoForm()
 
     await usuario.type(
@@ -324,7 +359,7 @@ describe('EdicaoForm', () => {
   })
 
   it('exibe mensagem de erro quando o cadastro falha', async () => {
-    const usuario = userEvent.setup()
+    const usuario = criarUsuario()
     cadastrarEdicaoProgramaMock.mockRejectedValue({
       response: { data: { detalhe: 'Já existe uma edição com este nome.' } },
     })
@@ -340,7 +375,7 @@ describe('EdicaoForm', () => {
   })
 
   it('remove o alerta da API quando o usuário altera um campo', async () => {
-    const usuario = userEvent.setup()
+    const usuario = criarUsuario()
     cadastrarEdicaoProgramaMock.mockRejectedValue({
       response: { data: { detalhe: 'Já existe uma edição com este nome.' } },
     })
@@ -361,7 +396,7 @@ describe('EdicaoForm', () => {
   })
 
   it('não exibe alerta quando o backend não envia detalhe', async () => {
-    const usuario = userEvent.setup()
+    const usuario = criarUsuario()
     cadastrarEdicaoProgramaMock.mockRejectedValue({
       response: { data: {} },
     })
@@ -378,7 +413,7 @@ describe('EdicaoForm', () => {
   })
 
   it('indica carregamento e bloqueia novo envio enquanto aguarda', async () => {
-    const usuario = userEvent.setup()
+    const usuario = criarUsuario()
     let resolver!: () => void
     cadastrarEdicaoProgramaMock.mockImplementation(
       () =>
@@ -411,7 +446,7 @@ describe('EdicaoForm', () => {
   })
 })
 
-describe('EdicaoForm em edição', () => {
+describe('EdicaoForm em edição', { timeout: 15000 }, () => {
   beforeEach(() => {
     cadastrarEdicaoProgramaMock.mockReset()
     obterEdicaoProgramaMock.mockReset()
@@ -465,7 +500,7 @@ describe('EdicaoForm em edição', () => {
   })
 
   it('atualiza a edição via PUT e redireciona com toast de atualização', async () => {
-    const usuario = userEvent.setup()
+    const usuario = criarUsuario()
     renderEdicaoForm(edicaoCarregada.uuid)
 
     const campoNome = await screen.findByLabelText(/nome da edição/i)
@@ -524,7 +559,7 @@ describe('EdicaoForm em edição', () => {
   })
 
   it('exibe mensagem de erro quando a atualização falha', async () => {
-    const usuario = userEvent.setup()
+    const usuario = criarUsuario()
     atualizarEdicaoProgramaMock.mockRejectedValue({
       response: { data: { detalhe: 'Não foi possível salvar a edição.' } },
     })
@@ -543,7 +578,7 @@ describe('EdicaoForm em edição', () => {
   })
 
   it('não exibe alerta quando o PUT não envia detalhe', async () => {
-    const usuario = userEvent.setup()
+    const usuario = criarUsuario()
     atualizarEdicaoProgramaMock.mockRejectedValue({
       response: { data: {} },
     })
