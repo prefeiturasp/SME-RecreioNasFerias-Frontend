@@ -103,23 +103,27 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
         />
 
         <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
-          <Field data-invalid={Boolean(form.formState.errors.nome)}>
-            <FieldLabel htmlFor="NomeDaEdicao" className="font-bold">
-              Nome da Edição do Programa
-            </FieldLabel>
-            <div className="flex flex-col gap-1">
-              <Input
-                id="NomeDaEdicao"
-                placeholder="Digite o Nome da Edição do Programa"
-                aria-invalid={Boolean(form.formState.errors.nome)}
-                className="h-10 rounded-sm border-input-border-muted"
-                {...form.register('nome')}
-              />
-              {form.formState.errors.nome && (
-                <FieldError errors={[form.formState.errors.nome]} />
-              )}
-            </div>
-          </Field>
+          <Controller
+            name="nome"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="nome" className="font-bold">
+                  Nome da Edição do Programa
+                </FieldLabel>
+                <Input
+                  {...field}
+                  id="nome"
+                  autoComplete="name"
+                  aria-invalid={fieldState.invalid}
+                  className="h-10 rounded-sm border-input-border-muted"
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
 
           <Field
             data-invalid={Boolean(
