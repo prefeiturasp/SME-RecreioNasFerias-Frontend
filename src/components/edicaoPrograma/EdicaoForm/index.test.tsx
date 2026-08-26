@@ -89,7 +89,7 @@ function encontrarBotaoDia(alvo: Date, raiz: ParentNode = document) {
     alvo.toLocaleDateString(dayPickerPtBR.code),
   ])
 
-  for (const botao of document.querySelectorAll('[data-day]')) {
+  for (const botao of raiz.querySelectorAll('[data-day]')) {
     if (
       botao instanceof HTMLElement &&
       candidatos.has(botao.getAttribute('data-day') ?? '')
