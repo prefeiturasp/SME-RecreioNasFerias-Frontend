@@ -1,25 +1,15 @@
 export type EdicaoPrograma = {
-  id: string
+  uuid: string
   nome: string
-  dataInicioEdicao: string
-  dataFimEdicao: string
-  dataInicioInscricoes: string
-  dataFimInscricoes: string
-  quantidadeInscritos: number
-  quantidadeAtendimentoEfetivo: number
-  quantidadePasseios: number
-  quantidadeApresentacoes: number
+  data_inicio: string
+  data_fim: string
+  inscricoes_inicio: string
+  inscricoes_fim: string
+  quantidade_inscritos: number
+  quantidade_atendimento_efetivo: number
+  quantidade_passeios: number
+  quantidade_apresentacoes: number
 }
-
-export type QuantidadesEdicaoPrograma = Pick<
-  EdicaoPrograma,
-  | 'quantidadeInscritos'
-  | 'quantidadeAtendimentoEfetivo'
-  | 'quantidadePasseios'
-  | 'quantidadeApresentacoes'
->
-
-export type NovaEdicaoPrograma = Omit<EdicaoPrograma, 'id'>
 
 export type DadosCadastroEdicaoPrograma = {
   nome: string
@@ -27,17 +17,4 @@ export type DadosCadastroEdicaoPrograma = {
   dataFimEdicao: string
   dataInicioInscricoes: string
   dataFimInscricoes: string
-}
-
-export type ParametrosListagemEdicoesPrograma = {
-  pagina?: number
-  tamanhoPagina?: number
-}
-
-export type ListagemEdicoesPrograma = {
-  edicoes: EdicaoPrograma[]
-  pagina: number
-  tamanhoPagina: number
-  total: number
-  totalPaginas: number
 }

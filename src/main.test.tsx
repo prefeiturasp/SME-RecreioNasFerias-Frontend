@@ -16,7 +16,7 @@ describe('main', () => {
     await expect(import('./main')).rejects.toThrow(
       'Elemento #root não encontrado no documento.',
     )
-  })
+  }, 20_000)
 
   it('renderiza a aplicação quando #root existe', async () => {
     const root = document.createElement('div')

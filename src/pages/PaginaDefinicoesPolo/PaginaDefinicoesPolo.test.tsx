@@ -46,7 +46,7 @@ vi.mock('../../services/definicaoPolo/api', async (importOriginal) => {
   }
 })
 
-vi.mock('../../services/edicaoPrograma/api', () => ({
+vi.mock('../../services/edicaoPrograma/listarEdicoesPrograma', () => ({
   listarEdicoesPrograma: listarEdicoesProgramaMock,
 }))
 
@@ -132,26 +132,20 @@ describe('PaginaDefinicoesPolo', () => {
     sincronizarUnidadesDiretasMock.mockResolvedValue(syncSemNovos())
     listarDefinicoesPoloMock.mockResolvedValue(criarListagemMock([poloExemplo]))
     atualizarDefinicoesPoloEmLoteMock.mockResolvedValue({ atualizados: 1 })
-    listarEdicoesProgramaMock.mockResolvedValue({
-      edicoes: [
-        {
-          id: 'ed-1',
-          nome: 'Janeiro 2025',
-          dataInicioEdicao: '2025-01-01',
-          dataFimEdicao: '2025-01-31',
-          dataInicioInscricoes: '2024-12-01',
-          dataFimInscricoes: '2024-12-20',
-          quantidadeInscritos: 0,
-          quantidadeAtendimentoEfetivo: 0,
-          quantidadePasseios: 0,
-          quantidadeApresentacoes: 0,
-        },
-      ],
-      pagina: 1,
-      tamanhoPagina: 100,
-      total: 1,
-      totalPaginas: 1,
-    })
+    listarEdicoesProgramaMock.mockResolvedValue([
+      {
+        uuid: 'ed-1',
+        nome: 'Janeiro 2025',
+        data_inicio: '2025-01-01',
+        data_fim: '2025-01-31',
+        inscricoes_inicio: '2024-12-01',
+        inscricoes_fim: '2024-12-20',
+        quantidade_inscritos: 0,
+        quantidade_atendimento_efetivo: 0,
+        quantidade_passeios: 0,
+        quantidade_apresentacoes: 0,
+      },
+    ])
   })
 
   it('exibe indicador de carregamento antes da listagem retornar', () => {
