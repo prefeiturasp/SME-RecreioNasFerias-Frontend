@@ -60,42 +60,6 @@ const estilosBotaoPreenchido = css`
   }
 `
 
-const estilosLabelCampo = css`
-  font-family: var(--font-family);
-  font-size: var(--font-size-label);
-  font-weight: var(--font-weight-bold);
-  margin-bottom: 0.25rem;
-  color: var(--color-text);
-`
-
-const estilosInputCampo = css`
-  height: var(--size-input-height);
-  width: 100%;
-  border: 1px solid var(--color-input-border-muted);
-  border-radius: var(--size-radius-sm);
-  padding: 0 0.5rem;
-  font-family: var(--font-family);
-  font-weight: var(--font-weight-regular);
-  font-size: var(--font-size-label);
-  color: var(--color-text);
-  transition: var(--transition-input);
-
-  &::placeholder {
-    font-family: var(--font-family);
-    font-weight: var(--font-weight-regular);
-    font-size: var(--font-size-label);
-    color: var(--color-placeholder);
-    opacity: 1;
-  }
-
-  &:focus,
-  &:focus-visible {
-    outline: 2px solid var(--color-brand-dark);
-    outline-offset: 0;
-    border-color: var(--color-brand-dark);
-  }
-`
-
 export const ContainerPaginaEdicoesPrograma = styled.main`
   width: 100%;
   height: 100%;
@@ -228,51 +192,6 @@ export const MensagemErroFormulario = styled.div`
   color: #721c24;
   line-height: 1.4;
   text-align: center;
-`
-
-export const LinhaFormularioCadastroNovaEdicao = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: var(--size-form-column-gap);
-  row-gap: var(--size-form-row-gap);
-  margin-bottom: var(--size-form-row-gap);
-
-  @media (max-width: 64rem) {
-    grid-template-columns: 1fr;
-  }
-`
-
-const estilosCampoFormulario = css`
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-
-  > label {
-    ${estilosLabelCampo}
-  }
-`
-
-export const InputNumericoFormularioCadastroNovaEdicao = styled.div`
-  ${estilosCampoFormulario}
-
-  > input {
-    ${estilosInputCampo}
-
-    &:disabled,
-    &:read-only {
-      background-color: var(--color-input-disabled-bg);
-      color: var(--color-placeholder);
-      cursor: not-allowed;
-    }
-  }
-`
-
-export const InputTextoFormularioCadastroNovaEdicao = styled.div`
-  ${estilosCampoFormulario}
-
-  > input {
-    ${estilosInputCampo}
-  }
 `
 
 export const BotaoCancelarFormulario = styled.button`

@@ -7,7 +7,7 @@ import {
   MensagemModalConfirmacao,
   SobreposicaoModalConfirmacao,
   TituloModalConfirmacao,
-} from '../PaginaEditarEdicaoPrograma/modalConfirmacaoSalvarEdicaoProgramaStyles'
+} from './modalConfirmacaoSalvarPoloParceiroStyles'
 
 type ModalConfirmacaoSalvarPoloParceiroProps = {
   aberto: boolean

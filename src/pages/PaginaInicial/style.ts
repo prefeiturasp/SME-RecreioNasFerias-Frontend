@@ -22,11 +22,3 @@ export const AreaConteudo = styled.div`
   overflow: auto;
   padding: 32px;
 `
-
-export const GradeModulos = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, 262px);
-  justify-content: start;
-  gap: 1.5rem;
-  margin-top: 24px;
-`

@@ -11,7 +11,7 @@ export {
 
 import styled from 'styled-components'
 
-export const MensagemSucessoAoCriarNovaEdicaoPrograma = styled.output`
+export const MensagemSucessoEdicaoPrograma = styled.output`
   position: relative;
   min-height: 50px;
   margin-top: 12px;
