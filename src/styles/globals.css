@@ -111,9 +111,9 @@
   --color-destructive: #c62828;
   --color-destructive-foreground: #ffffff;
 
-  --color-vermelho-escuro: #721c24;
-  --color-rosa-claro: #f8d7da;
-  --color-rosa-medio: #f8d7da;
+  --vermelho-escuro: #721c24;
+  --rosa-claro: #f8d7da;
+  --rosa-medio: #f8d7eb;
 
   --shadow-header-bottom: 0 3px 12px 0 rgba(0, 0, 0, 0.12);
   --shadow-card: 0 0 6px 0 rgba(0, 0, 0, 0.12);
@@ -271,6 +271,7 @@ body {
   --color-vermelho-escuro: var(--vermelho-escuro);
   --color-rosa-claro: var(--rosa-claro);
   --color-rosa-medio: var(--rosa-medio);
+
   --color-input-border-muted: var(--color-input-border-muted);
   --color-input-disabled-bg: var(--color-input-disabled-bg);
   --color-button-primary-disabled-bg: var(--color-button-primary-disabled-bg);

@@ -1,5 +1,3 @@
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
-import { OPCOES_ITENS_POR_PAGINA } from '@/components/ListagemTabela/constantesPaginacao'
 import { montarPaginasVisiveis } from '@/components/ListagemTabela/montarPaginasVisiveis'
 import { Button } from '@/components/ui/button'
 import {
@@ -16,8 +14,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 
-export { OPCOES_ITENS_POR_PAGINA } from '@/components/ListagemTabela/constantesPaginacao'
+export const OPCOES_ITENS_POR_PAGINA = [10, 20, 50] as const
 
 type PaginacaoProps = {
   paginaAtual: number

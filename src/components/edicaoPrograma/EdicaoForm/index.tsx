@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import type { FormValues } from './schema'
 import formSchema from './schema'
@@ -55,14 +55,17 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
 
   const salvando = cadastroMutation.isPending || atualizacaoMutation.isPending
 
-  function limparErroDaMutation() {
+  const valoresFormulario = useWatch({ control: form.control })
+
+  useEffect(() => {
     if (cadastroMutation.isError) {
       cadastroMutation.reset()
     }
     if (atualizacaoMutation.isError) {
       atualizacaoMutation.reset()
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- roda a cada alteração de qualquer campo, para limpar o erro de mutation anterior
+  }, [valoresFormulario])
 
   function onSubmit(data: FormValues) {
     if (edicaoId) {
@@ -110,9 +113,7 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
                 placeholder="Digite o Nome da Edição do Programa"
                 aria-invalid={Boolean(form.formState.errors.nome)}
                 className="h-10 rounded-sm border-input-border-muted"
-                {...form.register('nome', {
-                  onChange: limparErroDaMutation,
-                })}
+                {...form.register('nome')}
               />
               {form.formState.errors.nome && (
                 <FieldError errors={[form.formState.errors.nome]} />
@@ -142,10 +143,7 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
                       aria-label="Data de início da edição"
                       aria-invalid={fieldState.invalid}
                       className="h-10 rounded-sm border-input-border-muted px-2 hover:bg-background [&_svg]:size-5 [&_svg]:text-brand-dark"
-                      onChange={(iso) => {
-                        limparErroDaMutation()
-                        field.onChange(iso)
-                      }}
+                      onChange={field.onChange}
                       onBlur={field.onBlur}
                     />
                     {fieldState.invalid && (
@@ -166,10 +164,7 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
                       aria-label="Data de fim da edição"
                       aria-invalid={fieldState.invalid}
                       className="h-10 rounded-sm border-input-border-muted px-2 hover:bg-background [&_svg]:size-5 [&_svg]:text-brand-dark"
-                      onChange={(iso) => {
-                        limparErroDaMutation()
-                        field.onChange(iso)
-                      }}
+                      onChange={field.onChange}
                       onBlur={field.onBlur}
                     />
                     {fieldState.invalid && (
@@ -203,10 +198,7 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
                       aria-label="Data de início das inscrições"
                       aria-invalid={fieldState.invalid}
                       className="h-10 rounded-sm border-input-border-muted px-2 hover:bg-background [&_svg]:size-5 [&_svg]:text-brand-dark"
-                      onChange={(iso) => {
-                        limparErroDaMutation()
-                        field.onChange(iso)
-                      }}
+                      onChange={field.onChange}
                       onBlur={field.onBlur}
                     />
                     {fieldState.invalid && (
@@ -227,10 +219,7 @@ export function EdicaoForm({ edicaoId }: Readonly<EdicaoFormProps>) {
                       aria-label="Data de fim das inscrições"
                       aria-invalid={fieldState.invalid}
                       className="h-10 rounded-sm border-input-border-muted px-2 hover:bg-background [&_svg]:size-5 [&_svg]:text-brand-dark"
-                      onChange={(iso) => {
-                        limparErroDaMutation()
-                        field.onChange(iso)
-                      }}
+                      onChange={field.onChange}
                       onBlur={field.onBlur}
                     />
                     {fieldState.invalid && (

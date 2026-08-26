@@ -339,6 +339,27 @@ describe('EdicaoForm', () => {
     expect(screen.queryByText('Listagem de edições')).not.toBeInTheDocument()
   })
 
+  it('remove o alerta da API quando o usuário altera um campo', async () => {
+    const usuario = userEvent.setup()
+    cadastrarEdicaoProgramaMock.mockRejectedValue({
+      response: { data: { detalhe: 'Já existe uma edição com este nome.' } },
+    })
+    renderCadastroEdicaoForm()
+
+    await preencherFormularioValido(usuario)
+    await usuario.click(screen.getByRole('button', { name: 'Salvar' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Já existe uma edição com este nome.',
+    )
+
+    await usuario.type(screen.getByLabelText(/nome da edição/i), ' atualizada')
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
+  })
+
   it('não exibe alerta quando o backend não envia detalhe', async () => {
     const usuario = userEvent.setup()
     cadastrarEdicaoProgramaMock.mockRejectedValue({
