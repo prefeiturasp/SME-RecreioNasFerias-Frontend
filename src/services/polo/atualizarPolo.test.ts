@@ -55,7 +55,7 @@ const payloadEsperado = {
   email: 'polo@osc.org.br',
   telefone: '(11) 99999-9999',
   observacoes_gerais: 'Polo com boa estrutura',
-}
+} as const
 
 const respostaAtualizacaoExemplo: PoloDetalhado = {
   uuid: uuidPolo,
