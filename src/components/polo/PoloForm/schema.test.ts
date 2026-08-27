@@ -2,19 +2,26 @@ import { describe, expect, it } from 'vitest'
 import formSchema from './schema'
 
 const dadosValidos = {
-  tipo: 'Pendente',
+  codigoEol: '123456',
+  tipo: 'pendente' as const,
+  gestao: 'parceira' as const,
   nomeOsc: 'OSC Teste',
   nomePolo: 'Polo Teste',
-  dre: 'DRE Butantã',
+  dreNome: 'DRE Butantã',
+  dreCodigoEol: '108100',
   tipoUe: 'EMEF',
   quantidadeMaximaAlunos: '50',
   cep: '01310-100',
-  endereco: 'Av. Paulista, 1000',
+  tipoLogradouro: 'Avenida',
+  logradouro: 'Paulista',
+  bairro: 'Bela Vista',
+  numero: '1000',
+  complemento: '',
   nomeGestor: 'Gestor Teste',
-  emailPolo: 'polo@teste.com',
-  telefonePolo: '(11) 99999-9999',
+  email: 'polo@teste.com',
+  telefone: '(11) 99999-9999',
   status: 'ativo' as const,
-  observacoes: '',
+  observacoesGerais: '',
 }
 
 function mensagensDeErro(dados: typeof dadosValidos) {
@@ -59,7 +66,7 @@ describe('PoloForm schema', () => {
     expect(
       mensagensDeErro({
         ...dadosValidos,
-        emailPolo: 'email-invalido',
+        email: 'email-invalido',
       }),
     ).toContain('Informe um e-mail válido para o polo.')
   })
@@ -77,7 +84,7 @@ describe('PoloForm schema', () => {
     expect(
       mensagensDeErro({
         ...dadosValidos,
-        telefonePolo: '(11) 9999',
+        telefone: '(11) 9999',
       }),
     ).toContain('Informe um telefone válido para o polo.')
   })
@@ -95,7 +102,7 @@ describe('PoloForm schema', () => {
     expect(
       formSchema.safeParse({
         ...dadosValidos,
-        observacoes: '',
+        observacoesGerais: '',
       }).success,
     ).toBe(true)
   })

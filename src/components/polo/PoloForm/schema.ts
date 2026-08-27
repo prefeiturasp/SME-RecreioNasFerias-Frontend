@@ -38,10 +38,13 @@ function quantidadeMaximaAlunosEstaValida(valor: string): boolean {
 }
 
 const formSchema = z.object({
-  tipo: z.string(),
+  codigoEol: z.string().trim().min(1, 'Código EOL é obrigatório'),
   nomeOsc: z.string().trim().min(1, 'Nome da OSC é obrigatório'),
   nomePolo: z.string().trim().min(1, 'Nome do polo é obrigatório'),
-  dre: z.string().trim().min(1, 'DRE é obrigatória'),
+  dreNome: z.string().trim().min(1, 'DRE é obrigatória'),
+  dreCodigoEol: z.string().trim().min(1, 'DRE é obrigatória'),
+  tipo: z.literal('pendente'),
+  gestao: z.literal('parceira'),
   tipoUe: z.string().trim().min(1, 'Tipo de UE é obrigatório'),
   quantidadeMaximaAlunos: z
     .string()
@@ -56,14 +59,18 @@ const formSchema = z.object({
     .trim()
     .min(1, 'CEP é obrigatório')
     .refine(cepEstaValido, 'Informe um CEP válido.'),
-  endereco: z.string().trim().min(1, 'Endereço é obrigatório'),
+  tipoLogradouro: z.string().trim().min(1, 'Tipo de logradouro é obrigatório'),
+  logradouro: z.string().trim().min(1, 'Logradouro é obrigatório'),
+  bairro: z.string().trim().min(1, 'Bairro é obrigatório'),
+  numero: z.string().trim().min(1, 'Número é obrigatório'),
+  complemento: z.string(),
   nomeGestor: z.string().trim().min(1, 'Nome do gestor é obrigatório'),
-  emailPolo: z
+  email: z
     .string()
     .trim()
     .min(1, 'E-mail do polo é obrigatório')
     .refine(emailPoloEstaValido, 'Informe um e-mail válido para o polo.'),
-  telefonePolo: z
+  telefone: z
     .string()
     .trim()
     .min(1, 'Telefone do polo é obrigatório')
@@ -74,7 +81,7 @@ const formSchema = z.object({
   status: z.enum(['ativo', 'inativo'], {
     error: 'Selecione um status válido.',
   }),
-  observacoes: z.string(),
+  observacoesGerais: z.string(),
 })
 
 export type FormValues = z.infer<typeof formSchema>

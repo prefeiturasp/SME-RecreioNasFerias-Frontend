@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '../api/http'
 import { cadastrarPolo } from './cadastrarPolo'
-import type { PoloDetalhado } from './types'
+import type { DadosCadastroPolo, PoloDetalhado } from './types'
 
 vi.mock('../api/http', () => ({
   api: { get: vi.fn(), post: vi.fn(), put: vi.fn() },
@@ -9,37 +9,58 @@ vi.mock('../api/http', () => ({
 
 const apiPostMock = vi.mocked(api.post)
 
-const dadosPoloExemplo = {
-  tipo: 'Pendente',
-  nomeOsc: 'OSC Parceira Exemplo',
+const dadosPoloExemplo: DadosCadastroPolo = {
+  codigoEol: '123456',
   nomePolo: 'Polo Centro',
-  dre: 'DRE Butantã',
+  nomeOsc: 'OSC Parceira Exemplo',
+  dreNome: 'DRE Butantã',
+  dreCodigoEol: '108100',
+  tipo: 'pendente',
+  status: 'ativo',
+  gestao: 'parceira',
   tipoUe: 'EMEF',
   quantidadeMaximaAlunos: '50',
   cep: '05508-000',
-  endereco: 'Rua Exemplo, 100',
+  tipoLogradouro: 'Rua',
+  logradouro: 'Exemplo',
+  bairro: 'Centro',
+  numero: '100',
+  complemento: '',
   nomeGestor: 'Maria Silva',
-  emailPolo: 'polo@osc.org.br',
-  telefonePolo: '(11) 99999-9999',
+  email: 'polo@osc.org.br',
+  telefone: '(11) 99999-9999',
+  observacoesGerais: 'Polo com boa estrutura',
+}
+
+const payloadEsperado = {
+  codigo_eol: '123456',
+  nome_polo: 'Polo Centro',
+  nome_osc: 'OSC Parceira Exemplo',
+  dre_nome: 'DRE Butantã',
+  dre_codigo_eol: '108100',
+  tipo: 'pendente',
   status: 'ativo',
-  observacoes: 'Polo com boa estrutura',
-} as const
+  gestao: 'parceira',
+  tipo_ue: 'EMEF',
+  quantidade_maxima_alunos: 50,
+  cep: '05508-000',
+  tipo_logradouro: 'Rua',
+  logradouro: 'Exemplo',
+  bairro: 'Centro',
+  numero: '100',
+  complemento: '',
+  nome_gestor: 'Maria Silva',
+  email: 'polo@osc.org.br',
+  telefone: '(11) 99999-9999',
+  observacoes_gerais: 'Polo com boa estrutura',
+}
 
 const respostaCadastroExemplo: PoloDetalhado = {
-  id: '22222222-2222-2222-2222-222222222222',
-  tipo: 'Pendente',
-  nomeOsc: 'OSC Parceira Exemplo',
-  nomePolo: 'Polo Centro',
-  dre: 'DRE Butantã',
-  tipoUe: 'EMEF',
-  quantidadeMaximaAlunos: 50,
-  cep: '05508-000',
-  endereco: 'Rua Exemplo, 100',
-  nomeGestor: 'Maria Silva',
-  emailPolo: 'polo@osc.org.br',
-  telefonePolo: '(11) 99999-9999',
-  status: 'ativo',
-  observacoesGerais: 'Polo com boa estrutura',
+  uuid: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+  ...payloadEsperado,
+  ativo: true,
+  criado_em: '2026-08-27T11:28:47.128Z',
+  atualizado_em: '2026-08-27T11:28:47.128Z',
 }
 
 describe('cadastrarPolo', () => {
@@ -55,20 +76,7 @@ describe('cadastrarPolo', () => {
     )
 
     expect(apiPostMock).toHaveBeenCalledTimes(1)
-    expect(apiPostMock).toHaveBeenCalledWith('/api/polos/', {
-      nomeOsc: 'OSC Parceira Exemplo',
-      nomePolo: 'Polo Centro',
-      dre: 'DRE Butantã',
-      tipoUe: 'EMEF',
-      quantidadeMaximaAlunos: 50,
-      cep: '05508-000',
-      endereco: 'Rua Exemplo, 100',
-      nomeGestor: 'Maria Silva',
-      emailPolo: 'polo@osc.org.br',
-      telefonePolo: '(11) 99999-9999',
-      status: 'ativo',
-      observacoesGerais: 'Polo com boa estrutura',
-    })
+    expect(apiPostMock).toHaveBeenCalledWith('/api/v1/polos/', payloadEsperado)
   })
 
   it('lança erro quando a API retorna falha no cadastro', async () => {

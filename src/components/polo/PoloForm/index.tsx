@@ -33,7 +33,8 @@ import {
   aplicarMascaraTelefone,
 } from '@/utils/mascarasEntrada'
 
-const TIPO_POLO_PADRAO = 'Pendente'
+const TIPO_POLO_PADRAO = 'pendente' as const
+const GESTAO_POLO_PADRAO = 'parceira' as const
 
 type PoloFormProps = {
   poloId?: string
@@ -50,18 +51,25 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       tipo: TIPO_POLO_PADRAO,
+      gestao: GESTAO_POLO_PADRAO,
+      codigoEol: '',
       nomeOsc: '',
       nomePolo: '',
-      dre: '',
+      dreNome: '',
+      dreCodigoEol: '',
       tipoUe: '',
       quantidadeMaximaAlunos: '',
       cep: '',
-      endereco: '',
+      tipoLogradouro: '',
+      logradouro: '',
+      bairro: '',
+      numero: '',
+      complemento: '',
       nomeGestor: '',
-      emailPolo: '',
-      telefonePolo: '',
+      email: '',
+      telefone: '',
       status: 'ativo',
-      observacoes: '',
+      observacoesGerais: '',
     },
   })
 
@@ -74,18 +82,25 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
 
     form.reset({
       tipo: poloQuery.data.tipo,
-      nomeOsc: poloQuery.data.nomeOsc,
-      nomePolo: poloQuery.data.nomePolo,
-      dre: poloQuery.data.dre,
-      tipoUe: poloQuery.data.tipoUe,
-      quantidadeMaximaAlunos: String(poloQuery.data.quantidadeMaximaAlunos),
+      gestao: poloQuery.data.gestao,
+      codigoEol: poloQuery.data.codigo_eol,
+      nomeOsc: poloQuery.data.nome_osc,
+      nomePolo: poloQuery.data.nome_polo,
+      dreNome: poloQuery.data.dre_nome,
+      dreCodigoEol: poloQuery.data.dre_codigo_eol,
+      tipoUe: poloQuery.data.tipo_ue,
+      quantidadeMaximaAlunos: String(poloQuery.data.quantidade_maxima_alunos),
       cep: aplicarMascaraCep(poloQuery.data.cep),
-      endereco: poloQuery.data.endereco,
-      nomeGestor: poloQuery.data.nomeGestor,
-      emailPolo: poloQuery.data.emailPolo,
-      telefonePolo: aplicarMascaraTelefone(poloQuery.data.telefonePolo),
+      tipoLogradouro: poloQuery.data.tipo_logradouro,
+      logradouro: poloQuery.data.logradouro,
+      bairro: poloQuery.data.bairro,
+      numero: poloQuery.data.numero,
+      complemento: poloQuery.data.complemento,
+      nomeGestor: poloQuery.data.nome_gestor,
+      email: poloQuery.data.email,
+      telefone: aplicarMascaraTelefone(poloQuery.data.telefone),
       status: poloQuery.data.status,
-      observacoes: poloQuery.data.observacoesGerais,
+      observacoesGerais: poloQuery.data.observacoes_gerais,
     })
   }, [poloQuery.data, form])
 
@@ -214,6 +229,27 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
 
             <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
               <Controller
+                name="codigoEol"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="codigoEol" className="font-bold">
+                      Código EOL
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id="codigoEol"
+                      placeholder="Digite o código EOL"
+                      aria-invalid={fieldState.invalid}
+                      className="h-10 rounded-sm border-input-border-muted"
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
                 name="nomeOsc"
                 control={form.control}
                 render={({ field, fieldState }) => (
@@ -259,7 +295,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
 
             <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
               <Controller
-                name="dre"
+                name="dreCodigoEol"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
@@ -269,7 +305,14 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                     <Select
                       value={field.value}
                       onValueChange={(valor) => {
-                        if (valor) field.onChange(valor)
+                        if (!valor) return
+                        field.onChange(valor)
+                        const dreSelecionada = opcoesDre.find(
+                          (dre) => dre.codigo === valor,
+                        )
+                        form.setValue('dreNome', dreSelecionada?.nome ?? '', {
+                          shouldValidate: true,
+                        })
                       }}
                     >
                       <SelectTrigger
@@ -281,7 +324,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                       </SelectTrigger>
                       <SelectContent>
                         {opcoesDre.map((dre) => (
-                          <SelectItem key={dre.codigo} value={dre.nome}>
+                          <SelectItem key={dre.codigo} value={dre.codigo}>
                             {dre.nome}
                           </SelectItem>
                         ))}
@@ -392,23 +435,105 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                 )}
               />
               <Controller
-                name="endereco"
+                name="tipoLogradouro"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="endereco" className="font-bold">
-                      Endereço
+                    <FieldLabel htmlFor="tipoLogradouro" className="font-bold">
+                      Tipo de logradouro
                     </FieldLabel>
                     <Input
                       {...field}
-                      id="endereco"
-                      placeholder="Digite o endereço"
+                      id="tipoLogradouro"
+                      placeholder="Ex.: Rua, Avenida"
                       aria-invalid={fieldState.invalid}
                       className="h-10 rounded-sm border-input-border-muted"
                     />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
                     )}
+                  </Field>
+                )}
+              />
+            </div>
+            <Controller
+              name="logradouro"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="logradouro" className="font-bold">
+                    Logradouro
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    id="logradouro"
+                    placeholder="Digite o logradouro"
+                    aria-invalid={fieldState.invalid}
+                    className="h-10 rounded-sm border-input-border-muted"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+            <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
+              <Controller
+                name="bairro"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="bairro" className="font-bold">
+                      Bairro
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id="bairro"
+                      placeholder="Digite o bairro"
+                      aria-invalid={fieldState.invalid}
+                      className="h-10 rounded-sm border-input-border-muted"
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="numero"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="numero" className="font-bold">
+                      Número
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id="numero"
+                      placeholder="Digite o número"
+                      aria-invalid={fieldState.invalid}
+                      className="h-10 rounded-sm border-input-border-muted"
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="complemento"
+                control={form.control}
+                render={({ field }) => (
+                  <Field>
+                    <FieldLabel htmlFor="complemento" className="font-bold">
+                      Complemento
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id="complemento"
+                      placeholder="Digite o complemento"
+                      className="h-10 rounded-sm border-input-border-muted"
+                    />
                   </Field>
                 )}
               />
@@ -442,16 +567,16 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                 )}
               />
               <Controller
-                name="emailPolo"
+                name="email"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="emailPolo" className="font-bold">
+                    <FieldLabel htmlFor="email" className="font-bold">
                       E-mail do Polo
                     </FieldLabel>
                     <Input
                       {...field}
-                      id="emailPolo"
+                      id="email"
                       type="email"
                       placeholder="Digite o e-mail oficial do polo"
                       aria-invalid={fieldState.invalid}
@@ -464,16 +589,16 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                 )}
               />
               <Controller
-                name="telefonePolo"
+                name="telefone"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="telefonePolo" className="font-bold">
+                    <FieldLabel htmlFor="telefone" className="font-bold">
                       Telefone do Polo
                     </FieldLabel>
                     <Input
                       {...field}
-                      id="telefonePolo"
+                      id="telefone"
                       inputMode="tel"
                       autoComplete="tel"
                       placeholder="(00) 00000-0000"
@@ -499,16 +624,16 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
               Observações
             </h4>
             <Controller
-              name="observacoes"
+              name="observacoesGerais"
               control={form.control}
               render={({ field }) => (
                 <Field>
-                  <FieldLabel htmlFor="observacoes" className="font-bold">
+                  <FieldLabel htmlFor="observacoesGerais" className="font-bold">
                     Observações Gerais
                   </FieldLabel>
                   <Textarea
                     {...field}
-                    id="observacoes"
+                    id="observacoesGerais"
                     placeholder="Digite observações e comentários"
                     className="rounded-sm border-input-border-muted"
                   />

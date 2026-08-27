@@ -56,20 +56,30 @@ vi.mock('@/services/smeIntegracao/api', () => ({
 }))
 
 const poloCarregado: PoloDetalhado = {
-  id: '11111111-1111-1111-1111-111111111111',
-  tipo: 'Pendente',
-  nomeOsc: 'OSC Teste',
-  nomePolo: 'Polo Teste',
-  dre: 'DIRETORIA REGIONAL DE EDUCACAO BUTANTA',
-  tipoUe: 'EMEF',
-  quantidadeMaximaAlunos: 50,
-  cep: '01310100',
-  endereco: 'Av. Paulista, 1000',
-  nomeGestor: 'Gestor Teste',
-  emailPolo: 'polo@teste.com',
-  telefonePolo: '11999999999',
+  uuid: '11111111-1111-1111-1111-111111111111',
+  codigo_eol: '123456',
+  nome_polo: 'Polo Teste',
+  nome_osc: 'OSC Teste',
+  dre_nome: 'DIRETORIA REGIONAL DE EDUCACAO BUTANTA',
+  dre_codigo_eol: '108100',
+  tipo: 'pendente',
   status: 'ativo',
-  observacoesGerais: '',
+  gestao: 'parceira',
+  tipo_ue: 'EMEF',
+  quantidade_maxima_alunos: 50,
+  cep: '01310100',
+  tipo_logradouro: 'Avenida',
+  logradouro: 'Paulista',
+  bairro: 'Bela Vista',
+  numero: '1000',
+  complemento: '',
+  nome_gestor: 'Gestor Teste',
+  email: 'polo@teste.com',
+  telefone: '11999999999',
+  observacoes_gerais: '',
+  ativo: true,
+  criado_em: '2026-08-27T11:28:47.128Z',
+  atualizado_em: '2026-08-27T11:28:47.128Z',
 }
 
 const dreNome = 'DIRETORIA REGIONAL DE EDUCACAO BUTANTA'
@@ -90,6 +100,7 @@ async function selecionarOpcao(
 async function preencherFormularioValido(
   usuario: ReturnType<typeof userEvent.setup>,
 ) {
+  await usuario.type(screen.getByLabelText(/código eol/i), '123456')
   await usuario.type(screen.getByLabelText(/nome da osc/i), 'OSC Teste')
   await usuario.type(screen.getByLabelText(/nome do polo/i), 'Polo Teste')
   await selecionarOpcao(usuario, /^dre$/i, dreNome)
@@ -100,9 +111,12 @@ async function preencherFormularioValido(
   )
   await usuario.type(screen.getByPlaceholderText('00000-000'), '01310100')
   await usuario.type(
-    screen.getByPlaceholderText(/digite o endereço/i),
-    'Av. Paulista, 1000',
+    screen.getByLabelText(/tipo de logradouro/i),
+    'Avenida',
   )
+  await usuario.type(screen.getByLabelText(/^logradouro$/i), 'Paulista')
+  await usuario.type(screen.getByLabelText(/^bairro$/i), 'Bela Vista')
+  await usuario.type(screen.getByLabelText(/^número$/i), '1000')
   await usuario.type(screen.getByLabelText(/nome do gestor/i), 'Gestor Teste')
   await usuario.type(screen.getByLabelText(/e-mail do polo/i), 'polo@teste.com')
   await usuario.type(
@@ -195,7 +209,7 @@ describe('PoloForm', { timeout: 15000 }, () => {
     renderPoloForm()
     await aguardarFormularioCadastro()
 
-    expect(screen.getByLabelText(/^tipo$/i)).toHaveValue('Pendente')
+    expect(screen.getByLabelText(/^tipo$/i)).toHaveValue('pendente')
     expect(screen.queryByLabelText(/^status$/i)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Salvar' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument()
@@ -226,17 +240,23 @@ describe('PoloForm', { timeout: 15000 }, () => {
     await waitFor(() => {
       expect(cadastrarPoloMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          tipo: 'Pendente',
+          tipo: 'pendente',
+          gestao: 'parceira',
+          codigoEol: '123456',
           nomeOsc: 'OSC Teste',
           nomePolo: 'Polo Teste',
-          dre: dreNome,
+          dreNome: dreNome,
+          dreCodigoEol: '108100',
           tipoUe: 'EMEF',
           quantidadeMaximaAlunos: '50',
           cep: '01310-100',
-          endereco: 'Av. Paulista, 1000',
+          tipoLogradouro: 'Avenida',
+          logradouro: 'Paulista',
+          bairro: 'Bela Vista',
+          numero: '1000',
           nomeGestor: 'Gestor Teste',
-          emailPolo: 'polo@teste.com',
-          telefonePolo: '(11) 99999-9999',
+          email: 'polo@teste.com',
+          telefone: '(11) 99999-9999',
           status: 'ativo',
         }),
         expect.objectContaining({
@@ -317,13 +337,13 @@ describe('PoloForm em edição', { timeout: 15000 }, () => {
   })
 
   it('preenche o formulário com os dados do GET', async () => {
-    renderPoloForm(poloCarregado.id)
+    renderPoloForm(poloCarregado.uuid)
 
     expect(await screen.findByDisplayValue('OSC Teste')).toBeInTheDocument()
     expect(screen.getByDisplayValue('Polo Teste')).toBeInTheDocument()
-    expect(screen.getByLabelText(/^tipo$/i)).toHaveValue('Pendente')
+    expect(screen.getByLabelText(/^tipo$/i)).toHaveValue('pendente')
     expect(screen.getByLabelText(/^status$/i)).toBeInTheDocument()
-    expect(obterPoloMock).toHaveBeenCalledWith(poloCarregado.id)
+    expect(obterPoloMock).toHaveBeenCalledWith(poloCarregado.uuid)
   })
 
   it('exibe indicador de carregamento enquanto o GET não retorna', () => {
@@ -334,7 +354,7 @@ describe('PoloForm em edição', { timeout: 15000 }, () => {
         }),
     )
 
-    renderPoloForm(poloCarregado.id)
+    renderPoloForm(poloCarregado.uuid)
 
     expect(screen.getByText('Carregando polo parceiro...')).toBeInTheDocument()
     expect(
@@ -344,7 +364,7 @@ describe('PoloForm em edição', { timeout: 15000 }, () => {
 
   it('abre confirmação, atualiza via PUT e redireciona', async () => {
     const usuario = criarUsuario()
-    renderPoloForm(poloCarregado.id)
+    renderPoloForm(poloCarregado.uuid)
 
     const campoNome = await screen.findByLabelText(/nome do polo/i)
     await usuario.clear(campoNome)
@@ -361,7 +381,7 @@ describe('PoloForm em edição', { timeout: 15000 }, () => {
 
     await waitFor(() => {
       expect(atualizarPoloMock).toHaveBeenCalledWith(
-        poloCarregado.id,
+        poloCarregado.uuid,
         expect.objectContaining({
           nomePolo: 'Polo Atualizado',
           nomeOsc: 'OSC Teste',
@@ -375,7 +395,7 @@ describe('PoloForm em edição', { timeout: 15000 }, () => {
 
   it('não chama PUT quando a confirmação é cancelada', async () => {
     const usuario = criarUsuario()
-    renderPoloForm(poloCarregado.id)
+    renderPoloForm(poloCarregado.uuid)
 
     const campoNome = await screen.findByLabelText(/nome do polo/i)
     await usuario.clear(campoNome)
@@ -396,7 +416,7 @@ describe('PoloForm em edição', { timeout: 15000 }, () => {
       response: { data: { detalhe: 'Polo não encontrado.' } },
     })
 
-    renderPoloForm(poloCarregado.id)
+    renderPoloForm(poloCarregado.uuid)
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Polo não encontrado.',
@@ -412,7 +432,7 @@ describe('PoloForm em edição', { timeout: 15000 }, () => {
       response: { data: { detalhe: 'Não foi possível salvar o polo.' } },
     })
 
-    renderPoloForm(poloCarregado.id)
+    renderPoloForm(poloCarregado.uuid)
 
     const campoNome = await screen.findByLabelText(/nome do polo/i)
     await usuario.clear(campoNome)
