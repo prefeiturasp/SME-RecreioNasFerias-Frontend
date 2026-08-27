@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type SubmitEvent } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import type { FormValues } from './schema'
@@ -134,6 +134,11 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
     })
   }
 
+  // adia a leitura do ref para o momento do submit, evitando acesso durante o render
+  function handleFormSubmit(event: SubmitEvent<HTMLFormElement>) {
+    form.handleSubmit(onSubmit)(event)
+  }
+
   function confirmarEdicao() {
     const dados = dadosEdicaoRef.current
     if (!dados) return
@@ -146,8 +151,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
     })
   }
 
-  const estaCarregandoOpcoes =
-    dresQuery.isPending || tiposEscolaQuery.isPending
+  const estaCarregandoOpcoes = dresQuery.isPending || tiposEscolaQuery.isPending
   const erroOpcoes = dresQuery.error ?? tiposEscolaQuery.error
 
   if (!poloId && estaCarregandoOpcoes) {
@@ -175,7 +179,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
       <form
         noValidate
         aria-label="Formulário de polo"
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={handleFormSubmit}
         className="rounded-sm bg-background p-8 shadow-card max-md:p-4"
       >
         <FieldGroup>
@@ -183,12 +187,19 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
             erro={cadastroMutation.error ?? atualizacaoMutation.error}
           />
 
-          <section aria-labelledby="secao-informacoes-gerais" className="grid gap-y-5.5">
+          <section
+            aria-labelledby="secao-informacoes-gerais"
+            className="grid gap-y-5.5"
+          >
             <h4 id="secao-informacoes-gerais" className="font-bold">
               Informações Gerais
             </h4>
 
-            <div className={poloId ? 'grid gap-x-4 gap-y-5.5 lg:grid-cols-2' : undefined}>
+            <div
+              className={
+                poloId ? 'grid gap-x-4 gap-y-5.5 lg:grid-cols-2' : undefined
+              }
+            >
               <Controller
                 name="tipo"
                 control={form.control}
@@ -641,7 +652,10 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
             </div>
           </section>
 
-          <section aria-labelledby="secao-observacoes" className="grid gap-y-5.5">
+          <section
+            aria-labelledby="secao-observacoes"
+            className="grid gap-y-5.5"
+          >
             <h4 id="secao-observacoes" className="font-bold">
               Observações
             </h4>

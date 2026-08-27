@@ -68,7 +68,7 @@ describe('PoloForm schema', () => {
         ...dadosValidos,
         email: 'email-invalido',
       }),
-    ).toContain('Informe um e-mail válido para o polo.')
+    ).toContain('Digite um e-mail válido para o gestor.')
   })
 
   it('rejeita CEP incompleto', () => {

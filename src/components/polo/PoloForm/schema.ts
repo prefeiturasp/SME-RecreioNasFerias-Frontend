@@ -1,44 +1,11 @@
 import { z } from 'zod'
-import { extrairDigitos } from '@/utils/mascarasEntrada'
-
-function cepEstaValido(valor: string): boolean {
-  return extrairDigitos(valor).length === 8
-}
-
-function telefoneEstaValido(valor: string): boolean {
-  const quantidadeDigitos = extrairDigitos(valor).length
-  return quantidadeDigitos === 10 || quantidadeDigitos === 11
-}
-
-function emailPoloEstaValido(email: string): boolean {
-  const indiceArroba = email.indexOf('@')
-
-  if (indiceArroba <= 0 || indiceArroba !== email.lastIndexOf('@')) {
-    return false
-  }
-
-  const parteLocal = email.slice(0, indiceArroba)
-  const parteDominio = email.slice(indiceArroba + 1)
-  const indicePonto = parteDominio.lastIndexOf('.')
-
-  if (indicePonto <= 0 || indicePonto === parteDominio.length - 1) {
-    return false
-  }
-
-  return (
-    parteLocal.length > 0 &&
-    !parteLocal.includes(' ') &&
-    !parteDominio.includes(' ')
-  )
-}
-
-function quantidadeMaximaAlunosEstaValida(valor: string): boolean {
-  const quantidade = Number(valor)
-  return Number.isInteger(quantidade) && quantidade > 0
-}
 
 const formSchema = z.object({
-  codigoEol: z.string().trim().min(1, 'Código EOL é obrigatório'),
+  codigoEol: z
+    .string()
+    .trim()
+    .min(6, 'Código EOL é obrigatório e não pode ser menor que 6 caracteres')
+    .max(7, 'Código EOL não pode ser maior que 7 caracteres'),
   nomeOsc: z.string().trim().min(1, 'Nome da OSC é obrigatório'),
   nomePolo: z.string().trim().min(1, 'Nome do polo é obrigatório'),
   dreNome: z.string().trim().min(1, 'DRE é obrigatória'),
@@ -50,15 +17,15 @@ const formSchema = z.object({
     .string()
     .trim()
     .min(1, 'Quantidade máxima de alunos é obrigatória')
-    .refine(
-      quantidadeMaximaAlunosEstaValida,
+    .regex(
+      /^(?=.*[1-9])\d+$/,
       'Informe uma quantidade máxima de alunos válida.',
     ),
   cep: z
     .string()
     .trim()
     .min(1, 'CEP é obrigatório')
-    .refine(cepEstaValido, 'Informe um CEP válido.'),
+    .regex(/^\d{5}-?\d{3}$/, 'Informe um CEP válido.'),
   tipoLogradouro: z.string().trim().min(1, 'Tipo de logradouro é obrigatório'),
   logradouro: z.string().trim().min(1, 'Logradouro é obrigatório'),
   bairro: z.string().trim().min(1, 'Bairro é obrigatório'),
@@ -66,16 +33,17 @@ const formSchema = z.object({
   complemento: z.string(),
   nomeGestor: z.string().trim().min(1, 'Nome do gestor é obrigatório'),
   email: z
-    .string()
+    .email({
+      error: 'Digite um e-mail válido para o gestor.',
+    })
     .trim()
-    .min(1, 'E-mail do polo é obrigatório')
-    .refine(emailPoloEstaValido, 'Informe um e-mail válido para o polo.'),
+    .toLowerCase(),
   telefone: z
     .string()
     .trim()
     .min(1, 'Telefone do polo é obrigatório')
-    .refine(
-      telefoneEstaValido,
+    .regex(
+      /^(?:\d{10}|\d{11}|\(\d{2}\) \d{4,5}-\d{4})$/,
       'Informe um telefone válido para o polo.',
     ),
   status: z.enum(['ativo', 'inativo'], {
