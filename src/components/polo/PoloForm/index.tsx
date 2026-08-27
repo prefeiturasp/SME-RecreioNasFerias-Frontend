@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { useGetDresPolo } from '@/hooks/useGetDresPolo'
 import { useGetPolo } from '@/hooks/useGetPolo'
 import { usePostPolo } from '@/hooks/usePostPolo'
 import { usePutPolo } from '@/hooks/usePutPolo'
@@ -44,8 +45,10 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
   const navigate = useNavigate()
   const [confirmacaoAberta, setConfirmacaoAberta] = useState(false)
   const dadosEdicaoRef = useRef<FormValues | null>(null)
-  const { opcoesDre, opcoesTipoUe, estaCarregando: estaCarregandoOpcoes } =
+  const { opcoesTipoUe, estaCarregando: estaCarregandoTipoUe } =
     useOpcoesIntegracaoPolosParceiros()
+  const dresQuery = useGetDresPolo()
+  const opcoesDre = dresQuery.data ?? []
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -143,8 +146,14 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
     })
   }
 
+  const estaCarregandoOpcoes = dresQuery.isPending || estaCarregandoTipoUe
+
   if (!poloId && estaCarregandoOpcoes) {
     return <IndicadorCarregamento mensagem="Carregando formulário..." />
+  }
+
+  if (!poloId && dresQuery.isError) {
+    return <AlertaErroApi erro={dresQuery.error} />
   }
 
   if (poloId && (poloQuery.isPending || estaCarregandoOpcoes)) {
@@ -153,6 +162,10 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
 
   if (poloId && !poloQuery.data) {
     return <AlertaErroApi erro={poloQuery.error} />
+  }
+
+  if (poloId && dresQuery.isError) {
+    return <AlertaErroApi erro={dresQuery.error} />
   }
 
   return (
@@ -308,11 +321,15 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                         if (!valor) return
                         field.onChange(valor)
                         const dreSelecionada = opcoesDre.find(
-                          (dre) => dre.codigo === valor,
+                          (dre) => dre.codigo_dre === valor,
                         )
-                        form.setValue('dreNome', dreSelecionada?.nome ?? '', {
-                          shouldValidate: true,
-                        })
+                        form.setValue(
+                          'dreNome',
+                          dreSelecionada?.nome_dre ?? '',
+                          {
+                            shouldValidate: true,
+                          },
+                        )
                       }}
                     >
                       <SelectTrigger
@@ -324,8 +341,11 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                       </SelectTrigger>
                       <SelectContent>
                         {opcoesDre.map((dre) => (
-                          <SelectItem key={dre.codigo} value={dre.codigo}>
-                            {dre.nome}
+                          <SelectItem
+                            key={dre.codigo_dre}
+                            value={dre.codigo_dre}
+                          >
+                            {dre.nome_dre}
                           </SelectItem>
                         ))}
                       </SelectContent>

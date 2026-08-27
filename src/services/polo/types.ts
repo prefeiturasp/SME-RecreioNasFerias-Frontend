@@ -2,6 +2,12 @@ export type StatusPolo = 'ativo' | 'inativo'
 export type TipoPolo = 'pendente'
 export type GestaoPolo = 'parceira'
 
+export type DrePolo = {
+  codigo_dre: string
+  nome_dre: string
+  sigla_dre: string
+}
+
 export type Polo = {
   id: string
   dre: string

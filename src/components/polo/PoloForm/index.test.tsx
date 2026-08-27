@@ -10,13 +10,13 @@ const {
   cadastrarPoloMock,
   obterPoloMock,
   atualizarPoloMock,
-  listarDresNomeAbreviacaoMock,
+  listarDresPoloMock,
   listarTiposEscolasMock,
 } = vi.hoisted(() => ({
   cadastrarPoloMock: vi.fn(),
   obterPoloMock: vi.fn(),
   atualizarPoloMock: vi.fn(),
-  listarDresNomeAbreviacaoMock: vi.fn(),
+  listarDresPoloMock: vi.fn(),
   listarTiposEscolasMock: vi.fn(),
 }))
 
@@ -50,8 +50,18 @@ vi.mock('@/services/polo/atualizarPolo', async (importOriginal) => {
   }
 })
 
+vi.mock('@/services/polo/listarDresPolo', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@/services/polo/listarDresPolo')>()
+
+  return {
+    ...actual,
+    listarDresPolo: listarDresPoloMock,
+  }
+})
+
 vi.mock('@/services/smeIntegracao/api', () => ({
-  listarDresNomeAbreviacao: listarDresNomeAbreviacaoMock,
+  listarDresNomeAbreviacao: vi.fn().mockResolvedValue([]),
   listarTiposEscolas: listarTiposEscolasMock,
 }))
 
@@ -174,11 +184,11 @@ describe('PoloForm', { timeout: 15000 }, () => {
     cadastrarPoloMock.mockReset()
     obterPoloMock.mockReset()
     atualizarPoloMock.mockReset()
-    listarDresNomeAbreviacaoMock.mockResolvedValue([
+    listarDresPoloMock.mockResolvedValue([
       {
-        codigo: '108100',
-        nome: dreNome,
-        abreviacao: 'DRE - BT',
+        codigo_dre: '108100',
+        nome_dre: dreNome,
+        sigla_dre: 'BT',
       },
     ])
     listarTiposEscolasMock.mockResolvedValue([
@@ -192,7 +202,7 @@ describe('PoloForm', { timeout: 15000 }, () => {
   })
 
   it('exibe indicador de carregamento antes das opções dos selects', () => {
-    listarDresNomeAbreviacaoMock.mockImplementation(
+    listarDresPoloMock.mockImplementation(
       () =>
         new Promise(() => {
           /* pendente */
@@ -318,11 +328,11 @@ describe('PoloForm em edição', { timeout: 15000 }, () => {
     cadastrarPoloMock.mockReset()
     obterPoloMock.mockReset()
     atualizarPoloMock.mockReset()
-    listarDresNomeAbreviacaoMock.mockResolvedValue([
+    listarDresPoloMock.mockResolvedValue([
       {
-        codigo: '108100',
-        nome: dreNome,
-        abreviacao: 'DRE - BT',
+        codigo_dre: '108100',
+        nome_dre: dreNome,
+        sigla_dre: 'BT',
       },
     ])
     listarTiposEscolasMock.mockResolvedValue([
