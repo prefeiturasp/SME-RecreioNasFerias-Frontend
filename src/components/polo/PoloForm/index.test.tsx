@@ -11,13 +11,13 @@ const {
   obterPoloMock,
   atualizarPoloMock,
   listarDresPoloMock,
-  listarTiposEscolasMock,
+  listarTiposEscolaPoloMock,
 } = vi.hoisted(() => ({
   cadastrarPoloMock: vi.fn(),
   obterPoloMock: vi.fn(),
   atualizarPoloMock: vi.fn(),
   listarDresPoloMock: vi.fn(),
-  listarTiposEscolasMock: vi.fn(),
+  listarTiposEscolaPoloMock: vi.fn(),
 }))
 
 vi.mock('@/services/polo/cadastrarPolo', async (importOriginal) => {
@@ -60,10 +60,17 @@ vi.mock('@/services/polo/listarDresPolo', async (importOriginal) => {
   }
 })
 
-vi.mock('@/services/smeIntegracao/api', () => ({
-  listarDresNomeAbreviacao: vi.fn().mockResolvedValue([]),
-  listarTiposEscolas: listarTiposEscolasMock,
-}))
+vi.mock('@/services/polo/listarTiposEscolaPolo', async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import('@/services/polo/listarTiposEscolaPolo')
+    >()
+
+  return {
+    ...actual,
+    listarTiposEscolaPolo: listarTiposEscolaPoloMock,
+  }
+})
 
 const poloCarregado: PoloDetalhado = {
   uuid: '11111111-1111-1111-1111-111111111111',
@@ -191,11 +198,10 @@ describe('PoloForm', { timeout: 15000 }, () => {
         sigla_dre: 'BT',
       },
     ])
-    listarTiposEscolasMock.mockResolvedValue([
+    listarTiposEscolaPoloMock.mockResolvedValue([
       {
         codigo: 1,
-        descricaoSigla: 'EMEF',
-        dtAtualizacao: '2012-01-13T14:09:23.647',
+        descricao_sigla: 'EMEF',
       },
     ])
     cadastrarPoloMock.mockResolvedValue(poloCarregado)
@@ -335,11 +341,10 @@ describe('PoloForm em edição', { timeout: 15000 }, () => {
         sigla_dre: 'BT',
       },
     ])
-    listarTiposEscolasMock.mockResolvedValue([
+    listarTiposEscolaPoloMock.mockResolvedValue([
       {
         codigo: 1,
-        descricaoSigla: 'EMEF',
-        dtAtualizacao: '2012-01-13T14:09:23.647',
+        descricao_sigla: 'EMEF',
       },
     ])
     obterPoloMock.mockResolvedValue(poloCarregado)

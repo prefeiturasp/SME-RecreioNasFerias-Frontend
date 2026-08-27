@@ -40,6 +40,10 @@ vi.mock('../services/polo/listarDresPolo', () => ({
   listarDresPolo: vi.fn().mockResolvedValue([]),
 }))
 
+vi.mock('../services/polo/listarTiposEscolaPolo', () => ({
+  listarTiposEscolaPolo: vi.fn().mockResolvedValue([]),
+}))
+
 vi.mock('../services/polo/obterPolo', () => ({
   obterPolo: vi.fn().mockResolvedValue({
     uuid: '11111111-1111-1111-1111-111111111111',

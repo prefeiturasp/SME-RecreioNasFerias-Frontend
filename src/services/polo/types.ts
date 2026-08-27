@@ -8,6 +8,11 @@ export type DrePolo = {
   sigla_dre: string
 }
 
+export type TipoEscolaPolo = {
+  codigo: number
+  descricao_sigla: string
+}
+
 export type Polo = {
   id: string
   dre: string

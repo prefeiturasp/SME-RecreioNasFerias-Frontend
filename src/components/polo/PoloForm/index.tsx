@@ -26,9 +26,9 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { useGetDresPolo } from '@/hooks/useGetDresPolo'
 import { useGetPolo } from '@/hooks/useGetPolo'
+import { useGetTiposEscolaPolo } from '@/hooks/useGetTiposEscolaPolo'
 import { usePostPolo } from '@/hooks/usePostPolo'
 import { usePutPolo } from '@/hooks/usePutPolo'
-import { useOpcoesIntegracaoPolosParceiros } from '@/services/smeIntegracao/useOpcoesIntegracaoPolosParceiros'
 import {
   aplicarMascaraCep,
   aplicarMascaraTelefone,
@@ -45,10 +45,10 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
   const navigate = useNavigate()
   const [confirmacaoAberta, setConfirmacaoAberta] = useState(false)
   const dadosEdicaoRef = useRef<FormValues | null>(null)
-  const { opcoesTipoUe, estaCarregando: estaCarregandoTipoUe } =
-    useOpcoesIntegracaoPolosParceiros()
   const dresQuery = useGetDresPolo()
+  const tiposEscolaQuery = useGetTiposEscolaPolo()
   const opcoesDre = dresQuery.data ?? []
+  const opcoesTipoUe = tiposEscolaQuery.data ?? []
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -146,14 +146,16 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
     })
   }
 
-  const estaCarregandoOpcoes = dresQuery.isPending || estaCarregandoTipoUe
+  const estaCarregandoOpcoes =
+    dresQuery.isPending || tiposEscolaQuery.isPending
+  const erroOpcoes = dresQuery.error ?? tiposEscolaQuery.error
 
   if (!poloId && estaCarregandoOpcoes) {
     return <IndicadorCarregamento mensagem="Carregando formulário..." />
   }
 
-  if (!poloId && dresQuery.isError) {
-    return <AlertaErroApi erro={dresQuery.error} />
+  if (!poloId && erroOpcoes) {
+    return <AlertaErroApi erro={erroOpcoes} />
   }
 
   if (poloId && (poloQuery.isPending || estaCarregandoOpcoes)) {
@@ -164,8 +166,8 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
     return <AlertaErroApi erro={poloQuery.error} />
   }
 
-  if (poloId && dresQuery.isError) {
-    return <AlertaErroApi erro={dresQuery.error} />
+  if (poloId && erroOpcoes) {
+    return <AlertaErroApi erro={erroOpcoes} />
   }
 
   return (
@@ -381,9 +383,9 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                         {opcoesTipoUe.map((tipoUe) => (
                           <SelectItem
                             key={tipoUe.codigo}
-                            value={tipoUe.descricaoSigla}
+                            value={tipoUe.descricao_sigla}
                           >
-                            {tipoUe.descricaoSigla}
+                            {tipoUe.descricao_sigla}
                           </SelectItem>
                         ))}
                       </SelectContent>
