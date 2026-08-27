@@ -209,7 +209,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                         <SelectTrigger
                           id="status"
                           aria-invalid={fieldState.invalid}
-                          className="h-10 w-full min-w-0 rounded-sm border-input-border-muted"
+                          className="h-10 w-full min-w-0 rounded-sm border-input-border-muted data-[size=default]:h-10"
                         >
                           <SelectValue placeholder="Selecione o status" />
                         </SelectTrigger>
@@ -318,7 +318,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                       <SelectTrigger
                         id="dre"
                         aria-invalid={fieldState.invalid}
-                        className="h-10 w-full min-w-0 rounded-sm border-input-border-muted"
+                        className="h-10 w-full min-w-0 rounded-sm border-input-border-muted data-[size=default]:h-10"
                       >
                         <SelectValue placeholder="Selecione a DRE" />
                       </SelectTrigger>
@@ -353,7 +353,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                       <SelectTrigger
                         id="tipoUe"
                         aria-invalid={fieldState.invalid}
-                        className="h-10 w-full min-w-0 rounded-sm border-input-border-muted"
+                        className="h-10 w-full min-w-0 rounded-sm border-input-border-muted data-[size=default]:h-10"
                       >
                         <SelectValue placeholder="Selecione o tipo" />
                       </SelectTrigger>
