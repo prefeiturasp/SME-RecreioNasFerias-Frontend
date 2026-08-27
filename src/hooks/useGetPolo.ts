@@ -1,17 +1,17 @@
 import { useQuery } from '@tanstack/react-query'
 import { obterPolo } from '@/services/polo/obterPolo'
 
-export function useGetPolo(id: string | undefined) {
+export function useGetPolo(uuid: string | undefined) {
   return useQuery({
-    queryKey: ['polo', id],
+    queryKey: ['polo', uuid],
     queryFn: () => {
-      if (!id) {
-        throw new Error('Id do polo não informado.')
+      if (!uuid) {
+        throw new Error('UUID do polo não informado.')
       }
 
-      return obterPolo(id)
+      return obterPolo(uuid)
     },
-    enabled: Boolean(id),
+    enabled: Boolean(uuid),
   })
 }
 
