@@ -26,22 +26,16 @@ vi.mock('../components/MenuLateral', () => ({
   MenuLateral: () => <aside aria-label="menu lateral">Menu lateral</aside>,
 }))
 
-vi.mock('../services/poloParceiro/api', () => ({
-  listarPolosParceiros: vi.fn().mockResolvedValue({
-    polos: [],
-    pagina: 1,
-    tamanhoPagina: 10,
-    total: 0,
-    totalPaginas: 0,
-  }),
+vi.mock('../services/polo/listarPolos', () => ({
+  listarPolos: vi.fn().mockResolvedValue([]),
 }))
 
-vi.mock('../services/polo/listarDresPolo', () => ({
-  listarDresPolo: vi.fn().mockResolvedValue([]),
+vi.mock('../services/dre/listarDres', () => ({
+  listarDres: vi.fn().mockResolvedValue([]),
 }))
 
-vi.mock('../services/polo/listarTiposEscolaPolo', () => ({
-  listarTiposEscolaPolo: vi.fn().mockResolvedValue([]),
+vi.mock('../services/tipoEscola/listarTiposEscola', () => ({
+  listarTiposEscola: vi.fn().mockResolvedValue([]),
 }))
 
 vi.mock('../services/polo/obterPolo', () => ({
@@ -75,7 +69,7 @@ vi.mock('../services/polo/obterPolo', () => ({
 
 vi.mock('../services/smeIntegracao/api', () => ({
   listarDresNomeAbreviacao: vi.fn().mockResolvedValue([]),
-  listarTiposEscolas: vi.fn().mockResolvedValue([]),
+  listarTiposEscola: vi.fn().mockResolvedValue([]),
 }))
 
 vi.mock(
@@ -217,11 +211,7 @@ describe('RotasAplicacao', () => {
       descricaoCargo: 'CARGO TESTE',
     })
 
-    render(
-      <MemoryRouter initialEntries={['/polos-parceiros']}>
-        <RotasAplicacao />
-      </MemoryRouter>,
-    )
+    renderRotas('/polos-parceiros')
 
     const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
     expect(mapa).toHaveTextContent('Início')
@@ -232,7 +222,7 @@ describe('RotasAplicacao', () => {
     ).toBeInTheDocument()
     expect(screen.getByText(/filtrar polos/i)).toBeInTheDocument()
     expect(
-      await screen.findByText(/resultados da pesquisa/i),
+      await screen.findByText(/nenhum polo cadastrado/i),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: /adicionar polo parceiro/i }),
@@ -264,9 +254,7 @@ describe('RotasAplicacao', () => {
       descricaoCargo: 'CARGO TESTE',
     })
 
-    renderRotas(
-      '/editar-polo-parceiro/11111111-1111-1111-1111-111111111111',
-    )
+    renderRotas('/editar-polo-parceiro/11111111-1111-1111-1111-111111111111')
 
     expect(
       screen.getByRole('heading', { name: /editar polo parceiro/i }),
@@ -283,11 +271,7 @@ describe('RotasAplicacao', () => {
       descricaoCargo: 'CARGO TESTE',
     })
 
-    render(
-      <MemoryRouter initialEntries={['/definicoes-polo']}>
-        <RotasAplicacao />
-      </MemoryRouter>,
-    )
+    renderRotas('/definicoes-polo')
 
     const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
     expect(mapa).toHaveTextContent('Início')
