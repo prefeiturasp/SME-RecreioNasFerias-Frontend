@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '../api/http'
-import { listarTiposEscolaPolo } from './listarTiposEscolaPolo'
-import type { TipoEscolaPolo } from './types'
+import { listarTiposEscola } from './listarTiposEscola'
+import type { TipoEscola } from './types'
 
 vi.mock('../api/http', () => ({
   api: { get: vi.fn(), post: vi.fn(), put: vi.fn() },
@@ -9,12 +9,12 @@ vi.mock('../api/http', () => ({
 
 const apiGetMock = vi.mocked(api.get)
 
-const tipoEscolaExemplo: TipoEscolaPolo = {
+const tipoEscolaExemplo: TipoEscola = {
   codigo: 1,
   descricao_sigla: 'EMEF',
 }
 
-describe('listarTiposEscolaPolo', () => {
+describe('listarTiposEscola', () => {
   beforeEach(() => {
     apiGetMock.mockReset()
   })
@@ -22,7 +22,7 @@ describe('listarTiposEscolaPolo', () => {
   it('envia GET e devolve o array da API', async () => {
     apiGetMock.mockResolvedValue({ data: [tipoEscolaExemplo] })
 
-    await expect(listarTiposEscolaPolo()).resolves.toEqual([tipoEscolaExemplo])
+    await expect(listarTiposEscola()).resolves.toEqual([tipoEscolaExemplo])
 
     expect(apiGetMock).toHaveBeenCalledTimes(1)
     expect(apiGetMock).toHaveBeenCalledWith('/api/v1/polos/tipos-escola/')
@@ -31,7 +31,7 @@ describe('listarTiposEscolaPolo', () => {
   it('retorna lista vazia quando a API devolve array vazio', async () => {
     apiGetMock.mockResolvedValue({ data: [] })
 
-    await expect(listarTiposEscolaPolo()).resolves.toEqual([])
+    await expect(listarTiposEscola()).resolves.toEqual([])
   })
 
   it('lança erro quando a API retorna falha', async () => {
@@ -42,7 +42,7 @@ describe('listarTiposEscolaPolo', () => {
       },
     })
 
-    await expect(listarTiposEscolaPolo()).rejects.toMatchObject({
+    await expect(listarTiposEscola()).rejects.toMatchObject({
       response: {
         data: { detalhe: 'Credenciais inválidas.' },
       },
@@ -52,7 +52,7 @@ describe('listarTiposEscolaPolo', () => {
   it('não inventa mensagem quando o corpo de erro está vazio', async () => {
     apiGetMock.mockRejectedValue({ response: { status: 500, data: {} } })
 
-    await expect(listarTiposEscolaPolo()).rejects.toMatchObject({
+    await expect(listarTiposEscola()).rejects.toMatchObject({
       response: { data: {} },
     })
   })
