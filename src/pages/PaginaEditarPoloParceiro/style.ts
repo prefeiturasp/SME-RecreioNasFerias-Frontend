@@ -1,25 +1,8 @@
 export {
   AreaConteudo,
-  BotaoCancelarFormulario,
-  BotaoSalvarFormulario,
   BotaoVoltar,
   CabecalhoAreaInternaConteudo,
-  ContainerPaginaCadastrarPoloParceiro as ContainerPaginaEditarPoloParceiro,
-  FormularioCadastroPoloParceiro,
-  LinhaDeControlesFormularioCadastroNovaEdicao,
-  MensagemErroFormulario,
+  ContainerPaginaEdicoesPrograma as ContainerPaginaEditarPoloParceiro,
   RotuloBotaoVoltar,
   SecaoPrincipal,
-} from '../PaginaCadastrarPoloParceiro/style'
-
-export {
-  CampoNumericoFormularioPoloParceiro,
-  CampoSeletorFormularioPoloParceiro,
-  CampoTextareaFormularioPoloParceiro,
-  CampoTextoFormularioPoloParceiro,
-  LinhaFormularioColunaUnicaPoloParceiro,
-  LinhaFormularioDuasColunasPoloParceiro,
-  LinhaFormularioTresColunasPoloParceiro,
-  SecaoFormularioPoloParceiro,
-  TituloSecaoFormularioPoloParceiro,
-} from '../shared/poloParceiroFormStyles'
+} from '../shared/edicoesProgramaStyles'
