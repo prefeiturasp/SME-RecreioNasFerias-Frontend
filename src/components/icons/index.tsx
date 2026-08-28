@@ -179,7 +179,9 @@ export function IconeFiltro() {
   )
 }
 
-export function ChevronDownIcon() {
+export function ChevronDownIcon({
+  className,
+}: Readonly<{ className?: string }>) {
   return (
     <svg
       width="16"
@@ -187,6 +189,7 @@ export function ChevronDownIcon() {
       viewBox="0 0 16 16"
       fill="none"
       aria-hidden="true"
+      className={className}
     >
       <path
         d="M4 6l4 4 4-4"
