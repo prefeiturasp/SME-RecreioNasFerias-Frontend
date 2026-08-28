@@ -46,7 +46,7 @@ export function Paginacao({
             size="icon"
             aria-label="Página anterior"
             disabled={paginaAtual <= 1}
-            className="text-brand-dark"
+            className="text-brand-dark border-none p-1.5!"
             onClick={() => onMudarPagina(paginaAtual - 1)}
           >
             <ChevronLeftIcon />
@@ -73,7 +73,7 @@ export function Paginacao({
                 aria-label={`Página ${item.numero}`}
                 aria-current={ativa ? 'page' : undefined}
                 className={cn(
-                  'min-w-8 w-auto px-1.5',
+                  'min-w-8 w-auto p-1.5!',
                   ativa &&
                     'border-brand-dark bg-brand-dark font-bold text-background hover:border-brand-dark hover:bg-brand-dark-hover hover:text-background',
                 )}
@@ -92,7 +92,7 @@ export function Paginacao({
             size="icon"
             aria-label="Próxima página"
             disabled={paginaAtual >= totalPaginas}
-            className="text-brand-dark"
+            className="text-brand-dark border-none p-1.5!"
             onClick={() => onMudarPagina(paginaAtual + 1)}
           >
             <ChevronRightIcon />
