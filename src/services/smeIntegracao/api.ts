@@ -54,7 +54,7 @@ export async function listarDresNomeAbreviacao(): Promise<DreNomeAbreviacao[]> {
   }
 }
 
-export async function listarTiposEscolas(): Promise<TipoEscola[]> {
+export async function listarTiposEscola(): Promise<TipoEscola[]> {
   if (!obterSmeIntegracaoApiKey()) {
     throw new ErroListagemTiposEscolas(
       'Chave da API de integração não configurada.',

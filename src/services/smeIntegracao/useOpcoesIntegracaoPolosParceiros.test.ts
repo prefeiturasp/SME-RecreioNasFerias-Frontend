@@ -3,16 +3,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useOpcoesIntegracaoPolosParceiros } from './useOpcoesIntegracaoPolosParceiros'
 
-const { listarDresNomeAbreviacaoMock, listarTiposEscolasMock } = vi.hoisted(
+const { listarDresNomeAbreviacaoMock, listarTiposEscolaMock } = vi.hoisted(
   () => ({
     listarDresNomeAbreviacaoMock: vi.fn(),
-    listarTiposEscolasMock: vi.fn(),
+    listarTiposEscolaMock: vi.fn(),
   }),
 )
 
 vi.mock('./api', () => ({
   listarDresNomeAbreviacao: listarDresNomeAbreviacaoMock,
-  listarTiposEscolas: listarTiposEscolasMock,
+  listarTiposEscola: listarTiposEscolaMock,
 }))
 
 describe('useOpcoesIntegracaoPolosParceiros', () => {
@@ -24,7 +24,7 @@ describe('useOpcoesIntegracaoPolosParceiros', () => {
         abreviacao: 'DRE - BT',
       },
     ])
-    listarTiposEscolasMock.mockResolvedValue([
+    listarTiposEscolaMock.mockResolvedValue([
       {
         codigo: 1,
         descricaoSigla: 'EMEF',
@@ -62,7 +62,7 @@ describe('useOpcoesIntegracaoPolosParceiros', () => {
 
   it('mantém listas vazias quando as APIs falham', async () => {
     listarDresNomeAbreviacaoMock.mockRejectedValue(new Error('falha'))
-    listarTiposEscolasMock.mockRejectedValue(new Error('falha'))
+    listarTiposEscolaMock.mockRejectedValue(new Error('falha'))
 
     const { result } = renderHook(() => useOpcoesIntegracaoPolosParceiros())
 
