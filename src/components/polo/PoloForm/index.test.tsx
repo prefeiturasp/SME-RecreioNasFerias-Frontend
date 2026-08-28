@@ -10,14 +10,14 @@ const {
   cadastrarPoloMock,
   obterPoloMock,
   atualizarPoloMock,
-  listarDresPoloMock,
-  listarTiposEscolaPoloMock,
+  listarDresMock,
+  listarTiposEscolaMock,
 } = vi.hoisted(() => ({
   cadastrarPoloMock: vi.fn(),
   obterPoloMock: vi.fn(),
   atualizarPoloMock: vi.fn(),
-  listarDresPoloMock: vi.fn(),
-  listarTiposEscolaPoloMock: vi.fn(),
+  listarDresMock: vi.fn(),
+  listarTiposEscolaMock: vi.fn(),
 }))
 
 vi.mock('@/services/polo/cadastrarPolo', async (importOriginal) => {
@@ -50,25 +50,25 @@ vi.mock('@/services/polo/atualizarPolo', async (importOriginal) => {
   }
 })
 
-vi.mock('@/services/polo/listarDresPolo', async (importOriginal) => {
+vi.mock('@/services/dre/listarDres', async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import('@/services/polo/listarDresPolo')>()
+    await importOriginal<typeof import('@/services/dre/listarDres')>()
 
   return {
     ...actual,
-    listarDresPolo: listarDresPoloMock,
+    listarDres: listarDresMock,
   }
 })
 
-vi.mock('@/services/polo/listarTiposEscolaPolo', async (importOriginal) => {
+vi.mock('@/services/tipoEscola/listarTiposEscola', async (importOriginal) => {
   const actual =
     await importOriginal<
-      typeof import('@/services/polo/listarTiposEscolaPolo')
+      typeof import('@/services/tipoEscola/listarTiposEscola')
     >()
 
   return {
     ...actual,
-    listarTiposEscolaPolo: listarTiposEscolaPoloMock,
+    listarTiposEscola: listarTiposEscolaMock,
   }
 })
 
@@ -127,10 +127,7 @@ async function preencherFormularioValido(
     '50',
   )
   await usuario.type(screen.getByPlaceholderText('00000-000'), '01310100')
-  await usuario.type(
-    screen.getByLabelText(/tipo de logradouro/i),
-    'Avenida',
-  )
+  await usuario.type(screen.getByLabelText(/tipo de logradouro/i), 'Avenida')
   await usuario.type(screen.getByLabelText(/^logradouro$/i), 'Paulista')
   await usuario.type(screen.getByLabelText(/^bairro$/i), 'Bela Vista')
   await usuario.type(screen.getByLabelText(/^número$/i), '1000')
@@ -191,14 +188,14 @@ describe('PoloForm', { timeout: 15000 }, () => {
     cadastrarPoloMock.mockReset()
     obterPoloMock.mockReset()
     atualizarPoloMock.mockReset()
-    listarDresPoloMock.mockResolvedValue([
+    listarDresMock.mockResolvedValue([
       {
         codigo_dre: '108100',
         nome_dre: dreNome,
         sigla_dre: 'BT',
       },
     ])
-    listarTiposEscolaPoloMock.mockResolvedValue([
+    listarTiposEscolaMock.mockResolvedValue([
       {
         codigo: 1,
         descricao_sigla: 'EMEF',
@@ -208,7 +205,7 @@ describe('PoloForm', { timeout: 15000 }, () => {
   })
 
   it('exibe indicador de carregamento antes das opções dos selects', () => {
-    listarDresPoloMock.mockImplementation(
+    listarDresMock.mockImplementation(
       () =>
         new Promise(() => {
           /* pendente */
@@ -334,14 +331,14 @@ describe('PoloForm em edição', { timeout: 15000 }, () => {
     cadastrarPoloMock.mockReset()
     obterPoloMock.mockReset()
     atualizarPoloMock.mockReset()
-    listarDresPoloMock.mockResolvedValue([
+    listarDresMock.mockResolvedValue([
       {
         codigo_dre: '108100',
         nome_dre: dreNome,
         sigla_dre: 'BT',
       },
     ])
-    listarTiposEscolaPoloMock.mockResolvedValue([
+    listarTiposEscolaMock.mockResolvedValue([
       {
         codigo: 1,
         descricao_sigla: 'EMEF',

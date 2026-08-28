@@ -24,9 +24,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { useGetDresPolo } from '@/hooks/useGetDresPolo'
+import { useGetDres } from '@/hooks/useGetDres'
 import { useGetPolo } from '@/hooks/useGetPolo'
-import { useGetTiposEscolaPolo } from '@/hooks/useGetTiposEscolaPolo'
+import { useGetTiposEscola } from '@/hooks/useGetTiposEscola'
 import { usePostPolo } from '@/hooks/usePostPolo'
 import { usePutPolo } from '@/hooks/usePutPolo'
 import {
@@ -45,8 +45,8 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
   const navigate = useNavigate()
   const [confirmacaoAberta, setConfirmacaoAberta] = useState(false)
   const dadosEdicaoRef = useRef<FormValues | null>(null)
-  const dresQuery = useGetDresPolo()
-  const tiposEscolaQuery = useGetTiposEscolaPolo()
+  const dresQuery = useGetDres()
+  const tiposEscolaQuery = useGetTiposEscola()
   const opcoesDre = dresQuery.data ?? []
   const opcoesTipoUe = tiposEscolaQuery.data ?? []
 

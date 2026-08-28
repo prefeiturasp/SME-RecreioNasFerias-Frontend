@@ -5,7 +5,7 @@ import {
   ErroListagemDresNomeAbreviacao,
   ErroListagemTiposEscolas,
   listarDresNomeAbreviacao,
-  listarTiposEscolas,
+  listarTiposEscola,
 } from './api'
 
 vi.mock('../api/http', () => ({
@@ -95,7 +95,7 @@ describe('listarDresNomeAbreviacao', () => {
   })
 })
 
-describe('listarTiposEscolas', () => {
+describe('listarTiposEscola', () => {
   const originalApiKey = import.meta.env.VITE_SME_INTEGRACAO_API_KEY
 
   beforeEach(() => {
@@ -120,7 +120,7 @@ describe('listarTiposEscolas', () => {
       ],
     })
 
-    await expect(listarTiposEscolas()).resolves.toEqual([
+    await expect(listarTiposEscola()).resolves.toEqual([
       {
         codigo: 17,
         descricaoSigla: 'CEU EMEI',
@@ -141,10 +141,10 @@ describe('listarTiposEscolas', () => {
   it('lança erro quando a chave da API não está configurada', async () => {
     import.meta.env.VITE_SME_INTEGRACAO_API_KEY = ''
 
-    await expect(listarTiposEscolas()).rejects.toBeInstanceOf(
+    await expect(listarTiposEscola()).rejects.toBeInstanceOf(
       ErroListagemTiposEscolas,
     )
-    await expect(listarTiposEscolas()).rejects.toMatchObject({
+    await expect(listarTiposEscola()).rejects.toMatchObject({
       mensagemUsuario: 'Chave da API de integração não configurada.',
     })
   })
@@ -154,7 +154,7 @@ describe('listarTiposEscolas', () => {
       response: { status: 401, data: null },
     })
 
-    await expect(listarTiposEscolas()).rejects.toMatchObject({
+    await expect(listarTiposEscola()).rejects.toMatchObject({
       mensagemUsuario: 'Não foi possível carregar os tipos de UE.',
     })
   })
@@ -164,7 +164,7 @@ describe('listarTiposEscolas', () => {
       data: [{ codigo: 1 }],
     })
 
-    await expect(listarTiposEscolas()).rejects.toMatchObject({
+    await expect(listarTiposEscola()).rejects.toMatchObject({
       mensagemUsuario: 'Resposta de tipos de UE inválida.',
     })
   })

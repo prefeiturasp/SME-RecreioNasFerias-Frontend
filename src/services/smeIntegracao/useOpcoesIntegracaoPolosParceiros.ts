@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import { listarDresNomeAbreviacao, listarTiposEscolas } from './api'
+import { listarDresNomeAbreviacao, listarTiposEscola } from './api'
 import type { DreNomeAbreviacao, TipoEscola } from './types'
 
 export function useOpcoesIntegracaoPolosParceiros() {
@@ -13,7 +13,7 @@ export function useOpcoesIntegracaoPolosParceiros() {
 
     void Promise.all([
       listarDresNomeAbreviacao().catch(() => [] as DreNomeAbreviacao[]),
-      listarTiposEscolas().catch(() => [] as TipoEscola[]),
+      listarTiposEscola().catch(() => [] as TipoEscola[]),
     ]).then(([dres, tiposEscolas]) => {
       setOpcoesDre(dres)
       setOpcoesTipoUe(tiposEscolas)
