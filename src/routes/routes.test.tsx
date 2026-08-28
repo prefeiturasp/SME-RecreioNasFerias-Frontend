@@ -34,24 +34,43 @@ vi.mock('../services/poloParceiro/api', () => ({
     total: 0,
     totalPaginas: 0,
   }),
-  cadastrarPoloParceiro: vi.fn(),
-  obterPoloParceiro: vi.fn().mockResolvedValue({
-    id: '11111111-1111-1111-1111-111111111111',
-    tipo: 'Pendente',
-    nomeOsc: 'OSC Teste',
-    nomePolo: 'Polo Teste',
-    dre: 'DIRETORIA REGIONAL DE EDUCACAO BUTANTA',
-    tipoUe: 'EMEF',
-    quantidadeMaximaAlunos: 50,
-    cep: '01310100',
-    endereco: 'Av. Paulista, 1000',
-    nomeGestor: 'Gestor Teste',
-    emailPolo: 'polo@teste.com',
-    telefonePolo: '11999999999',
+}))
+
+vi.mock('../services/polo/listarDresPolo', () => ({
+  listarDresPolo: vi.fn().mockResolvedValue([]),
+}))
+
+vi.mock('../services/polo/listarTiposEscolaPolo', () => ({
+  listarTiposEscolaPolo: vi.fn().mockResolvedValue([]),
+}))
+
+vi.mock('../services/polo/obterPolo', () => ({
+  obterPolo: vi.fn().mockResolvedValue({
+    uuid: '11111111-1111-1111-1111-111111111111',
+    codigo_eol: '123456',
+    nome_polo: 'Polo Teste',
+    nome_osc: 'OSC Teste',
+    dre_nome: 'DIRETORIA REGIONAL DE EDUCACAO BUTANTA',
+    dre_codigo_eol: '108100',
+    tipo: 'pendente',
     status: 'ativo',
-    observacoesGerais: '',
+    gestao: 'parceira',
+    tipo_ue: 'EMEF',
+    quantidade_maxima_alunos: 50,
+    cep: '01310100',
+    tipo_logradouro: 'Avenida',
+    logradouro: 'Paulista',
+    bairro: 'Bela Vista',
+    numero: '1000',
+    complemento: '',
+    nome_gestor: 'Gestor Teste',
+    email: 'polo@teste.com',
+    telefone: '11999999999',
+    observacoes_gerais: '',
+    ativo: true,
+    criado_em: '2026-08-27T11:28:47.128Z',
+    atualizado_em: '2026-08-27T11:28:47.128Z',
   }),
-  atualizarPoloParceiro: vi.fn(),
 }))
 
 vi.mock('../services/smeIntegracao/api', () => ({
@@ -228,16 +247,12 @@ describe('RotasAplicacao', () => {
       descricaoCargo: 'CARGO TESTE',
     })
 
-    render(
-      <MemoryRouter initialEntries={['/cadastrar-polo-parceiro']}>
-        <RotasAplicacao />
-      </MemoryRouter>,
-    )
+    renderRotas('/cadastrar-polo-parceiro')
 
     expect(
       screen.getByRole('heading', { name: /cadastrar polo parceiro/i }),
     ).toBeInTheDocument()
-    expect(await screen.findByLabelText(/^tipo$/i)).toHaveValue('Pendente')
+    expect(await screen.findByLabelText(/^tipo$/i)).toHaveValue('pendente')
     expect(screen.getByText(/informações gerais/i)).toBeInTheDocument()
   })
 
@@ -249,14 +264,8 @@ describe('RotasAplicacao', () => {
       descricaoCargo: 'CARGO TESTE',
     })
 
-    render(
-      <MemoryRouter
-        initialEntries={[
-          '/editar-polo-parceiro/11111111-1111-1111-1111-111111111111',
-        ]}
-      >
-        <RotasAplicacao />
-      </MemoryRouter>,
+    renderRotas(
+      '/editar-polo-parceiro/11111111-1111-1111-1111-111111111111',
     )
 
     expect(

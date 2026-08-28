@@ -1,25 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { api } from '../api/http'
-import {
-  atualizarPoloParceiro,
-  cadastrarPoloParceiro,
-  ErroAtualizacaoPoloParceiro,
-  ErroCadastroPoloParceiro,
-  ErroListagemPolosParceiros,
-  ErroObterPoloParceiro,
-  listarPolosParceiros,
-  obterPoloParceiro,
-} from './api'
-import type { DadosCadastroPoloParceiro } from './types'
+import { ErroListagemPolosParceiros, listarPolosParceiros } from './api'
 
 vi.mock('../api/http', () => ({
   api: { get: vi.fn(), post: vi.fn(), put: vi.fn() },
 }))
 
 const apiGetMock = vi.mocked(api.get)
-const apiPostMock = vi.mocked(api.post)
-const apiPutMock = vi.mocked(api.put)
 
 const respostaListagemExemplo = {
   results: [
@@ -44,39 +32,6 @@ const respostaListagemExemplo = {
   pageSize: 10,
   total: 1,
   totalPages: 1,
-}
-
-const dadosCadastroExemplo: DadosCadastroPoloParceiro = {
-  tipo: 'Pendente',
-  nomeOsc: 'OSC Parceira Exemplo',
-  nomePolo: 'Polo Centro',
-  dre: 'DRE Butantã',
-  tipoUe: 'EMEF',
-  quantidadeMaximaAlunos: '50',
-  cep: '05508-000',
-  endereco: 'Rua Exemplo, 100',
-  nomeGestor: 'Maria Silva',
-  emailPolo: 'polo@osc.org.br',
-  telefonePolo: '(11) 99999-9999',
-  status: 'ativo',
-  observacoes: 'Polo com boa estrutura',
-}
-
-const respostaCadastroExemplo = {
-  id: '22222222-2222-2222-2222-222222222222',
-  tipo: 'Pendente',
-  nomeOsc: 'OSC Parceira Exemplo',
-  nomePolo: 'Polo Centro',
-  dre: 'DRE Butantã',
-  tipoUe: 'EMEF',
-  quantidadeMaximaAlunos: 50,
-  cep: '05508-000',
-  endereco: 'Rua Exemplo, 100',
-  nomeGestor: 'Maria Silva',
-  emailPolo: 'polo@osc.org.br',
-  telefonePolo: '(11) 99999-9999',
-  status: 'ativo',
-  observacoesGerais: 'Polo com boa estrutura',
 }
 
 describe('listarPolosParceiros', () => {
@@ -163,193 +118,6 @@ describe('listarPolosParceiros', () => {
 
     await expect(listarPolosParceiros()).rejects.toMatchObject({
       mensagemUsuario: 'Erro interno do servidor',
-    })
-  })
-})
-
-describe('cadastrarPoloParceiro', () => {
-  beforeEach(() => {
-    apiPostMock.mockReset()
-  })
-
-  it('envia payload esperado e retorna o polo criado', async () => {
-    apiPostMock.mockResolvedValue({ data: respostaCadastroExemplo })
-
-    await expect(cadastrarPoloParceiro(dadosCadastroExemplo)).resolves.toEqual({
-      id: '22222222-2222-2222-2222-222222222222',
-      dre: 'DRE Butantã',
-      tipoUe: 'EMEF',
-      nomePolo: 'Polo Centro',
-      nomeOsc: 'OSC Parceira Exemplo',
-    })
-
-    expect(apiPostMock).toHaveBeenCalledTimes(1)
-    expect(apiPostMock).toHaveBeenCalledWith('/api/polos/', {
-      nomeOsc: 'OSC Parceira Exemplo',
-      nomePolo: 'Polo Centro',
-      dre: 'DRE Butantã',
-      tipoUe: 'EMEF',
-      quantidadeMaximaAlunos: 50,
-      cep: '05508-000',
-      endereco: 'Rua Exemplo, 100',
-      nomeGestor: 'Maria Silva',
-      emailPolo: 'polo@osc.org.br',
-      telefonePolo: '(11) 99999-9999',
-      status: 'ativo',
-      observacoesGerais: 'Polo com boa estrutura',
-    })
-  })
-
-  it('lança erro quando a API retorna falha no cadastro', async () => {
-    apiPostMock.mockRejectedValue({
-      response: {
-        status: 400,
-        data: {
-          error: 'Erro: já existe polo parceiro com o nome cadastrado',
-        },
-      },
-    })
-
-    await expect(
-      cadastrarPoloParceiro(dadosCadastroExemplo),
-    ).rejects.toBeInstanceOf(ErroCadastroPoloParceiro)
-    await expect(
-      cadastrarPoloParceiro(dadosCadastroExemplo),
-    ).rejects.toMatchObject({
-      mensagemUsuario: 'Erro: já existe polo parceiro com o nome cadastrado',
-    })
-  })
-
-  it('lança erro quando a resposta de cadastro é inválida', async () => {
-    apiPostMock.mockResolvedValue({ data: { id: 1 } })
-
-    await expect(
-      cadastrarPoloParceiro(dadosCadastroExemplo),
-    ).rejects.toMatchObject({
-      mensagemUsuario: 'Resposta de cadastro inválida.',
-    })
-  })
-})
-
-describe('obterPoloParceiro', () => {
-  beforeEach(() => {
-    apiGetMock.mockReset()
-  })
-
-  it('envia requisição autenticada e retorna o polo detalhado', async () => {
-    apiGetMock.mockResolvedValue({ data: respostaCadastroExemplo })
-
-    await expect(
-      obterPoloParceiro('22222222-2222-2222-2222-222222222222'),
-    ).resolves.toEqual({
-      id: '22222222-2222-2222-2222-222222222222',
-      tipo: 'Pendente',
-      nomeOsc: 'OSC Parceira Exemplo',
-      nomePolo: 'Polo Centro',
-      dre: 'DRE Butantã',
-      tipoUe: 'EMEF',
-      quantidadeMaximaAlunos: 50,
-      cep: '05508-000',
-      endereco: 'Rua Exemplo, 100',
-      nomeGestor: 'Maria Silva',
-      emailPolo: 'polo@osc.org.br',
-      telefonePolo: '(11) 99999-9999',
-      status: 'ativo',
-      observacoesGerais: 'Polo com boa estrutura',
-    })
-
-    expect(apiGetMock).toHaveBeenCalledWith(
-      '/api/polos/22222222-2222-2222-2222-222222222222/',
-    )
-  })
-
-  it('lança erro quando a API retorna falha', async () => {
-    apiGetMock.mockRejectedValue({
-      response: { status: 404, data: { detail: 'Polo não encontrado.' } },
-    })
-
-    await expect(obterPoloParceiro('1')).rejects.toBeInstanceOf(
-      ErroObterPoloParceiro,
-    )
-    await expect(obterPoloParceiro('1')).rejects.toMatchObject({
-      mensagemUsuario: 'Polo não encontrado.',
-    })
-  })
-
-  it('lança erro quando a resposta de consulta é inválida', async () => {
-    apiGetMock.mockResolvedValue({ data: { id: '1' } })
-
-    await expect(obterPoloParceiro('1')).rejects.toMatchObject({
-      mensagemUsuario: 'Resposta de consulta inválida.',
-    })
-  })
-
-  it('usa mensagem padrão quando o corpo de erro está vazio', async () => {
-    apiGetMock.mockRejectedValue({ response: { status: 500, data: {} } })
-
-    await expect(obterPoloParceiro('1')).rejects.toMatchObject({
-      mensagemUsuario: 'Não foi possível carregar o polo parceiro.',
-    })
-  })
-})
-
-describe('atualizarPoloParceiro', () => {
-  beforeEach(() => {
-    apiPutMock.mockReset()
-  })
-
-  it('envia payload esperado e retorna o polo atualizado', async () => {
-    apiPutMock.mockResolvedValue({ data: respostaCadastroExemplo })
-
-    await expect(
-      atualizarPoloParceiro(
-        '22222222-2222-2222-2222-222222222222',
-        dadosCadastroExemplo,
-      ),
-    ).resolves.toEqual({
-      id: '22222222-2222-2222-2222-222222222222',
-      dre: 'DRE Butantã',
-      tipoUe: 'EMEF',
-      nomePolo: 'Polo Centro',
-      nomeOsc: 'OSC Parceira Exemplo',
-    })
-
-    expect(apiPutMock).toHaveBeenCalledWith(
-      '/api/polos/22222222-2222-2222-2222-222222222222/',
-      {
-        nomeOsc: 'OSC Parceira Exemplo',
-        nomePolo: 'Polo Centro',
-        dre: 'DRE Butantã',
-        tipoUe: 'EMEF',
-        quantidadeMaximaAlunos: 50,
-        cep: '05508-000',
-        endereco: 'Rua Exemplo, 100',
-        nomeGestor: 'Maria Silva',
-        emailPolo: 'polo@osc.org.br',
-        telefonePolo: '(11) 99999-9999',
-        status: 'ativo',
-        observacoesGerais: 'Polo com boa estrutura',
-      },
-    )
-  })
-
-  it('lança erro quando a API retorna falha', async () => {
-    apiPutMock.mockRejectedValue({
-      response: { status: 400, data: { error: 'Não foi possível atualizar.' } },
-    })
-
-    await expect(
-      atualizarPoloParceiro('1', dadosCadastroExemplo),
-    ).rejects.toBeInstanceOf(ErroAtualizacaoPoloParceiro)
-  })
-
-  it('lança erro quando a resposta de atualização é inválida', async () => {
-    apiPutMock.mockResolvedValue({ data: { id: 1 } })
-
-    await expect(
-      atualizarPoloParceiro('1', dadosCadastroExemplo),
-    ).rejects.toMatchObject({
-      mensagemUsuario: 'Resposta de atualização inválida.',
     })
   })
 })
