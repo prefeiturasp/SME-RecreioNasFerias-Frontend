@@ -149,7 +149,7 @@ describe('PaginaPolosParceiros', () => {
     expect(await screen.findByRole('table')).toBeInTheDocument()
 
     expect(
-      screen.getByRole('cell', { name: poloExemplo.nome_polo, exact: true }),
+      screen.getByRole('cell', { name: poloExemplo.nome_polo }),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('cell', { name: /cantinho feliz/i }),
