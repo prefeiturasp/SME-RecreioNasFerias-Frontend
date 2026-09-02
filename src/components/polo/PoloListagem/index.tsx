@@ -3,10 +3,8 @@ import { Link } from 'react-router-dom'
 import { iconeLapisEditar } from '@/assets'
 import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
-import {
-  TabelaListagem,
-  type DefinicaoColuna,
-} from '@/components/TabelaListagem'
+import { TabelaListagem } from '@/components/TabelaListagem'
+import type { DefinicaoColuna } from '@/components/TabelaListagem/types'
 import { Button } from '@/components/ui/button'
 import { OPCOES_ITENS_POR_PAGINA } from '@/constants/paginacao'
 import { useGetPolos } from '@/hooks/useGetPolos'
