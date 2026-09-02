@@ -366,15 +366,6 @@ describe('definicaoPolo/api', () => {
     )
   })
 
-  it('lança ErroListagemDefinicoesPolo quando resposta de listagem é inválida', async () => {
-    apiGetMock.mockResolvedValue({ data: { results: 'inválido' } })
-
-    await expect(listarDefinicoesPolo()).rejects.toMatchObject({
-      name: 'ErroListagemDefinicoesPolo',
-      mensagemUsuario: 'Resposta de listagem inválida.',
-    })
-  })
-
   it('lança ErroAtualizacaoDefinicoesPolo com fallback quando falha sem mensagem', async () => {
     apiPatchMock.mockRejectedValue(new Error('network error'))
 

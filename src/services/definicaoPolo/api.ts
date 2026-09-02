@@ -1,11 +1,12 @@
 import { extrairMensagemDeErro } from '../api/extrairMensagemDeErro'
 import { api } from '../api/http'
-import { interpretarRespostaListagemDefinicoesPolo } from './interpretarRespostaListagemDefinicoesPolo'
+import { mapearDefinicaoPolo } from './mapearDefinicaoPolo'
 import {
   PARAMETROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
   type ListagemDefinicaoPolos,
   type OpcoesFiltroDefinicaoPolos,
   type ParametrosListagemDefinicaoPolos,
+  type RespostaListagemDefinicoesPoloApi,
   type ResultadoSincronizacaoUnidadesDiretas,
 } from './types'
 
@@ -189,15 +190,18 @@ export async function listarDefinicoesPolo({
   }
 
   try {
-    const { data } = await api.get('/api/polos/', { params })
+    const { data } = await api.get<RespostaListagemDefinicoesPoloApi>(
+      '/api/polos/',
+      { params },
+    )
 
-    const listagem = interpretarRespostaListagemDefinicoesPolo(data as unknown)
-
-    if (!listagem) {
-      throw new ErroListagemDefinicoesPolo('Resposta de listagem inválida.')
+    return {
+      polos: data.results.map(mapearDefinicaoPolo),
+      pagina: data.page,
+      tamanhoPagina: data.pageSize,
+      total: data.total,
+      totalPaginas: data.totalPages,
     }
-
-    return listagem
   } catch (error) {
     if (error instanceof ErroListagemDefinicoesPolo) {
       throw error
