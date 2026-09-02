@@ -1,14 +1,30 @@
 import { extrairMensagemDeErro } from '../api/extrairMensagemDeErro'
 import { api } from '../api/http'
-import { mapearDefinicaoPolo } from './mapearDefinicaoPolo'
 import {
   PARAMETROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
+  type DefinicaoPolo,
+  type DefinicaoPoloApi,
   type ListagemDefinicaoPolos,
   type OpcoesFiltroDefinicaoPolos,
   type ParametrosListagemDefinicaoPolos,
   type RespostaListagemDefinicoesPoloApi,
   type ResultadoSincronizacaoUnidadesDiretas,
 } from './types'
+
+const TIPO_POLO_PADRAO = 'Pendente'
+const NOME_EDICAO_PADRAO = '-'
+
+function mapearDefinicaoPoloLegado(polo: DefinicaoPoloApi): DefinicaoPolo {
+  return {
+    id: polo.id,
+    dre: polo.dre,
+    tipoUe: polo.tipoUe,
+    nomeUe: polo.nomePolo,
+    nomeEdicao: polo.nomeEdicao?.trim() ? polo.nomeEdicao : NOME_EDICAO_PADRAO,
+    tipoPolo: polo.tipo?.trim() ? polo.tipo : TIPO_POLO_PADRAO,
+    gestao: polo.gestao,
+  }
+}
 
 export class ErroListagemDefinicoesPolo extends Error {
   readonly mensagemUsuario: string
@@ -196,7 +212,7 @@ export async function listarDefinicoesPolo({
     )
 
     return {
-      polos: data.results.map(mapearDefinicaoPolo),
+      polos: data.results.map(mapearDefinicaoPoloLegado),
       pagina: data.page,
       tamanhoPagina: data.pageSize,
       total: data.total,

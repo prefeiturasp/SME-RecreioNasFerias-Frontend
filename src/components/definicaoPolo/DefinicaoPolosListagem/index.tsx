@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { iconeOlho } from '@/assets'
 import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { BarraAcoesSelecao } from '@/components/definicaoPolo/BarraAcoesSelecao'
@@ -9,8 +9,18 @@ import type { DefinicaoColuna } from '@/components/TabelaListagem/types'
 import { Button } from '@/components/ui/button'
 import { OPCOES_ITENS_POR_PAGINA } from '@/constants/paginacao'
 import { useGetDefinicoesPolo } from '@/hooks/useGetDefinicoesPolo'
-import { mapearDefinicaoPolo } from '@/services/definicaoPolo/mapearDefinicaoPolo'
-import type { DefinicaoPolo } from '@/services/definicaoPolo/types'
+import type { DefinicaoPoloApi } from '@/services/definicaoPolo/types'
+
+const TIPO_POLO_PADRAO = 'Pendente'
+const NOME_EDICAO_PADRAO = '-'
+
+function formatarNomeEdicao(nomeEdicao?: string | null) {
+  return nomeEdicao?.trim() ? nomeEdicao : NOME_EDICAO_PADRAO
+}
+
+function formatarTipoPolo(tipo?: string | null) {
+  return tipo?.trim() ? tipo : TIPO_POLO_PADRAO
+}
 
 const COLUNAS = [
   {
@@ -26,22 +36,22 @@ const COLUNAS = [
     renderizar: (polo) => polo.tipoUe,
   },
   {
-    id: 'nomeUe',
+    id: 'nomePolo',
     rotulo: 'Nome da UE',
-    valorOrdenacao: (polo) => polo.nomeUe,
-    renderizar: (polo) => polo.nomeUe,
+    valorOrdenacao: (polo) => polo.nomePolo,
+    renderizar: (polo) => polo.nomePolo,
   },
   {
     id: 'nomeEdicao',
     rotulo: 'Nome da Edição',
-    valorOrdenacao: (polo) => polo.nomeEdicao,
-    renderizar: (polo) => polo.nomeEdicao,
+    valorOrdenacao: (polo) => formatarNomeEdicao(polo.nomeEdicao),
+    renderizar: (polo) => formatarNomeEdicao(polo.nomeEdicao),
   },
   {
-    id: 'tipoPolo',
+    id: 'tipo',
     rotulo: 'Tipo de Polo',
-    valorOrdenacao: (polo) => polo.tipoPolo,
-    renderizar: (polo) => polo.tipoPolo,
+    valorOrdenacao: (polo) => formatarTipoPolo(polo.tipo),
+    renderizar: (polo) => formatarTipoPolo(polo.tipo),
   },
   {
     id: 'gestao',
@@ -49,7 +59,7 @@ const COLUNAS = [
     valorOrdenacao: (polo) => polo.gestao,
     renderizar: (polo) => polo.gestao,
   },
-] as const satisfies readonly DefinicaoColuna<DefinicaoPolo>[]
+] as const satisfies readonly DefinicaoColuna<DefinicaoPoloApi>[]
 
 type DefinicaoPolosListagemProps = {
   onVisualizarPolo?: (idPolo: string) => void
@@ -71,10 +81,7 @@ export function DefinicaoPolosListagem({
     () => new Set(),
   )
 
-  const polos = useMemo(
-    () => (listagemQuery.data ?? []).map(mapearDefinicaoPolo),
-    [listagemQuery.data],
-  )
+  const polos = listagemQuery.data ?? []
   const totalPaginas = Math.ceil(polos.length / itensPorPagina)
   const paginaAjustada =
     totalPaginas > 0 ? Math.min(paginaAtual, totalPaginas) : 1
@@ -99,7 +106,7 @@ export function DefinicaoPolosListagem({
       itens={polos}
       colunas={COLUNAS}
       obterId={(polo) => polo.id}
-      colunaOrdenacaoInicial="nomeUe"
+      colunaOrdenacaoInicial="nomePolo"
       titulo="Resultados da pesquisa"
       paginaAtual={paginaAjustada}
       totalPaginas={totalPaginas}
@@ -111,7 +118,7 @@ export function DefinicaoPolosListagem({
         idsSelecionados: polosSelecionados,
         onMudarSelecao: setPolosSelecionados,
         rotuloSelecionarTodos: 'Selecionar todos os polos da página',
-        rotuloSelecionarItem: (polo) => `Selecionar polo ${polo.nomeUe}`,
+        rotuloSelecionarItem: (polo) => `Selecionar polo ${polo.nomePolo}`,
       }}
       renderizarBarraSelecao={({ idsSelecionadosNaPagina, limparSelecao }) => (
         <BarraAcoesSelecao
@@ -128,7 +135,7 @@ export function DefinicaoPolosListagem({
             variant="ghost"
             size="icon-sm"
             className="text-brand-dark"
-            aria-label={`Visualizar polo ${polo.nomeUe}`}
+            aria-label={`Visualizar polo ${polo.nomePolo}`}
             onClick={() => onVisualizarPolo?.(polo.id)}
           >
             <img
@@ -144,7 +151,7 @@ export function DefinicaoPolosListagem({
             variant="ghost"
             size="icon-sm"
             className="text-brand-dark"
-            aria-label={`Alterar edição do polo ${polo.nomeUe}`}
+            aria-label={`Alterar edição do polo ${polo.nomePolo}`}
             onClick={() => onAlterarEdicaoPolo([polo.id])}
           >
             <ChevronDownIcon />

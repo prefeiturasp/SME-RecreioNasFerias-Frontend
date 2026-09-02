@@ -230,6 +230,24 @@ describe('DefinicaoPolosListagem', () => {
     expect(segundoGestao).toHaveTextContent(/direta/i)
   })
 
+  it('exibe valores padrão para tipo e nome da edição ausentes', async () => {
+    listarDefinicoesPoloMock.mockResolvedValue([
+      {
+        id: '3',
+        dre: 'BUTANTA',
+        tipoUe: 'CEI',
+        nomePolo: 'CEI SEM TIPO',
+        gestao: 'Direta',
+      },
+    ])
+
+    renderDefinicaoPolosListagem()
+
+    expect(await screen.findByRole('table')).toBeInTheDocument()
+    expect(screen.getByText('Pendente')).toBeInTheDocument()
+    expect(screen.getByText('-')).toBeInTheDocument()
+  })
+
   it('exibe detalhe da API quando a listagem falha', async () => {
     listarDefinicoesPoloMock.mockRejectedValue({
       response: { data: { detalhe: 'Falha na listagem' } },
