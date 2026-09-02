@@ -69,18 +69,13 @@ vi.mock('@/services/edicaoPrograma/listarEdicoesPrograma', () => ({
   listarEdicoesPrograma: listarEdicoesProgramaMock,
 }))
 
-vi.mock('@/hooks/useGetOpcoesFiltroDefinicaoPolos', () => ({
-  useGetOpcoesFiltroDefinicaoPolos: () => ({
-    data: {
-      dres: ['DIRETORIA REGIONAL DE EDUCACAO PENHA'],
-      tiposUe: ['CEI DIRET', 'EMEF'],
-      gestoes: ['Direta', 'Parceira'],
-      nomesEdicao: ['-'],
-      tiposPolo: ['Pendente', 'Polo oficial', 'Polo reserva'],
-    },
-    isPending: false,
-    isError: false,
-    error: null,
+vi.mock('@/services/definicaoPolo/listarOpcoesFiltroDefinicaoPolos', () => ({
+  listarOpcoesFiltroDefinicaoPolos: vi.fn().mockResolvedValue({
+    dres: ['DIRETORIA REGIONAL DE EDUCACAO PENHA'],
+    tiposUe: ['CEI DIRET', 'EMEF'],
+    gestoes: ['Direta', 'Parceira'],
+    nomesEdicao: ['-'],
+    tiposPolo: ['Pendente', 'Polo oficial', 'Polo reserva'],
   }),
 }))
 
@@ -168,6 +163,7 @@ describe('PaginaDefinicoesPolo', () => {
 
     renderPagina()
 
+    await screen.findByLabelText(/^gestão$/i)
     await usuario.selectOptions(screen.getByLabelText(/^gestão$/i), 'Parceira')
     await usuario.click(screen.getByRole('button', { name: /^filtrar$/i }))
 
@@ -181,6 +177,7 @@ describe('PaginaDefinicoesPolo', () => {
 
     renderPagina()
 
+    await screen.findByLabelText(/^gestão$/i)
     await usuario.selectOptions(screen.getByLabelText(/^gestão$/i), 'Parceira')
     await usuario.click(screen.getByRole('button', { name: /limpar filtros/i }))
 

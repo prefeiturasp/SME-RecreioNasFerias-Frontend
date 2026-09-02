@@ -15,7 +15,7 @@ import {
   FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
   type FiltrosListagemDefinicaoPolos,
 } from '@/services/definicaoPolo/types'
-import { FiltrosDefinicaoPolos } from './FiltrosDefinicaoPolos'
+import { FiltrosDefinicaoPolosForm } from '@/components/definicaoPolo/FiltrosDefinicaoPolosForm'
 import {
   AreaConteudo,
   BotaoVoltar,
@@ -40,9 +40,6 @@ export default function PaginaDefinicoesPolo() {
   const sincronizacaoQuery = useGetSincronizacaoUnidadesDiretas(true)
   const patchMutation = usePatchDefinicoesPoloEmLote()
 
-  const [filtros, setFiltros] = useState<FiltrosListagemDefinicaoPolos>(
-    FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
-  )
   const [filtrosAplicados, setFiltrosAplicados] =
     useState<FiltrosListagemDefinicaoPolos>(
       FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
@@ -94,12 +91,11 @@ export default function PaginaDefinicoesPolo() {
     void queryClient.invalidateQueries({ queryKey: ['definicoesPolo'] })
   }, [queryClient, sincronizacaoQuery.data, sincronizacaoQuery.isSuccess])
 
-  function aplicarFiltros() {
+  function aplicarFiltros(filtros: FiltrosListagemDefinicaoPolos) {
     setFiltrosAplicados(filtros)
   }
 
   function limparFiltros() {
-    setFiltros(FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS)
     setFiltrosAplicados(FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS)
   }
 
@@ -188,11 +184,9 @@ export default function PaginaDefinicoesPolo() {
               </div>
             </CabecalhoAreaInternaConteudo>
 
-            <FiltrosDefinicaoPolos
-              valores={filtros}
-              onChange={setFiltros}
-              onLimpar={limparFiltros}
+            <FiltrosDefinicaoPolosForm
               onFiltrar={aplicarFiltros}
+              onLimpar={limparFiltros}
             />
 
             <CartaoListagemDefinicaoPolos>
