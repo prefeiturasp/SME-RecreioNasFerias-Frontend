@@ -1,28 +1,21 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
-import IconeSetaVoltar from '../../assets/icone-seta-voltar.png'
-import { Cabecalho } from '../../components/Cabecalho'
-import { IndicadorCarregamento } from '../../components/IndicadorCarregamento'
-import { OPCOES_ITENS_POR_PAGINA } from '../../components/ListagemTabela/constantesPaginacao'
-import { MapaVisual } from '../../components/MapaVisual'
-import { MenuLateral } from '../../components/MenuLateral'
-import {
-  atualizarDefinicoesPoloEmLote,
-  ErroAtualizacaoDefinicoesPolo,
-  listarDefinicoesPolo,
-  sincronizarUnidadesDiretas,
-} from '../../services/definicaoPolo/api'
+import IconeSetaVoltar from '@/assets/icone-seta-voltar.png'
+import { Cabecalho } from '@/components/Cabecalho'
+import { DefinicaoPolosListagem } from '@/components/definicaoPolo/DefinicaoPolosListagem'
+import { ModalAlterarSelecao } from '@/components/definicaoPolo/ModalAlterarSelecao'
+import { MapaVisual } from '@/components/MapaVisual'
+import { MenuLateral } from '@/components/MenuLateral'
+import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
+import { useGetSincronizacaoUnidadesDiretas } from '@/hooks/useGetSincronizacaoUnidadesDiretas'
+import { usePatchDefinicoesPoloEmLote } from '@/hooks/usePatchDefinicoesPoloEmLote'
+import { OPCOES_TIPO_POLO_ALTERACAO_MOCK } from '@/services/definicaoPolo/mocks'
 import {
   FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
-  type DefinicaoPolo,
   type FiltrosListagemDefinicaoPolos,
-} from '../../services/definicaoPolo/types'
-
+} from '@/services/definicaoPolo/types'
 import { FiltrosDefinicaoPolos } from './FiltrosDefinicaoPolos'
-import { ModalAlterarEdicaoDoPolo } from './ModalAlterarEdicaoDoPolo'
-import { ModalAlterarTipoDePolo } from './ModalAlterarTipoDePolo'
-import { TabelaDefinicaoPolos } from './TabelaDefinicaoPolos'
 import {
   AreaConteudo,
   BotaoVoltar,
@@ -39,9 +32,13 @@ const NIVEIS_MAPA_VISUAL = [
   { rotulo: 'Definição de Polos' },
 ] as const
 
+const NOME_EDICAO_SEM_VINCULO = '-'
+
 export default function PaginaDefinicoesPolo() {
   const navigate = useNavigate()
-  const sincronizacaoInicialConcluida = useRef(false)
+  const queryClient = useQueryClient()
+  const sincronizacaoQuery = useGetSincronizacaoUnidadesDiretas(true)
+  const patchMutation = usePatchDefinicoesPoloEmLote()
 
   const [filtros, setFiltros] = useState<FiltrosListagemDefinicaoPolos>(
     FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
@@ -50,179 +47,118 @@ export default function PaginaDefinicoesPolo() {
     useState<FiltrosListagemDefinicaoPolos>(
       FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
     )
-  const [polos, setPolos] = useState<DefinicaoPolo[]>([])
-  const [paginaAtual, setPaginaAtual] = useState(1)
-  const [itensPorPagina, setItensPorPagina] = useState<number>(
-    OPCOES_ITENS_POR_PAGINA[0],
-  )
-  const [totalPaginas, setTotalPaginas] = useState(0)
-  const [estaCarregandoListagem, setEstaCarregandoListagem] = useState(true)
-  const [mensagemCarregamento, setMensagemCarregamento] = useState(
-    'Carregando definição de polos...',
-  )
-  const [polosSelecionados, setPolosSelecionados] = useState<Set<string>>(
-    () => new Set(),
-  )
   const [polosParaAlterarEdicao, setPolosParaAlterarEdicao] = useState<
     string[]
   >([])
   const [polosParaAlterarTipoPolo, setPolosParaAlterarTipoPolo] = useState<
     string[]
   >([])
-  const [estaSalvandoAlteracao, setEstaSalvandoAlteracao] = useState(false)
-  const [mensagemErroAlteracao, setMensagemErroAlteracao] = useState<
-    string | null
-  >(null)
+  const [chaveResetSelecao, setChaveResetSelecao] = useState(0)
 
-  const carregarPolos = useCallback(
-    async (
-      pagina: number,
-      tamanhoPagina: number,
-      filtrosListagem: FiltrosListagemDefinicaoPolos,
-    ) => {
-      setEstaCarregandoListagem(true)
-      setMensagemCarregamento('Carregando definição de polos...')
+  const modalEdicaoAberto = polosParaAlterarEdicao.length > 0
+  const modalTipoAberto = polosParaAlterarTipoPolo.length > 0
+  const edicoesQuery = useGetEdicoesPrograma(modalEdicaoAberto)
 
-      try {
-        const listagem = await listarDefinicoesPolo({
-          pagina,
-          tamanhoPagina,
-          ...filtrosListagem,
-        })
+  const opcoesNomeEdicao = useMemo(() => {
+    if (edicoesQuery.isError) {
+      return [{ valor: NOME_EDICAO_SEM_VINCULO, rotulo: NOME_EDICAO_SEM_VINCULO }]
+    }
 
-        setPolos(listagem.polos)
-        setPaginaAtual(listagem.pagina)
-        setItensPorPagina(listagem.tamanhoPagina)
-        setTotalPaginas(listagem.totalPaginas)
-      } catch {
-        // Em falha na listagem, exibe estado vazio.
-        setPolos([])
-        setTotalPaginas(0)
-      } finally {
-        setEstaCarregandoListagem(false)
-      }
+    if (!edicoesQuery.data) {
+      return []
+    }
 
-      if (!sincronizacaoInicialConcluida.current) {
-        sincronizacaoInicialConcluida.current = true
-        setMensagemCarregamento(
-          'Sincronizando unidades novas em segundo plano...',
-        )
+    const nomes = Array.from(
+      new Set(
+        edicoesQuery.data
+          .map((edicao) => edicao.nome.trim())
+          .filter((nome) => nome !== ''),
+      ),
+    ).sort((a, b) => a.localeCompare(b, 'pt-BR'))
 
-        try {
-          const resultadoSync = await sincronizarUnidadesDiretas()
-          if (!resultadoSync.executada || resultadoSync.totalNovos === 0) {
-            return
-          }
-
-          const listagemAtualizada = await listarDefinicoesPolo({
-            pagina,
-            tamanhoPagina,
-            ...filtrosListagem,
-          })
-          setPolos(listagemAtualizada.polos)
-          setPaginaAtual(listagemAtualizada.pagina)
-          setItensPorPagina(listagemAtualizada.tamanhoPagina)
-          setTotalPaginas(listagemAtualizada.totalPaginas)
-        } catch {
-          // Mantém a listagem já carregada do banco.
-        }
-      }
-    },
-    [],
-  )
+    return [
+      { valor: NOME_EDICAO_SEM_VINCULO, rotulo: NOME_EDICAO_SEM_VINCULO },
+      ...nomes.map((nome) => ({ valor: nome, rotulo: nome })),
+    ]
+  }, [edicoesQuery.data, edicoesQuery.isError])
 
   useEffect(() => {
-    void carregarPolos(paginaAtual, itensPorPagina, filtrosAplicados)
-  }, [carregarPolos, filtrosAplicados, itensPorPagina, paginaAtual])
+    if (
+      !sincronizacaoQuery.isSuccess ||
+      !sincronizacaoQuery.data.executada ||
+      sincronizacaoQuery.data.totalNovos === 0
+    ) {
+      return
+    }
 
-  const mudarItensPorPagina = useCallback((novoTamanhoPagina: number) => {
-    setItensPorPagina(novoTamanhoPagina)
-    setPaginaAtual(1)
-  }, [])
+    void queryClient.invalidateQueries({ queryKey: ['definicoesPolo'] })
+  }, [queryClient, sincronizacaoQuery.data, sincronizacaoQuery.isSuccess])
 
-  const aplicarFiltros = () => {
-    setPolosSelecionados(new Set())
+  function aplicarFiltros() {
     setFiltrosAplicados(filtros)
-    setPaginaAtual(1)
   }
 
-  const limparFiltros = () => {
-    setPolosSelecionados(new Set())
+  function limparFiltros() {
     setFiltros(FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS)
     setFiltrosAplicados(FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS)
-    setPaginaAtual(1)
   }
 
-  const fecharModalAlterarEdicao = () => {
-    if (estaSalvandoAlteracao) return
-    setMensagemErroAlteracao(null)
+  function fecharModalAlterarEdicao() {
+    if (patchMutation.isPending) return
+    patchMutation.reset()
     setPolosParaAlterarEdicao([])
   }
 
-  const confirmarAlteracaoEdicao = async (nomeEdicao: string) => {
-    if (!nomeEdicao.trim() || polosParaAlterarEdicao.length === 0) return
-
-    setEstaSalvandoAlteracao(true)
-    setMensagemErroAlteracao(null)
-
-    try {
-      await atualizarDefinicoesPoloEmLote({
-        ids: polosParaAlterarEdicao,
-        nomeEdicao: nomeEdicao.trim(),
-      })
-      setPolosSelecionados(new Set())
-      setPolosParaAlterarEdicao([])
-      await carregarPolos(paginaAtual, itensPorPagina, filtrosAplicados)
-    } catch (error_) {
-      const mensagem =
-        error_ instanceof ErroAtualizacaoDefinicoesPolo
-          ? error_.mensagemUsuario
-          : 'Não foi possível alterar a edição dos polos selecionados.'
-      setMensagemErroAlteracao(mensagem)
-    } finally {
-      setEstaSalvandoAlteracao(false)
-    }
-  }
-
-  const abrirModalAlterarEdicao = (idsPolos: string[]) => {
-    setMensagemErroAlteracao(null)
-    setPolosParaAlterarEdicao(idsPolos)
-  }
-
-  const fecharModalAlterarTipoPolo = () => {
-    if (estaSalvandoAlteracao) return
-    setMensagemErroAlteracao(null)
+  function fecharModalAlterarTipoPolo() {
+    if (patchMutation.isPending) return
+    patchMutation.reset()
     setPolosParaAlterarTipoPolo([])
   }
 
-  const confirmarAlteracaoTipoPolo = async (tipoPolo: string) => {
-    if (!tipoPolo.trim() || polosParaAlterarTipoPolo.length === 0) return
-
-    setEstaSalvandoAlteracao(true)
-    setMensagemErroAlteracao(null)
-
-    try {
-      await atualizarDefinicoesPoloEmLote({
-        ids: polosParaAlterarTipoPolo,
-        tipo: tipoPolo.trim(),
-      })
-      setPolosSelecionados(new Set())
-      setPolosParaAlterarTipoPolo([])
-      await carregarPolos(paginaAtual, itensPorPagina, filtrosAplicados)
-    } catch (error_) {
-      const mensagem =
-        error_ instanceof ErroAtualizacaoDefinicoesPolo
-          ? error_.mensagemUsuario
-          : 'Não foi possível alterar o tipo dos polos selecionados.'
-      setMensagemErroAlteracao(mensagem)
-    } finally {
-      setEstaSalvandoAlteracao(false)
-    }
+  function abrirModalAlterarEdicao(idsPolos: string[]) {
+    patchMutation.reset()
+    setPolosParaAlterarEdicao(idsPolos)
   }
 
-  const abrirModalAlterarTipoPolo = (idsPolos: string[]) => {
-    setMensagemErroAlteracao(null)
+  function abrirModalAlterarTipoPolo(idsPolos: string[]) {
+    patchMutation.reset()
     setPolosParaAlterarTipoPolo(idsPolos)
+  }
+
+  function confirmarAlteracaoEdicao(nomeEdicao: string) {
+    if (!nomeEdicao.trim() || polosParaAlterarEdicao.length === 0) return
+
+    patchMutation.mutate(
+      {
+        ids: polosParaAlterarEdicao,
+        nomeEdicao: nomeEdicao.trim(),
+      },
+      {
+        onSuccess: () => {
+          setPolosParaAlterarEdicao([])
+          setChaveResetSelecao((chaveAtual) => chaveAtual + 1)
+          void queryClient.invalidateQueries({ queryKey: ['definicoesPolo'] })
+        },
+      },
+    )
+  }
+
+  function confirmarAlteracaoTipoPolo(tipoPolo: string) {
+    if (!tipoPolo.trim() || polosParaAlterarTipoPolo.length === 0) return
+
+    patchMutation.mutate(
+      {
+        ids: polosParaAlterarTipoPolo,
+        tipo: tipoPolo.trim(),
+      },
+      {
+        onSuccess: () => {
+          setPolosParaAlterarTipoPolo([])
+          setChaveResetSelecao((chaveAtual) => chaveAtual + 1)
+          void queryClient.invalidateQueries({ queryKey: ['definicoesPolo'] })
+        },
+      },
+    )
   }
 
   return (
@@ -260,51 +196,47 @@ export default function PaginaDefinicoesPolo() {
             />
 
             <CartaoListagemDefinicaoPolos>
-              {estaCarregandoListagem ? (
-                <IndicadorCarregamento mensagem={mensagemCarregamento} />
-              ) : (
-                <TabelaDefinicaoPolos
-                  polos={polos}
-                  paginaAtual={paginaAtual}
-                  totalPaginas={totalPaginas}
-                  itensPorPagina={itensPorPagina}
-                  polosSelecionados={polosSelecionados}
-                  onMudarSelecao={setPolosSelecionados}
-                  onMudarPagina={setPaginaAtual}
-                  onMudarItensPorPagina={mudarItensPorPagina}
-                  onVisualizarPolo={() => undefined}
-                  onAlterarEdicaoPolo={abrirModalAlterarEdicao}
-                  onAlterarTipoPolo={abrirModalAlterarTipoPolo}
-                />
-              )}
+              <DefinicaoPolosListagem
+                filtros={filtrosAplicados}
+                chaveResetSelecao={chaveResetSelecao}
+                onVisualizarPolo={() => undefined}
+                onAlterarEdicaoPolo={abrirModalAlterarEdicao}
+                onAlterarTipoPolo={abrirModalAlterarTipoPolo}
+              />
             </CartaoListagemDefinicaoPolos>
           </section>
         </AreaConteudo>
       </SecaoPrincipal>
 
-      {polosParaAlterarEdicao.length > 0 && (
-        <ModalAlterarEdicaoDoPolo
-          aberto
-          estaSalvando={estaSalvandoAlteracao}
-          mensagemErro={mensagemErroAlteracao}
-          onFechar={fecharModalAlterarEdicao}
-          onAlterar={(nomeEdicao) => {
-            void confirmarAlteracaoEdicao(nomeEdicao)
-          }}
-        />
-      )}
+      <ModalAlterarSelecao
+        aberto={modalEdicaoAberto}
+        titulo="Alterar Edição do Polo"
+        descricao="Selecione o Nome da Edição que deseja vincular ao(s) Polo(s):"
+        rotuloCampo="Selecione o Nome da Edição"
+        idCampo="modal-nome-edicao"
+        textoOpcaoVazia="Selecione o Nome da Edição"
+        opcoes={opcoesNomeEdicao}
+        estaCarregandoOpcoes={edicoesQuery.isPending}
+        mensagemCarregamento="Carregando edições..."
+        estaSalvando={patchMutation.isPending}
+        erro={modalEdicaoAberto ? patchMutation.error : undefined}
+        onFechar={fecharModalAlterarEdicao}
+        onAlterar={confirmarAlteracaoEdicao}
+      />
 
-      {polosParaAlterarTipoPolo.length > 0 && (
-        <ModalAlterarTipoDePolo
-          aberto
-          estaSalvando={estaSalvandoAlteracao}
-          mensagemErro={mensagemErroAlteracao}
-          onFechar={fecharModalAlterarTipoPolo}
-          onAlterar={(tipoPolo) => {
-            void confirmarAlteracaoTipoPolo(tipoPolo)
-          }}
-        />
-      )}
+      <ModalAlterarSelecao
+        aberto={modalTipoAberto}
+        titulo="Alterar Tipo de Polo"
+        descricao="Selecione o Tipo de Polo que deseja vincular ao(s) Polo(s):"
+        rotuloCampo="Selecione o Tipo de Polo"
+        idCampo="modal-tipo-polo"
+        textoOpcaoVazia="Selecione o Tipo de Polo"
+        opcoes={OPCOES_TIPO_POLO_ALTERACAO_MOCK}
+        estaSalvando={patchMutation.isPending}
+        erro={modalTipoAberto ? patchMutation.error : undefined}
+        onFechar={fecharModalAlterarTipoPolo}
+        onAlterar={confirmarAlteracaoTipoPolo}
+      />
     </ContainerPaginaDefinicoesPolo>
   )
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
+import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -23,7 +23,7 @@ type ModalAlterarSelecaoProps = {
   estaCarregandoOpcoes?: boolean
   mensagemCarregamento?: string
   estaSalvando?: boolean
-  mensagemErro?: string | null
+  erro?: unknown
   onFechar: () => void
   onAlterar: (valor: string) => void
 }
@@ -39,7 +39,7 @@ export function ModalAlterarSelecao({
   estaCarregandoOpcoes = false,
   mensagemCarregamento = 'Carregando opções...',
   estaSalvando = false,
-  mensagemErro = null,
+  erro,
   onFechar,
   onAlterar,
 }: Readonly<ModalAlterarSelecaoProps>) {
@@ -89,16 +89,7 @@ export function ModalAlterarSelecao({
           </div>
         )}
 
-        {mensagemErro ? (
-          <Alert
-            variant="destructive"
-            className="border-rosa-medio bg-rosa-claro text-center font-bold text-vermelho-escuro"
-          >
-            <AlertDescription className="text-vermelho-escuro">
-              {mensagemErro}
-            </AlertDescription>
-          </Alert>
-        ) : null}
+        <AlertaErroApi erro={erro} />
 
         <DialogFooter>
           <Button

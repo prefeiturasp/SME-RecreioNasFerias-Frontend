@@ -94,11 +94,11 @@ describe('ModalAlterarSelecao', () => {
     expect(onAlterar).toHaveBeenCalledWith('opcao-a')
   })
 
-  it('exibe mensagemErro com role alert', () => {
+  it('exibe erro da API com role alert', () => {
     render(
       <ModalAlterarSelecao
         aberto
-        mensagemErro="Não foi possível alterar."
+        erro={{ response: { data: { detalhe: 'Não foi possível alterar.' } } }}
         {...propsModalPadrao}
       />,
     )

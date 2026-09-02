@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { iconeOlho } from '@/assets'
 import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { BarraAcoesSelecao } from '@/components/definicaoPolo/BarraAcoesSelecao'
@@ -9,7 +9,10 @@ import type { DefinicaoColuna } from '@/components/TabelaListagem/types'
 import { Button } from '@/components/ui/button'
 import { OPCOES_ITENS_POR_PAGINA } from '@/constants/paginacao'
 import { useGetDefinicoesPolo } from '@/hooks/useGetDefinicoesPolo'
-import type { DefinicaoPoloApi } from '@/services/definicaoPolo/types'
+import type {
+  DefinicaoPoloApi,
+  FiltrosListagemDefinicaoPolos,
+} from '@/services/definicaoPolo/types'
 
 const TIPO_POLO_PADRAO = 'Pendente'
 const NOME_EDICAO_PADRAO = '-'
@@ -20,6 +23,46 @@ function formatarNomeEdicao(nomeEdicao?: string | null) {
 
 function formatarTipoPolo(tipo?: string | null) {
   return tipo?.trim() ? tipo : TIPO_POLO_PADRAO
+}
+
+function filtrarDefinicoesPolo(
+  polos: DefinicaoPoloApi[],
+  filtros: FiltrosListagemDefinicaoPolos,
+) {
+  return polos.filter((polo) => {
+    if (filtros.dre && polo.dre !== filtros.dre) {
+      return false
+    }
+
+    if (filtros.tipoUe && polo.tipoUe !== filtros.tipoUe) {
+      return false
+    }
+
+    if (filtros.gestao && polo.gestao !== filtros.gestao) {
+      return false
+    }
+
+    if (
+      filtros.nomeEdicao &&
+      formatarNomeEdicao(polo.nomeEdicao) !== filtros.nomeEdicao
+    ) {
+      return false
+    }
+
+    if (filtros.tipoPolo && formatarTipoPolo(polo.tipo) !== filtros.tipoPolo) {
+      return false
+    }
+
+    if (filtros.nomeUeOuCodigoEol.trim()) {
+      const termo = filtros.nomeUeOuCodigoEol.trim().toLowerCase()
+
+      if (!polo.nomePolo.toLowerCase().includes(termo)) {
+        return false
+      }
+    }
+
+    return true
+  })
 }
 
 const COLUNAS = [
@@ -62,12 +105,16 @@ const COLUNAS = [
 ] as const satisfies readonly DefinicaoColuna<DefinicaoPoloApi>[]
 
 type DefinicaoPolosListagemProps = {
+  filtros?: FiltrosListagemDefinicaoPolos
+  chaveResetSelecao?: number
   onVisualizarPolo?: (idPolo: string) => void
   onAlterarEdicaoPolo: (idsPolos: string[]) => void
   onAlterarTipoPolo: (idsPolos: string[]) => void
 }
 
 export function DefinicaoPolosListagem({
+  filtros,
+  chaveResetSelecao = 0,
   onVisualizarPolo,
   onAlterarEdicaoPolo,
   onAlterarTipoPolo,
@@ -81,7 +128,19 @@ export function DefinicaoPolosListagem({
     () => new Set(),
   )
 
-  const polos = listagemQuery.data ?? []
+  const polosFiltrados = filtros
+    ? filtrarDefinicoesPolo(listagemQuery.data ?? [], filtros)
+    : (listagemQuery.data ?? [])
+
+  useEffect(() => {
+    setPaginaAtual(1)
+  }, [filtros])
+
+  useEffect(() => {
+    setPolosSelecionados(new Set())
+  }, [chaveResetSelecao])
+
+  const polos = polosFiltrados
   const totalPaginas = Math.ceil(polos.length / itensPorPagina)
   const paginaAjustada =
     totalPaginas > 0 ? Math.min(paginaAtual, totalPaginas) : 1
