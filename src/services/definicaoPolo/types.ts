@@ -1,13 +1,3 @@
-export type DefinicaoPolo = {
-  id: string
-  dre: string
-  tipoUe: string
-  nomeUe: string
-  nomeEdicao: string
-  tipoPolo: string
-  gestao: string
-}
-
 export type DefinicaoPoloApi = {
   id: string
   dre: string
@@ -33,19 +23,6 @@ export type FiltrosListagemDefinicaoPolos = {
   nomeEdicao: string
   tipoPolo: string
   gestao: string
-}
-
-export type ParametrosListagemDefinicaoPolos = FiltrosListagemDefinicaoPolos & {
-  pagina?: number
-  tamanhoPagina?: number
-}
-
-export type ListagemDefinicaoPolos = {
-  polos: DefinicaoPolo[]
-  pagina: number
-  tamanhoPagina: number
-  total: number
-  totalPaginas: number
 }
 
 export type ResultadoSincronizacaoUnidadesDiretas = {
@@ -83,9 +60,4 @@ export const FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS: FiltrosListagemDefinicao
     nomeEdicao: '',
     tipoPolo: '',
     gestao: '',
-  }
-
-export const PARAMETROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS: ParametrosListagemDefinicaoPolos =
-  {
-    ...FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
   }

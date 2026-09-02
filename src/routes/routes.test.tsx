@@ -104,14 +104,11 @@ function renderRotas(initialEntry: string) {
   )
 }
 
-vi.mock('../services/definicaoPolo/api', () => ({
-  listarDefinicoesPolo: vi.fn().mockResolvedValue({
-    polos: [],
-    pagina: 1,
-    tamanhoPagina: 10,
-    total: 0,
-    totalPaginas: 0,
-  }),
+vi.mock('../services/definicaoPolo/listarDefinicoesPolo', () => ({
+  listarDefinicoesPolo: vi.fn().mockResolvedValue([]),
+}))
+
+vi.mock('../services/definicaoPolo/sincronizarUnidadesDiretas', () => ({
   sincronizarUnidadesDiretas: vi.fn().mockResolvedValue({
     totalConsultados: 0,
     totalNovos: 0,
@@ -120,7 +117,9 @@ vi.mock('../services/definicaoPolo/api', () => ({
     motivoIgnorada: 'ja_executada_hoje',
     ultimaExecucaoEm: null,
   }),
-  atualizarDefinicoesPoloEmLote: vi.fn(),
+}))
+
+vi.mock('../services/definicaoPolo/listarOpcoesFiltroDefinicaoPolos', () => ({
   listarOpcoesFiltroDefinicaoPolos: vi.fn().mockResolvedValue({
     dres: [],
     tiposUe: [],

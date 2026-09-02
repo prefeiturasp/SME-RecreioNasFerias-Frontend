@@ -69,14 +69,18 @@ vi.mock('@/services/edicaoPrograma/listarEdicoesPrograma', () => ({
   listarEdicoesPrograma: listarEdicoesProgramaMock,
 }))
 
-vi.mock('@/services/definicaoPolo/useOpcoesFiltroDefinicaoPolos', () => ({
-  useOpcoesFiltroDefinicaoPolos: () => ({
-    opcoesDre: ['DIRETORIA REGIONAL DE EDUCACAO PENHA'],
-    opcoesTipoUe: ['CEI DIRET', 'EMEF'],
-    opcoesGestao: ['Direta', 'Parceira'],
-    opcoesNomeEdicao: ['-'],
-    opcoesTipoPolo: ['Pendente', 'Polo oficial', 'Polo reserva'],
-    estaCarregando: false,
+vi.mock('@/hooks/useGetOpcoesFiltroDefinicaoPolos', () => ({
+  useGetOpcoesFiltroDefinicaoPolos: () => ({
+    data: {
+      dres: ['DIRETORIA REGIONAL DE EDUCACAO PENHA'],
+      tiposUe: ['CEI DIRET', 'EMEF'],
+      gestoes: ['Direta', 'Parceira'],
+      nomesEdicao: ['-'],
+      tiposPolo: ['Pendente', 'Polo oficial', 'Polo reserva'],
+    },
+    isPending: false,
+    isError: false,
+    error: null,
   }),
 }))
 

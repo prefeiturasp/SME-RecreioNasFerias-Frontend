@@ -6,26 +6,31 @@ import { FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS } from '../../services/defini
 
 import { FiltrosDefinicaoPolos } from './FiltrosDefinicaoPolos'
 
-const { useOpcoesFiltroDefinicaoPolosMock } = vi.hoisted(() => ({
-  useOpcoesFiltroDefinicaoPolosMock: vi.fn(),
+const { useGetOpcoesFiltroDefinicaoPolosMock } = vi.hoisted(() => ({
+  useGetOpcoesFiltroDefinicaoPolosMock: vi.fn(),
 }))
 
-vi.mock('../../services/definicaoPolo/useOpcoesFiltroDefinicaoPolos', () => ({
-  useOpcoesFiltroDefinicaoPolos: () => useOpcoesFiltroDefinicaoPolosMock(),
+vi.mock('@/hooks/useGetOpcoesFiltroDefinicaoPolos', () => ({
+  useGetOpcoesFiltroDefinicaoPolos: () =>
+    useGetOpcoesFiltroDefinicaoPolosMock(),
 }))
 
 const opcoesPadrao = {
-  opcoesDre: ['DIRETORIA REGIONAL DE EDUCACAO BUTANTA'],
-  opcoesTipoUe: ['CEI DIRET', 'EMEF'],
-  opcoesGestao: ['Parceira', 'Direta'],
-  opcoesNomeEdicao: ['Janeiro 2025', '-'],
-  opcoesTipoPolo: ['Pendente', 'Polo oficial'],
-  estaCarregando: false,
+  data: {
+    dres: ['DIRETORIA REGIONAL DE EDUCACAO BUTANTA'],
+    tiposUe: ['CEI DIRET', 'EMEF'],
+    gestoes: ['Parceira', 'Direta'],
+    nomesEdicao: ['Janeiro 2025', '-'],
+    tiposPolo: ['Pendente', 'Polo oficial'],
+  },
+  isPending: false,
+  isError: false,
+  error: null,
 }
 
 describe('FiltrosDefinicaoPolos', () => {
   beforeEach(() => {
-    useOpcoesFiltroDefinicaoPolosMock.mockReturnValue(opcoesPadrao)
+    useGetOpcoesFiltroDefinicaoPolosMock.mockReturnValue(opcoesPadrao)
   })
 
   it('expande e recolhe os filtros via aria-expanded', async () => {
@@ -58,10 +63,11 @@ describe('FiltrosDefinicaoPolos', () => {
     expect(screen.getByLabelText(/filtrar por dre/i)).toBeInTheDocument()
   })
 
-  it('exibe mensagem de carregamento quando estaCarregando é true', () => {
-    useOpcoesFiltroDefinicaoPolosMock.mockReturnValue({
+  it('exibe mensagem de carregamento quando isPending é true', () => {
+    useGetOpcoesFiltroDefinicaoPolosMock.mockReturnValue({
       ...opcoesPadrao,
-      estaCarregando: true,
+      data: undefined,
+      isPending: true,
     })
 
     render(

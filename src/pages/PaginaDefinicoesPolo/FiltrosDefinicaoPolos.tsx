@@ -1,9 +1,9 @@
 import { useState } from 'react'
-
-import { ChevronDownIcon, IconeFiltro } from '../../components/icons'
-import { IndicadorCarregamento } from '../../components/IndicadorCarregamento'
-import { useOpcoesFiltroDefinicaoPolos } from '../../services/definicaoPolo/useOpcoesFiltroDefinicaoPolos'
-import type { FiltrosListagemDefinicaoPolos } from '../../services/definicaoPolo/types'
+import { AlertaErroApi } from '@/components/AlertaErroApi'
+import { ChevronDownIcon, IconeFiltro } from '@/components/icons'
+import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
+import { useGetOpcoesFiltroDefinicaoPolos } from '@/hooks/useGetOpcoesFiltroDefinicaoPolos'
+import type { FiltrosListagemDefinicaoPolos } from '@/services/definicaoPolo/types'
 import {
   BotaoCancelarFormulario as BotaoLimparFiltros,
   BotaoSalvarFormulario as BotaoFiltrar,
@@ -35,14 +35,12 @@ export function FiltrosDefinicaoPolos({
   onFiltrar,
 }: Readonly<FiltrosDefinicaoPolosProps>) {
   const [expandido, setExpandido] = useState(true)
-  const {
-    opcoesDre,
-    opcoesTipoUe,
-    opcoesGestao,
-    opcoesNomeEdicao,
-    opcoesTipoPolo,
-    estaCarregando,
-  } = useOpcoesFiltroDefinicaoPolos()
+  const opcoesQuery = useGetOpcoesFiltroDefinicaoPolos()
+  const opcoesDre = opcoesQuery.data?.dres ?? []
+  const opcoesTipoUe = opcoesQuery.data?.tiposUe ?? []
+  const opcoesGestao = opcoesQuery.data?.gestoes ?? []
+  const opcoesNomeEdicao = opcoesQuery.data?.nomesEdicao ?? []
+  const opcoesTipoPolo = opcoesQuery.data?.tiposPolo ?? []
 
   const atualizarCampo = (
     campo: keyof FiltrosListagemDefinicaoPolos,
@@ -54,30 +52,20 @@ export function FiltrosDefinicaoPolos({
     })
   }
 
-  return (
-    <CartaoFiltrosPolos aria-label="Filtrar polos">
-      <CabecalhoFiltrosPolos>
-        <BotaoCabecalhoFiltrosPolos
-          type="button"
-          aria-expanded={expandido}
-          aria-controls="corpo-filtros-definicao-polos"
-          onClick={() => setExpandido((atual) => !atual)}
-        >
-          <IconeFiltro />
-          <TituloFiltrosPolos>Filtrar Polos</TituloFiltrosPolos>
-          <IconeChevronFiltrosPolos $expandido={expandido} aria-hidden="true">
-            <ChevronDownIcon />
-          </IconeChevronFiltrosPolos>
-        </BotaoCabecalhoFiltrosPolos>
-      </CabecalhoFiltrosPolos>
+  function renderizarConteudoFiltros() {
+    if (opcoesQuery.isPending) {
+      return (
+        <IndicadorCarregamento mensagem="Carregando opções dos filtros..." />
+      )
+    }
 
-      {expandido && (
-        <CorpoFiltrosPolos id="corpo-filtros-definicao-polos">
-          {estaCarregando ? (
-            <IndicadorCarregamento mensagem="Carregando opções dos filtros..." />
-          ) : (
-            <>
-              <LinhaCamposFiltrosPolos>
+    if (opcoesQuery.isError) {
+      return <AlertaErroApi erro={opcoesQuery.error} />
+    }
+
+    return (
+      <>
+        <LinhaCamposFiltrosPolos>
                 <CampoFiltroPolos>
                   <label htmlFor="filtro-dre">Filtrar por DRE</label>
                   <SeletorCampoFiltroPolos>
@@ -205,16 +193,38 @@ export function FiltrosDefinicaoPolos({
                 </CampoFiltroPolos>
               </LinhaCamposFiltrosPolos>
 
-              <LinhaBotoesFiltrosPolos>
-                <BotaoLimparFiltros type="button" onClick={onLimpar}>
-                  Limpar Filtros
-                </BotaoLimparFiltros>
-                <BotaoFiltrar type="button" onClick={onFiltrar}>
-                  Filtrar
-                </BotaoFiltrar>
-              </LinhaBotoesFiltrosPolos>
-            </>
-          )}
+        <LinhaBotoesFiltrosPolos>
+          <BotaoLimparFiltros type="button" onClick={onLimpar}>
+            Limpar Filtros
+          </BotaoLimparFiltros>
+          <BotaoFiltrar type="button" onClick={onFiltrar}>
+            Filtrar
+          </BotaoFiltrar>
+        </LinhaBotoesFiltrosPolos>
+      </>
+    )
+  }
+
+  return (
+    <CartaoFiltrosPolos aria-label="Filtrar polos">
+      <CabecalhoFiltrosPolos>
+        <BotaoCabecalhoFiltrosPolos
+          type="button"
+          aria-expanded={expandido}
+          aria-controls="corpo-filtros-definicao-polos"
+          onClick={() => setExpandido((atual) => !atual)}
+        >
+          <IconeFiltro />
+          <TituloFiltrosPolos>Filtrar Polos</TituloFiltrosPolos>
+          <IconeChevronFiltrosPolos $expandido={expandido} aria-hidden="true">
+            <ChevronDownIcon />
+          </IconeChevronFiltrosPolos>
+        </BotaoCabecalhoFiltrosPolos>
+      </CabecalhoFiltrosPolos>
+
+      {expandido && (
+        <CorpoFiltrosPolos id="corpo-filtros-definicao-polos">
+          {renderizarConteudoFiltros()}
         </CorpoFiltrosPolos>
       )}
     </CartaoFiltrosPolos>
