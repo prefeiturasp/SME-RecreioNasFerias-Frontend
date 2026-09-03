@@ -7,7 +7,6 @@ import { MenuLateral } from '@/components/MenuLateral'
 import {
   AreaConteudo,
   BotaoVoltar,
-  CabecalhoAreaInternaConteudo,
   ContainerPaginaDefinicoesPolo,
   RotuloBotaoVoltar,
   SecaoPrincipal,
@@ -33,10 +32,12 @@ export default function PaginaDefinicoesPolo() {
           <MapaVisual niveis={[...NIVEIS_MAPA_VISUAL]} />
 
           <section>
-            <CabecalhoAreaInternaConteudo>
-              <h3>Definição de Polos</h3>
+            <div className="mt-8 mb-4 flex flex-wrap items-center justify-between gap-4 max-md:flex-col max-md:items-stretch">
+              <h3 className="text-xl leading-tight font-bold text-foreground">
+                Definição de Polos
+              </h3>
 
-              <div>
+              <div className="flex flex-wrap items-center justify-end gap-2.5 max-md:flex-col max-md:items-stretch [&_button]:max-md:w-full">
                 <BotaoVoltar
                   type="button"
                   aria-label="Voltar ao início"
@@ -47,7 +48,7 @@ export default function PaginaDefinicoesPolo() {
                   <RotuloBotaoVoltar>Voltar</RotuloBotaoVoltar>
                 </BotaoVoltar>
               </div>
-            </CabecalhoAreaInternaConteudo>
+            </div>
 
             <DefinicaoPolosConteudo />
           </section>
