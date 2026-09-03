@@ -4,11 +4,10 @@ import { Cabecalho } from '@/components/Cabecalho'
 import { DefinicaoPolosConteudo } from '@/components/definicaoPolo/DefinicaoPolosConteudo'
 import { MapaVisual } from '@/components/MapaVisual'
 import { MenuLateral } from '@/components/MenuLateral'
+import { Button } from '@/components/ui/button'
 import {
   AreaConteudo,
-  BotaoVoltar,
   ContainerPaginaDefinicoesPolo,
-  RotuloBotaoVoltar,
   SecaoPrincipal,
 } from './style'
 
@@ -38,15 +37,16 @@ export default function PaginaDefinicoesPolo() {
               </h3>
 
               <div className="flex flex-wrap items-center justify-end gap-2.5 max-md:flex-col max-md:items-stretch [&_button]:max-md:w-full">
-                <BotaoVoltar
+                <Button
                   type="button"
+                  variant="outline"
+                  className="inline-flex h-9.5 items-center gap-2.5 rounded-sm border-brand-dark px-4 font-bold text-brand-dark hover:bg-accent hover:text-brand-dark"
                   aria-label="Voltar ao início"
                   onClick={() => navigate('/inicio')}
                 >
                   <img src={IconeSetaVoltar} alt="" aria-hidden="true" />
-
-                  <RotuloBotaoVoltar>Voltar</RotuloBotaoVoltar>
-                </BotaoVoltar>
+                  <span>Voltar</span>
+                </Button>
               </div>
             </div>
 
