@@ -1,5 +1,3 @@
-import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
 import { IconeCasaMapa, IconeSeparadorMapa } from '@/components/icons'
 import {
   Breadcrumb,
@@ -8,6 +6,8 @@ import {
   BreadcrumbList,
 } from '@/components/ui/breadcrumb'
 import { cn } from '@/lib/utils'
+import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 
 export type NivelMapaVisual = {
   rotulo: string
@@ -50,10 +50,7 @@ function renderizarConteudoNivel(
 ) {
   if (ehUltimo) {
     return (
-      <span
-        aria-current="page"
-        className={cn(classesItemMapa, 'text-primary')}
-      >
+      <span aria-current="page" className={cn(classesItemMapa, 'text-primary')}>
         {iconeInicio}
         <span>{nivel.rotulo}</span>
       </span>
@@ -66,7 +63,7 @@ function renderizarConteudoNivel(
         asChild
         className={cn(
           classesItemMapa,
-          'text-foreground no-underline hover:underline focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+          'text-foreground no-underline hover:underline focus-visible:rounded-sm focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-primary',
         )}
       >
         <Link to={nivel.caminho}>
