@@ -1,31 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
-import { iconeCadastro } from '../../assets'
-import logoSmeBranco from '../../assets/logo-sme-branco.png'
-import { useEstadoMenuLateral } from '../../contexts/useEstadoMenuLateral'
-import { ChevronDownIcon, CloseIcon, MenuIcon } from '../icons'
+
+import { iconeCadastro } from '@/assets'
+import logoSmeBranco from '@/assets/logo-sme-branco.png'
+import { ChevronDownIcon, CloseIcon, MenuIcon } from '@/components/icons'
+import { Button } from '@/components/ui/button'
 import {
-  AreaRolagemMenu,
-  BotaoAbrirMenu,
-  BotaoCabecalhoGrupoMenu,
-  BotaoFecharMenu,
-  CabecalhoGrupoMenu,
-  CabecalhoMenu,
-  CartaoGrupoMenu,
-  ContainerMenuLateral,
-  ConteudoMenu,
-  IconeCartaoMenu,
-  IconeChevronGrupoMenu,
-  ListaMenu,
-  ListaSubitensMenu,
-  LogoMenu,
-  RodapeLogoMenu,
-  RotuloGrupoMenu,
-  SubitemMenu,
-} from './style'
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import { useEstadoMenuLateral } from '@/contexts/useEstadoMenuLateral'
+import { cn } from '@/lib/utils'
+import { Link, useLocation } from 'react-router-dom'
 
 const tituloMenu = (
-  <h3>
+  <h3 className="flex-1 font-heading text-sm leading-snug font-normal text-primary-foreground">
     Sistema de Gestão <br /> do Recreio nas Férias
   </h3>
 )
@@ -52,6 +41,19 @@ const SUBITENS_CADASTROS = [
 ] as const
 
 const MENU_TRANSITION_MS = 200
+
+function IconeCartaoMenu({ icone }: Readonly<{ icone: string }>) {
+  return (
+    <span
+      className="flex size-6 shrink-0 items-center justify-center bg-brand-dark"
+      style={{
+        mask: `url(${icone}) center / contain no-repeat`,
+        WebkitMask: `url(${icone}) center / contain no-repeat`,
+      }}
+      aria-hidden="true"
+    />
+  )
+}
 
 export function MenuLateral() {
   const location = useLocation()
@@ -85,10 +87,6 @@ export function MenuLateral() {
     fecharMenuGlobal()
   }
 
-  const alternarCadastros = () => {
-    setCadastrosExpandido((expandido) => !expandido)
-  }
-
   useEffect(() => {
     if (!menuAberto) return
 
@@ -119,81 +117,116 @@ export function MenuLateral() {
   }, [menuAberto])
 
   return (
-    <ContainerMenuLateral ref={referenciaAside} $estaAberto={menuAberto}>
+    <aside
+      ref={referenciaAside}
+      className={cn(
+        'flex h-screen shrink-0 flex-col bg-brand-dark transition-[width,min-width] duration-200 ease-in-out',
+        menuAberto ? 'w-[18%] min-w-48' : 'w-14 min-w-14',
+      )}
+    >
       {conteudoMenuVisivel && (
-        <ConteudoMenu>
-          <AreaRolagemMenu>
-            <CabecalhoMenu>
+        <nav className="flex min-h-0 flex-1 flex-col overflow-hidden text-primary-foreground">
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="flex h-29.5 w-full items-center justify-between gap-2 rounded-b-sm bg-primary px-2 py-4">
               {tituloMenu}
-              <BotaoFecharMenu
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-xs"
+                className="size-6 shrink-0 text-primary-foreground hover:bg-background/10 hover:text-primary-foreground"
                 aria-label="Fechar menu"
                 onClick={fecharMenu}
               >
                 <CloseIcon />
-              </BotaoFecharMenu>
-            </CabecalhoMenu>
-            <ListaMenu>
+              </Button>
+            </div>
+
+            <ul className="m-0 flex list-none flex-col gap-2 px-1 pt-2.5">
               <li>
-                <CartaoGrupoMenu>
-                  <CabecalhoGrupoMenu>
-                    <BotaoCabecalhoGrupoMenu
+                <Collapsible
+                  open={cadastrosExpandido}
+                  onOpenChange={setCadastrosExpandido}
+                  className="w-full overflow-hidden rounded-sm bg-background"
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button
                       type="button"
-                      aria-expanded={cadastrosExpandido}
+                      variant="ghost"
+                      className="flex h-auto w-full min-h-6 items-center justify-start gap-1.5 rounded-none px-2 py-3 text-left text-brand-dark hover:bg-transparent focus-visible:outline focus-visible:-outline-offset-2 focus-visible:outline-background"
                       aria-controls="submenu-cadastros"
-                      onClick={alternarCadastros}
                     >
-                      <IconeCartaoMenu
-                        $icone={iconeCadastro}
-                        aria-hidden="true"
-                      />
-                      <RotuloGrupoMenu>Cadastros</RotuloGrupoMenu>
-                      <IconeChevronGrupoMenu $expandido={cadastrosExpandido}>
+                      <IconeCartaoMenu icone={iconeCadastro} />
+                      <span className="flex min-h-6 flex-1 items-center text-sm leading-none font-bold text-brand-dark">
+                        Cadastros
+                      </span>
+                      <span
+                        className={cn(
+                          'flex size-6 shrink-0 items-center justify-center text-brand-dark transition-transform duration-200 [&_svg]:size-6',
+                          cadastrosExpandido && 'rotate-180',
+                        )}
+                      >
                         <ChevronDownIcon />
-                      </IconeChevronGrupoMenu>
-                    </BotaoCabecalhoGrupoMenu>
-                  </CabecalhoGrupoMenu>
-                  {cadastrosExpandido && (
-                    <ListaSubitensMenu id="submenu-cadastros">
-                      {SUBITENS_CADASTROS.map((subitem) => (
-                        <li key={subitem.caminho}>
-                          <SubitemMenu
-                            to={subitem.caminho}
-                            $ativo={location.pathname.startsWith(
-                              subitem.caminho,
-                            )}
-                          >
-                            {subitem.rotulo}
-                          </SubitemMenu>
-                        </li>
-                      ))}
-                    </ListaSubitensMenu>
-                  )}
-                </CartaoGrupoMenu>
+                      </span>
+                    </Button>
+                  </CollapsibleTrigger>
+
+                  <CollapsibleContent>
+                    <ul
+                      id="submenu-cadastros"
+                      className="m-0 flex list-none flex-col border-t border-border p-0"
+                    >
+                      {SUBITENS_CADASTROS.map((subitem) => {
+                        const ativo = location.pathname.startsWith(
+                          subitem.caminho,
+                        )
+
+                        return (
+                          <li key={subitem.caminho}>
+                            <Link
+                              to={subitem.caminho}
+                              className={cn(
+                                'block border-t border-border py-3 pr-2 pl-10 text-sm leading-tight font-bold no-underline first:border-t-0 hover:bg-surface-muted hover:text-brand-dark focus-visible:outline focus-visible:-outline-offset-2 focus-visible:outline-brand-dark',
+                                ativo
+                                  ? 'bg-surface-muted text-brand-dark'
+                                  : 'bg-transparent text-muted-foreground',
+                              )}
+                            >
+                              {subitem.rotulo}
+                            </Link>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </CollapsibleContent>
+                </Collapsible>
               </li>
-            </ListaMenu>
-          </AreaRolagemMenu>
-          <RodapeLogoMenu>
-            <LogoMenu
+            </ul>
+          </div>
+
+          <div className="flex shrink-0 items-center justify-center px-2 pt-4 pb-5">
+            <img
               src={logoSmeBranco}
               alt="Prefeitura de São Paulo"
               width={157}
               height={55}
+              className="object-contain"
             />
-          </RodapeLogoMenu>
-        </ConteudoMenu>
+          </div>
+        </nav>
       )}
 
       {!menuAberto && (
-        <BotaoAbrirMenu
+        <Button
           type="button"
+          variant="ghost"
+          className="size-14 shrink-0 text-primary-foreground hover:bg-background/10 hover:text-primary-foreground"
           aria-label="Abrir menu"
           aria-expanded={false}
           onClick={abrirMenu}
         >
           <MenuIcon />
-        </BotaoAbrirMenu>
+        </Button>
       )}
-    </ContainerMenuLateral>
+    </aside>
   )
 }
