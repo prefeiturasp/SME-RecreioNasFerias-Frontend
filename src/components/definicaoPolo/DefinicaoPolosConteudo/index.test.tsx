@@ -19,10 +19,7 @@ vi.mock('@/components/definicaoPolo/DefinicaoPolosListagem', () => ({
       <span data-testid="filtros-aplicados-gestao">
         {filtros?.gestao ?? ''}
       </span>
-      <button
-        type="button"
-        onClick={() => onAlterarEdicaoPolo(['polo-1'])}
-      >
+      <button type="button" onClick={() => onAlterarEdicaoPolo(['polo-1'])}>
         Simular alterar edição
       </button>
       <button type="button" onClick={() => onAlterarTipoPolo(['polo-1'])}>
@@ -36,10 +33,14 @@ const {
   atualizarDefinicoesPoloEmLoteMock,
   listarEdicoesProgramaMock,
   sincronizarUnidadesDiretasMock,
+  listarDresMock,
+  listarTiposEscolaMock,
 } = vi.hoisted(() => ({
   atualizarDefinicoesPoloEmLoteMock: vi.fn(),
   listarEdicoesProgramaMock: vi.fn(),
   sincronizarUnidadesDiretasMock: vi.fn(),
+  listarDresMock: vi.fn(),
+  listarTiposEscolaMock: vi.fn(),
 }))
 
 vi.mock('@/services/definicaoPolo/atualizarDefinicoesPoloEmLote', () => ({
@@ -54,15 +55,27 @@ vi.mock('@/services/edicaoPrograma/listarEdicoesPrograma', () => ({
   listarEdicoesPrograma: listarEdicoesProgramaMock,
 }))
 
-vi.mock('@/services/definicaoPolo/listarOpcoesFiltroDefinicaoPolos', () => ({
-  listarOpcoesFiltroDefinicaoPolos: vi.fn().mockResolvedValue({
-    dres: ['DIRETORIA REGIONAL DE EDUCACAO PENHA'],
-    tiposUe: ['CEI DIRET', 'EMEF'],
-    gestoes: ['Direta', 'Parceira'],
-    nomesEdicao: ['-'],
-    tiposPolo: ['Pendente', 'Polo oficial', 'Polo reserva'],
-  }),
-}))
+vi.mock('@/services/dre/listarDres', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@/services/dre/listarDres')>()
+
+  return {
+    ...actual,
+    listarDres: listarDresMock,
+  }
+})
+
+vi.mock('@/services/tipoEscola/listarTiposEscola', async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import('@/services/tipoEscola/listarTiposEscola')
+    >()
+
+  return {
+    ...actual,
+    listarTiposEscola: listarTiposEscolaMock,
+  }
+})
 
 function renderConteudo() {
   const queryClient = new QueryClient({
@@ -84,6 +97,8 @@ describe('DefinicaoPolosConteudo', () => {
     atualizarDefinicoesPoloEmLoteMock.mockReset()
     listarEdicoesProgramaMock.mockReset()
     sincronizarUnidadesDiretasMock.mockReset()
+    listarDresMock.mockReset()
+    listarTiposEscolaMock.mockReset()
 
     sincronizarUnidadesDiretasMock.mockResolvedValue({
       totalConsultados: 0,
@@ -96,6 +111,17 @@ describe('DefinicaoPolosConteudo', () => {
     atualizarDefinicoesPoloEmLoteMock.mockResolvedValue({
       totalAtualizados: 1,
     })
+    listarDresMock.mockResolvedValue([
+      {
+        codigo_dre: '108100',
+        nome_dre: 'DIRETORIA REGIONAL DE EDUCACAO BUTANTA',
+        sigla_dre: 'BT',
+      },
+    ])
+    listarTiposEscolaMock.mockResolvedValue([
+      { codigo: 1, descricao_sigla: 'CEI DIRET' },
+      { codigo: 2, descricao_sigla: 'EMEF' },
+    ])
     listarEdicoesProgramaMock.mockResolvedValue([
       {
         uuid: 'ed-1',
@@ -133,7 +159,7 @@ describe('DefinicaoPolosConteudo', () => {
     await usuario.click(screen.getByRole('button', { name: /^filtrar$/i }))
 
     expect(screen.getByTestId('filtros-aplicados-gestao')).toHaveTextContent(
-      'Parceira',
+      'parceira',
     )
   })
 

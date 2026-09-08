@@ -9,34 +9,55 @@ const { listarDefinicoesPoloMock } = vi.hoisted(() => ({
   listarDefinicoesPoloMock: vi.fn(),
 }))
 
-vi.mock('@/services/definicaoPolo/listarDefinicoesPolo', async (importOriginal) => {
-  const actual =
-    await importOriginal<
-      typeof import('@/services/definicaoPolo/listarDefinicoesPolo')
-    >()
+vi.mock(
+  '@/services/definicaoPolo/listarDefinicoesPolo',
+  async (importOriginal) => {
+    const actual =
+      await importOriginal<
+        typeof import('@/services/definicaoPolo/listarDefinicoesPolo')
+      >()
 
-  return {
-    ...actual,
-    listarDefinicoesPolo: listarDefinicoesPoloMock,
-  }
-})
+    return {
+      ...actual,
+      listarDefinicoesPolo: listarDefinicoesPoloMock,
+    }
+  },
+)
 
 const poloDiretaApi: DefinicaoPoloApi = {
-  id: '1',
-  dre: 'BUTANTA',
-  tipoUe: 'CEI',
-  nomePolo: 'CEI DIRET ALOYSIO',
-  nomeEdicao: 'Janeiro 2025',
-  gestao: 'Direta',
+  polo_uuid: '1',
+  codigo_eol: '400001',
+  nome_polo: 'CEI DIRET ALOYSIO',
+  dre_nome: 'BUTANTA',
+  dre_codigo_eol: '108100',
+  tipo_ue: 'CEI',
+  gestao: 'direta',
+  status: 'ativo',
+  ativo: true,
+  definicao_uuid: null,
+  edicao_uuid: 'ed-1',
+  nome_edicao: 'Janeiro 2025',
+  tipo_polo_edicao: 'pendente',
+  projecao_inscritos_edicao: null,
+  total_inscritos_edicao: null,
 }
 
 const poloParceiraApi: DefinicaoPoloApi = {
-  id: '2',
-  dre: 'PENHA',
-  tipoUe: 'EMEF',
-  nomePolo: 'EMEF AMORIM LIMA',
-  tipo: 'Polo oficial',
-  gestao: 'Parceira',
+  polo_uuid: '2',
+  codigo_eol: '400002',
+  nome_polo: 'EMEF AMORIM LIMA',
+  dre_nome: 'PENHA',
+  dre_codigo_eol: '108200',
+  tipo_ue: 'EMEF',
+  gestao: 'parceira',
+  status: 'ativo',
+  ativo: true,
+  definicao_uuid: 'def-2',
+  edicao_uuid: 'ed-1',
+  nome_edicao: 'Janeiro 2025',
+  tipo_polo_edicao: 'oficial',
+  projecao_inscritos_edicao: null,
+  total_inscritos_edicao: null,
 }
 
 function renderDefinicaoPolosListagem(
@@ -233,11 +254,11 @@ describe('DefinicaoPolosListagem', () => {
   it('exibe valores padrão para tipo e nome da edição ausentes', async () => {
     listarDefinicoesPoloMock.mockResolvedValue([
       {
-        id: '3',
-        dre: 'BUTANTA',
-        tipoUe: 'CEI',
-        nomePolo: 'CEI SEM TIPO',
-        gestao: 'Direta',
+        ...poloDiretaApi,
+        polo_uuid: '3',
+        nome_polo: 'CEI SEM TIPO',
+        nome_edicao: null,
+        tipo_polo_edicao: null,
       },
     ])
 

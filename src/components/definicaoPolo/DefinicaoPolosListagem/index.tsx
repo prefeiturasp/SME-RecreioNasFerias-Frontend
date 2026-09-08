@@ -30,11 +30,11 @@ function filtrarDefinicoesPolo(
   filtros: FiltrosListagemDefinicaoPolos,
 ) {
   return polos.filter((polo) => {
-    if (filtros.dre && polo.dre !== filtros.dre) {
+    if (filtros.dre && polo.dre_nome !== filtros.dre) {
       return false
     }
 
-    if (filtros.tipoUe && polo.tipoUe !== filtros.tipoUe) {
+    if (filtros.tipoUe && polo.tipo_ue !== filtros.tipoUe) {
       return false
     }
 
@@ -44,19 +44,22 @@ function filtrarDefinicoesPolo(
 
     if (
       filtros.nomeEdicao &&
-      formatarNomeEdicao(polo.nomeEdicao) !== filtros.nomeEdicao
+      formatarNomeEdicao(polo.nome_edicao) !== filtros.nomeEdicao
     ) {
       return false
     }
 
-    if (filtros.tipoPolo && formatarTipoPolo(polo.tipo) !== filtros.tipoPolo) {
+    if (
+      filtros.tipoPolo &&
+      formatarTipoPolo(polo.tipo_polo_edicao) !== filtros.tipoPolo
+    ) {
       return false
     }
 
     if (filtros.nomeUeOuCodigoEol.trim()) {
       const termo = filtros.nomeUeOuCodigoEol.trim().toLowerCase()
 
-      if (!polo.nomePolo.toLowerCase().includes(termo)) {
+      if (!polo.nome_polo.toLowerCase().includes(termo)) {
         return false
       }
     }
@@ -67,34 +70,34 @@ function filtrarDefinicoesPolo(
 
 const COLUNAS = [
   {
-    id: 'dre',
+    id: 'dre_nome',
     rotulo: 'DRE',
-    valorOrdenacao: (polo) => polo.dre,
-    renderizar: (polo) => polo.dre,
+    valorOrdenacao: (polo) => polo.dre_nome,
+    renderizar: (polo) => polo.dre_nome,
   },
   {
-    id: 'tipoUe',
+    id: 'tipo_ue',
     rotulo: 'Tipo de UE',
-    valorOrdenacao: (polo) => polo.tipoUe,
-    renderizar: (polo) => polo.tipoUe,
+    valorOrdenacao: (polo) => polo.tipo_ue,
+    renderizar: (polo) => polo.tipo_ue,
   },
   {
-    id: 'nomePolo',
+    id: 'nome_polo',
     rotulo: 'Nome da UE',
-    valorOrdenacao: (polo) => polo.nomePolo,
-    renderizar: (polo) => polo.nomePolo,
+    valorOrdenacao: (polo) => polo.nome_polo,
+    renderizar: (polo) => polo.nome_polo,
   },
   {
-    id: 'nomeEdicao',
+    id: 'nome_edicao',
     rotulo: 'Nome da Edição',
-    valorOrdenacao: (polo) => formatarNomeEdicao(polo.nomeEdicao),
-    renderizar: (polo) => formatarNomeEdicao(polo.nomeEdicao),
+    valorOrdenacao: (polo) => formatarNomeEdicao(polo.nome_edicao),
+    renderizar: (polo) => formatarNomeEdicao(polo.nome_edicao),
   },
   {
-    id: 'tipo',
+    id: 'tipo_polo_edicao',
     rotulo: 'Tipo de Polo',
-    valorOrdenacao: (polo) => formatarTipoPolo(polo.tipo),
-    renderizar: (polo) => formatarTipoPolo(polo.tipo),
+    valorOrdenacao: (polo) => formatarTipoPolo(polo.tipo_polo_edicao),
+    renderizar: (polo) => formatarTipoPolo(polo.tipo_polo_edicao),
   },
   {
     id: 'gestao',
@@ -151,9 +154,7 @@ export function DefinicaoPolosListagem({
   }
 
   if (listagemQuery.isPending) {
-    return (
-      <IndicadorCarregamento mensagem="Carregando definição de polos..." />
-    )
+    return <IndicadorCarregamento mensagem="Carregando definição de polos..." />
   }
 
   if (listagemQuery.isError) {
@@ -164,8 +165,8 @@ export function DefinicaoPolosListagem({
     <TabelaListagem
       itens={polos}
       colunas={COLUNAS}
-      obterId={(polo) => polo.id}
-      colunaOrdenacaoInicial="nomePolo"
+      obterId={(polo) => polo.polo_uuid}
+      colunaOrdenacaoInicial="nome_polo"
       titulo="Resultados da pesquisa"
       paginaAtual={paginaAjustada}
       totalPaginas={totalPaginas}
@@ -177,7 +178,7 @@ export function DefinicaoPolosListagem({
         idsSelecionados: polosSelecionados,
         onMudarSelecao: setPolosSelecionados,
         rotuloSelecionarTodos: 'Selecionar todos os polos da página',
-        rotuloSelecionarItem: (polo) => `Selecionar polo ${polo.nomePolo}`,
+        rotuloSelecionarItem: (polo) => `Selecionar polo ${polo.nome_polo}`,
       }}
       renderizarBarraSelecao={({ idsSelecionadosNaPagina, limparSelecao }) => (
         <BarraAcoesSelecao
@@ -194,15 +195,10 @@ export function DefinicaoPolosListagem({
             variant="ghost"
             size="icon-sm"
             className="text-brand-dark"
-            aria-label={`Visualizar polo ${polo.nomePolo}`}
-            onClick={() => onVisualizarPolo?.(polo.id)}
+            aria-label={`Visualizar polo ${polo.nome_polo}`}
+            onClick={() => onVisualizarPolo?.(polo.polo_uuid)}
           >
-            <img
-              src={iconeOlho}
-              alt=""
-              aria-hidden="true"
-              className="size-5"
-            />
+            <img src={iconeOlho} alt="" aria-hidden="true" className="size-5" />
           </Button>
 
           <Button
@@ -210,8 +206,8 @@ export function DefinicaoPolosListagem({
             variant="ghost"
             size="icon-sm"
             className="text-brand-dark"
-            aria-label={`Alterar edição do polo ${polo.nomePolo}`}
-            onClick={() => onAlterarEdicaoPolo([polo.id])}
+            aria-label={`Alterar edição do polo ${polo.nome_polo}`}
+            onClick={() => onAlterarEdicaoPolo([polo.polo_uuid])}
           >
             <ChevronDownIcon />
           </Button>

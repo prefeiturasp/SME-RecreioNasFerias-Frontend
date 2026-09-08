@@ -5,25 +5,75 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS } from '@/services/definicaoPolo/types'
 import { FiltrosDefinicaoPolosForm } from './index'
 
-const { listarOpcoesFiltroDefinicaoPolosMock } = vi.hoisted(() => ({
-  listarOpcoesFiltroDefinicaoPolosMock: vi.fn(),
+const {
+  listarDresMock,
+  listarTiposEscolaMock,
+  listarEdicoesProgramaMock,
+} = vi.hoisted(() => ({
+  listarDresMock: vi.fn(),
+  listarTiposEscolaMock: vi.fn(),
+  listarEdicoesProgramaMock: vi.fn(),
 }))
 
-vi.mock('@/services/definicaoPolo/listarOpcoesFiltroDefinicaoPolos', () => ({
-  listarOpcoesFiltroDefinicaoPolos: listarOpcoesFiltroDefinicaoPolosMock,
+vi.mock('@/services/dre/listarDres', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@/services/dre/listarDres')>()
+
+  return {
+    ...actual,
+    listarDres: listarDresMock,
+  }
+})
+
+vi.mock('@/services/tipoEscola/listarTiposEscola', async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import('@/services/tipoEscola/listarTiposEscola')
+    >()
+
+  return {
+    ...actual,
+    listarTiposEscola: listarTiposEscolaMock,
+  }
+})
+
+vi.mock('@/services/edicaoPrograma/listarEdicoesPrograma', () => ({
+  listarEdicoesPrograma: listarEdicoesProgramaMock,
 }))
 
-const opcoesPadrao = {
-  dres: ['DIRETORIA REGIONAL DE EDUCACAO BUTANTA'],
-  tiposUe: ['CEI DIRET', 'EMEF'],
-  gestoes: ['Parceira', 'Direta'],
-  nomesEdicao: ['Janeiro 2025', '-'],
-  tiposPolo: ['Pendente', 'Polo oficial'],
-}
+const edicoesPadrao = [
+  {
+    uuid: 'ed-1',
+    nome: 'Janeiro 2025',
+    data_inicio: '2025-01-01',
+    data_fim: '2025-01-31',
+    inscricoes_inicio: '2024-12-01',
+    inscricoes_fim: '2024-12-20',
+    quantidade_inscritos: 0,
+    quantidade_atendimento_efetivo: 0,
+    quantidade_passeios: 0,
+    quantidade_apresentacoes: 0,
+  },
+]
+
+const dresPadrao = [
+  {
+    codigo_dre: '108100',
+    nome_dre: 'DIRETORIA REGIONAL DE EDUCACAO BUTANTA',
+    sigla_dre: 'BT',
+  },
+]
+
+const tiposEscolaPadrao = [
+  { codigo: 1, descricao_sigla: 'CEI DIRET' },
+  { codigo: 2, descricao_sigla: 'EMEF' },
+]
 
 function renderFiltrosDefinicaoPolosForm(
   props: Partial<{
-    onFiltrar: (filtros: typeof FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS) => void
+    onFiltrar: (
+      filtros: typeof FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
+    ) => void
     onLimpar: () => void
   }> = {},
 ) {
@@ -46,7 +96,9 @@ function renderFiltrosDefinicaoPolosForm(
 
 describe('FiltrosDefinicaoPolosForm', () => {
   beforeEach(() => {
-    listarOpcoesFiltroDefinicaoPolosMock.mockResolvedValue(opcoesPadrao)
+    listarDresMock.mockResolvedValue(dresPadrao)
+    listarTiposEscolaMock.mockResolvedValue(tiposEscolaPadrao)
+    listarEdicoesProgramaMock.mockResolvedValue(edicoesPadrao)
   })
 
   it('expande e recolhe os filtros via aria-expanded', async () => {
@@ -72,22 +124,6 @@ describe('FiltrosDefinicaoPolosForm', () => {
     expect(await screen.findByLabelText(/filtrar por dre/i)).toBeInTheDocument()
   })
 
-  it('exibe mensagem de carregamento enquanto busca opções', () => {
-    listarOpcoesFiltroDefinicaoPolosMock.mockImplementation(
-      () =>
-        new Promise(() => {
-          /* pendente */
-        }),
-    )
-
-    renderFiltrosDefinicaoPolosForm()
-
-    expect(
-      screen.getByText(/carregando opções dos filtros/i),
-    ).toBeInTheDocument()
-    expect(screen.queryByLabelText(/gestão/i)).not.toBeInTheDocument()
-  })
-
   it('chama onFiltrar com gestão Parceira ao submeter', async () => {
     const usuario = userEvent.setup()
     const onFiltrar = vi.fn()
@@ -95,12 +131,12 @@ describe('FiltrosDefinicaoPolosForm', () => {
     renderFiltrosDefinicaoPolosForm({ onFiltrar })
 
     await screen.findByLabelText(/^gestão$/i)
-    await usuario.selectOptions(screen.getByLabelText(/^gestão$/i), 'Parceira')
+    await usuario.selectOptions(screen.getByLabelText(/^gestão$/i), 'parceira')
     await usuario.click(screen.getByRole('button', { name: /^filtrar$/i }))
 
     expect(onFiltrar).toHaveBeenCalledWith({
       ...FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
-      gestao: 'Parceira',
+      gestao: 'parceira',
     })
   })
 
@@ -110,29 +146,27 @@ describe('FiltrosDefinicaoPolosForm', () => {
 
     renderFiltrosDefinicaoPolosForm({ onFiltrar })
 
-    await screen.findByLabelText(/filtrar por dre/i)
-
-    await usuario.selectOptions(
-      screen.getByLabelText(/filtrar por dre/i),
-      'DIRETORIA REGIONAL DE EDUCACAO BUTANTA',
+    await usuario.click(await screen.findByLabelText(/filtrar por dre/i))
+    await usuario.click(
+      await screen.findByRole('option', {
+        name: /diretoria regional de educacao butanta/i,
+      }),
     )
-    await usuario.selectOptions(
-      screen.getByLabelText(/filtrar por tipo de ue/i),
-      'EMEF',
-    )
+    await usuario.click(screen.getByLabelText(/filtrar por tipo de ue/i))
+    await usuario.click(await screen.findByRole('option', { name: 'EMEF' }))
     await usuario.type(
       screen.getByLabelText(/filtrar por nome da ue ou código eol/i),
       '019241',
     )
     await usuario.selectOptions(
-      screen.getByLabelText(/filtrar por nome da edição/i),
+      await screen.findByLabelText(/filtrar por nome da edição/i),
       'Janeiro 2025',
     )
     await usuario.selectOptions(
       screen.getByLabelText(/^tipo de polo$/i),
-      'Pendente',
+      'pendente',
     )
-    await usuario.selectOptions(screen.getByLabelText(/^gestão$/i), 'Parceira')
+    await usuario.selectOptions(screen.getByLabelText(/^gestão$/i), 'parceira')
     await usuario.click(screen.getByRole('button', { name: /^filtrar$/i }))
 
     expect(onFiltrar).toHaveBeenCalledWith({
@@ -140,8 +174,8 @@ describe('FiltrosDefinicaoPolosForm', () => {
       tipoUe: 'EMEF',
       nomeUeOuCodigoEol: '019241',
       nomeEdicao: 'Janeiro 2025',
-      tipoPolo: 'Pendente',
-      gestao: 'Parceira',
+      tipoPolo: 'pendente',
+      gestao: 'parceira',
     })
   })
 
@@ -153,7 +187,7 @@ describe('FiltrosDefinicaoPolosForm', () => {
     renderFiltrosDefinicaoPolosForm({ onFiltrar, onLimpar })
 
     await screen.findByLabelText(/^gestão$/i)
-    await usuario.selectOptions(screen.getByLabelText(/^gestão$/i), 'Parceira')
+    await usuario.selectOptions(screen.getByLabelText(/^gestão$/i), 'parceira')
     await usuario.click(screen.getByRole('button', { name: /^filtrar$/i }))
     await usuario.click(screen.getByRole('button', { name: /limpar filtros/i }))
 
@@ -163,18 +197,30 @@ describe('FiltrosDefinicaoPolosForm', () => {
   })
 
   it('exibe opções de DRE, Tipo de UE, Gestão, Nome da Edição e Tipo de Polo', async () => {
+    const usuario = userEvent.setup()
+
     renderFiltrosDefinicaoPolosForm()
 
+    await usuario.click(await screen.findByLabelText(/filtrar por dre/i))
     expect(
       await screen.findByRole('option', {
         name: /diretoria regional de educacao butanta/i,
       }),
     ).toBeInTheDocument()
+    await usuario.click(
+      screen.getByRole('option', {
+        name: /diretoria regional de educacao butanta/i,
+      }),
+    )
+
+    await usuario.click(screen.getByLabelText(/filtrar por tipo de ue/i))
     expect(
-      screen.getByRole('option', { name: /cei diret/i }),
+      await screen.findByRole('option', { name: /cei diret/i }),
     ).toBeInTheDocument()
+    await usuario.click(screen.getByRole('option', { name: /cei diret/i }))
+
     expect(
-      screen.getByRole('option', { name: /^parceira$/i }),
+      await screen.findByRole('option', { name: /^parceira$/i }),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('option', { name: /^direta$/i }),
@@ -184,6 +230,35 @@ describe('FiltrosDefinicaoPolosForm', () => {
     ).toBeInTheDocument()
     expect(
       screen.getByRole('option', { name: /polo oficial/i }),
+    ).toBeInTheDocument()
+  })
+
+  it('exibe a opção de carregamento das DREs', async () => {
+    listarDresMock.mockImplementation(
+      () =>
+        new Promise(() => {
+          /* pendente */
+        }),
+    )
+    const usuario = userEvent.setup()
+
+    renderFiltrosDefinicaoPolosForm()
+
+    await usuario.click(screen.getByLabelText(/filtrar por dre/i))
+    expect(
+      await screen.findByRole('option', { name: 'Carregando...' }),
+    ).toBeInTheDocument()
+  })
+
+  it('exibe a opção de erro das DREs', async () => {
+    listarDresMock.mockRejectedValue(new Error('Falha nas DREs'))
+    const usuario = userEvent.setup()
+
+    renderFiltrosDefinicaoPolosForm()
+
+    await usuario.click(await screen.findByLabelText(/filtrar por dre/i))
+    expect(
+      await screen.findByRole('option', { name: 'Erro ao carregar DREs' }),
     ).toBeInTheDocument()
   })
 })

@@ -119,16 +119,6 @@ vi.mock('../services/definicaoPolo/sincronizarUnidadesDiretas', () => ({
   }),
 }))
 
-vi.mock('../services/definicaoPolo/listarOpcoesFiltroDefinicaoPolos', () => ({
-  listarOpcoesFiltroDefinicaoPolos: vi.fn().mockResolvedValue({
-    dres: [],
-    tiposUe: [],
-    gestoes: [],
-    nomesEdicao: [],
-    tiposPolo: [],
-  }),
-}))
-
 describe('RotasAplicacao', () => {
   beforeEach(() => {
     limparSessaoAutenticacao()

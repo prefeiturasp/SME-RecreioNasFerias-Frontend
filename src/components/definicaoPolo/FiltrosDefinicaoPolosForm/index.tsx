@@ -1,15 +1,23 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { ChevronDownIcon, IconeFiltro } from '@/components/icons'
-import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useGetOpcoesFiltroDefinicaoPolos } from '@/hooks/useGetOpcoesFiltroDefinicaoPolos'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { useGetDres } from '@/hooks/useGetDres'
+import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
+import { useGetTiposEscola } from '@/hooks/useGetTiposEscola'
 import { FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS } from '@/services/definicaoPolo/types'
 import type { FiltrosListagemDefinicaoPolos } from '@/services/definicaoPolo/types'
+import type { Dre } from '@/services/dre/types'
 import filtrosDefinicaoPolosSchema, {
   type FiltrosDefinicaoPolosFormValues,
 } from './schema'
@@ -19,12 +27,33 @@ type FiltrosDefinicaoPolosFormProps = {
   onLimpar: () => void
 }
 
+const OPCOES_GESTAO = [
+  { valor: 'direta', rotulo: 'Direta' },
+  { valor: 'parceira', rotulo: 'Parceira' },
+] as const
+
+const OPCOES_TIPO_POLO = [
+  { valor: 'pendente', rotulo: 'Pendente' },
+  { valor: 'oficial', rotulo: 'Polo oficial' },
+  { valor: 'reserva', rotulo: 'Polo reserva' },
+] as const
+
+function obterNomeDrePorCodigo(dres: Dre[] | undefined, codigoDre: string) {
+  if (!codigoDre) {
+    return ''
+  }
+
+  return dres?.find((dre) => dre.codigo_dre === codigoDre)?.nome_dre ?? ''
+}
+
 export function FiltrosDefinicaoPolosForm({
   onFiltrar,
   onLimpar,
 }: Readonly<FiltrosDefinicaoPolosFormProps>) {
   const [expandido, setExpandido] = useState(true)
-  const opcoesQuery = useGetOpcoesFiltroDefinicaoPolos()
+  const dresQuery = useGetDres()
+  const tiposEscolaQuery = useGetTiposEscola()
+  const edicoesQuery = useGetEdicoesPrograma()
 
   const form = useForm<FiltrosDefinicaoPolosFormValues>({
     resolver: zodResolver(filtrosDefinicaoPolosSchema),
@@ -32,7 +61,10 @@ export function FiltrosDefinicaoPolosForm({
   })
 
   function onSubmit(dados: FiltrosDefinicaoPolosFormValues) {
-    onFiltrar(dados)
+    onFiltrar({
+      ...dados,
+      dre: obterNomeDrePorCodigo(dresQuery.data, dados.dre),
+    })
   }
 
   function handleLimpar() {
@@ -40,175 +72,88 @@ export function FiltrosDefinicaoPolosForm({
     onLimpar()
   }
 
-  function renderizarCamposFiltro() {
-    if (opcoesQuery.isPending) {
-      return (
-        <IndicadorCarregamento mensagem="Carregando opções dos filtros..." />
-      )
-    }
-
-    if (opcoesQuery.isError) {
-      return <AlertaErroApi erro={opcoesQuery.error} />
-    }
-
-    const opcoesDre = opcoesQuery.data?.dres ?? []
-    const opcoesTipoUe = opcoesQuery.data?.tiposUe ?? []
-    const opcoesGestao = opcoesQuery.data?.gestoes ?? []
-    const opcoesNomeEdicao = opcoesQuery.data?.nomesEdicao ?? []
-    const opcoesTipoPolo = opcoesQuery.data?.tiposPolo ?? []
+  function renderizarDemaisFiltros() {
+    const opcoesNomeEdicao = edicoesQuery.data ?? []
 
     return (
-      <>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Controller
-            name="dre"
-            control={form.control}
-            render={({ field }) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="filtro-dre" className="font-bold">
-                  Filtrar por DRE
-                </Label>
-                <select
-                  {...field}
-                  id="filtro-dre"
-                  className="h-10 w-full rounded-sm border border-input-border-muted bg-background px-3 text-sm"
-                >
-                  <option value="">Selecione a DRE</option>
-                  {opcoesDre.map((dre) => (
-                    <option key={dre} value={dre}>
-                      {dre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Controller
+          name="nomeEdicao"
+          control={form.control}
+          render={({ field }) => (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="filtro-nome-edicao" className="font-bold">
+                Filtrar por Nome da Edição
+              </Label>
+              <select
+                {...field}
+                id="filtro-nome-edicao"
+                className="h-10 w-full rounded-sm border border-input-border-muted bg-background px-3 text-sm"
+                disabled={edicoesQuery.isLoading}
+              >
+                <option value="">
+                  {edicoesQuery.isLoading
+                    ? 'Carregando...'
+                    : 'Selecione o Nome da Edição'}
+                </option>
+                {opcoesNomeEdicao.map((edicao) => (
+                  <option key={edicao.uuid} value={edicao.nome}>
+                    {edicao.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        />
 
-          <Controller
-            name="tipoUe"
-            control={form.control}
-            render={({ field }) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="filtro-tipo-ue" className="font-bold">
-                  Filtrar por Tipo de UE
-                </Label>
-                <select
-                  {...field}
-                  id="filtro-tipo-ue"
-                  className="h-10 w-full rounded-sm border border-input-border-muted bg-background px-3 text-sm"
-                >
-                  <option value="">Selecione o Tipo de UE</option>
-                  {opcoesTipoUe.map((tipoUe) => (
-                    <option key={tipoUe} value={tipoUe}>
-                      {tipoUe}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          />
+        <Controller
+          name="tipoPolo"
+          control={form.control}
+          render={({ field }) => (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="filtro-tipo-polo" className="font-bold">
+                Tipo de Polo
+              </Label>
+              <select
+                {...field}
+                id="filtro-tipo-polo"
+                className="h-10 w-full rounded-sm border border-input-border-muted bg-background px-3 text-sm"
+              >
+                <option value="">Selecione o Tipo de Polo</option>
+                {OPCOES_TIPO_POLO.map((tipoPolo) => (
+                  <option key={tipoPolo.valor} value={tipoPolo.valor}>
+                    {tipoPolo.rotulo}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        />
 
-          <Controller
-            name="nomeUeOuCodigoEol"
-            control={form.control}
-            render={({ field }) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="filtro-nome-ue-codigo-eol" className="font-bold">
-                  Filtrar por Nome da UE ou Código EOL
-                </Label>
-                <Input
-                  {...field}
-                  id="filtro-nome-ue-codigo-eol"
-                  type="search"
-                  placeholder="Digite o Nome da UE ou Código EOL"
-                  className="h-10 rounded-sm border-input-border-muted"
-                />
-              </div>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Controller
-            name="nomeEdicao"
-            control={form.control}
-            render={({ field }) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="filtro-nome-edicao" className="font-bold">
-                  Filtrar por Nome da Edição
-                </Label>
-                <select
-                  {...field}
-                  id="filtro-nome-edicao"
-                  className="h-10 w-full rounded-sm border border-input-border-muted bg-background px-3 text-sm"
-                >
-                  <option value="">Selecione o Nome da Edição</option>
-                  {opcoesNomeEdicao.map((edicao) => (
-                    <option key={edicao} value={edicao}>
-                      {edicao}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          />
-
-          <Controller
-            name="tipoPolo"
-            control={form.control}
-            render={({ field }) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="filtro-tipo-polo" className="font-bold">
-                  Tipo de Polo
-                </Label>
-                <select
-                  {...field}
-                  id="filtro-tipo-polo"
-                  className="h-10 w-full rounded-sm border border-input-border-muted bg-background px-3 text-sm"
-                >
-                  <option value="">Selecione o Tipo de Polo</option>
-                  {opcoesTipoPolo.map((tipoPolo) => (
-                    <option key={tipoPolo} value={tipoPolo}>
-                      {tipoPolo}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          />
-
-          <Controller
-            name="gestao"
-            control={form.control}
-            render={({ field }) => (
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="filtro-gestao" className="font-bold">
-                  Gestão
-                </Label>
-                <select
-                  {...field}
-                  id="filtro-gestao"
-                  className="h-10 w-full rounded-sm border border-input-border-muted bg-background px-3 text-sm"
-                >
-                  <option value="">Selecione a Gestão</option>
-                  {opcoesGestao.map((gestao) => (
-                    <option key={gestao} value={gestao}>
-                      {gestao}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          />
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={handleLimpar}>
-            Limpar Filtros
-          </Button>
-          <Button type="submit">Filtrar</Button>
-        </div>
-      </>
+        <Controller
+          name="gestao"
+          control={form.control}
+          render={({ field }) => (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="filtro-gestao" className="font-bold">
+                Gestão
+              </Label>
+              <select
+                {...field}
+                id="filtro-gestao"
+                className="h-10 w-full rounded-sm border border-input-border-muted bg-background px-3 text-sm"
+              >
+                <option value="">Selecione a Gestão</option>
+                {OPCOES_GESTAO.map((gestao) => (
+                  <option key={gestao.valor} value={gestao.valor}>
+                    {gestao.rotulo}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        />
+      </div>
     )
   }
 
@@ -238,7 +183,132 @@ export function FiltrosDefinicaoPolosForm({
           className="mt-4 flex flex-col gap-5"
           onSubmit={form.handleSubmit(onSubmit)}
         >
-          {renderizarCamposFiltro()}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Controller
+              name="dre"
+              control={form.control}
+              render={({ field }) => (
+                <div className="flex min-w-0 flex-col gap-1.5">
+                  <Label htmlFor="filtro-dre" className="font-bold">
+                    Filtrar por DRE
+                  </Label>
+                  <Select
+                    value={field.value}
+                    onValueChange={(valor) => {
+                      if (valor) field.onChange(valor)
+                    }}
+                  >
+                    <SelectTrigger
+                      id="filtro-dre"
+                      className="h-10 w-full rounded-sm border-input-border-muted data-[size=default]:h-10"
+                    >
+                      <SelectValue placeholder="Selecione a DRE" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {dresQuery.isLoading && (
+                        <SelectItem value="loading" disabled>
+                          Carregando...
+                        </SelectItem>
+                      )}
+                      {dresQuery.isError && (
+                        <SelectItem value="error" disabled>
+                          Erro ao carregar DREs
+                        </SelectItem>
+                      )}
+                      {!dresQuery.isLoading &&
+                        !dresQuery.isError &&
+                        dresQuery.data?.map((dre) => (
+                          <SelectItem
+                            key={dre.codigo_dre}
+                            value={dre.codigo_dre}
+                          >
+                            {dre.nome_dre}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            />
+
+            <Controller
+              name="tipoUe"
+              control={form.control}
+              render={({ field }) => (
+                <div className="flex min-w-0 flex-col gap-1.5">
+                  <Label htmlFor="filtro-tipo-ue" className="font-bold">
+                    Filtrar por Tipo de UE
+                  </Label>
+                  <Select
+                    value={field.value}
+                    onValueChange={(valor) => {
+                      if (valor) field.onChange(valor)
+                    }}
+                  >
+                    <SelectTrigger
+                      id="filtro-tipo-ue"
+                      className="h-10 w-full rounded-sm border-input-border-muted data-[size=default]:h-10"
+                    >
+                      <SelectValue placeholder="Selecione o Tipo de UE" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tiposEscolaQuery.isLoading && (
+                        <SelectItem value="loading" disabled>
+                          Carregando...
+                        </SelectItem>
+                      )}
+                      {tiposEscolaQuery.isError && (
+                        <SelectItem value="error" disabled>
+                          Erro ao carregar tipos de escola
+                        </SelectItem>
+                      )}
+                      {!tiposEscolaQuery.isLoading &&
+                        !tiposEscolaQuery.isError &&
+                        tiposEscolaQuery.data?.map((tipoUe) => (
+                          <SelectItem
+                            key={tipoUe.codigo}
+                            value={tipoUe.descricao_sigla}
+                          >
+                            {tipoUe.descricao_sigla}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            />
+
+            <Controller
+              name="nomeUeOuCodigoEol"
+              control={form.control}
+              render={({ field }) => (
+                <div className="flex flex-col gap-1.5">
+                  <Label
+                    htmlFor="filtro-nome-ue-codigo-eol"
+                    className="font-bold"
+                  >
+                    Filtrar por Nome da UE ou Código EOL
+                  </Label>
+                  <Input
+                    {...field}
+                    id="filtro-nome-ue-codigo-eol"
+                    type="search"
+                    placeholder="Digite o Nome da UE ou Código EOL"
+                    className="h-10 rounded-sm border-input-border-muted"
+                  />
+                </div>
+              )}
+            />
+          </div>
+
+          {renderizarDemaisFiltros()}
+
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={handleLimpar}>
+              Limpar Filtros
+            </Button>
+            <Button type="submit">Filtrar</Button>
+          </div>
         </form>
       )}
     </section>

@@ -1,17 +1,17 @@
-import { useQueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo, useState } from 'react'
 import { DefinicaoPolosListagem } from '@/components/definicaoPolo/DefinicaoPolosListagem'
 import { FiltrosDefinicaoPolosForm } from '@/components/definicaoPolo/FiltrosDefinicaoPolosForm'
 import { ModalAlterarSelecao } from '@/components/definicaoPolo/ModalAlterarSelecao'
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
 import { useGetSincronizacaoUnidadesDiretas } from '@/hooks/useGetSincronizacaoUnidadesDiretas'
 import { usePatchDefinicoesPoloEmLote } from '@/hooks/usePatchDefinicoesPoloEmLote'
+import { CartaoConteudoInterno } from '@/pages/shared/edicoesProgramaStyles'
 import { OPCOES_TIPO_POLO_ALTERACAO_MOCK } from '@/services/definicaoPolo/mocks'
 import {
   FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
   type FiltrosListagemDefinicaoPolos,
 } from '@/services/definicaoPolo/types'
-import { CartaoConteudoInterno } from '@/pages/shared/edicoesProgramaStyles'
+import { useQueryClient } from '@tanstack/react-query'
+import { useEffect, useMemo, useState } from 'react'
 
 const NOME_EDICAO_SEM_VINCULO = '-'
 
@@ -38,7 +38,9 @@ export function DefinicaoPolosConteudo() {
 
   const opcoesNomeEdicao = useMemo(() => {
     if (edicoesQuery.isError) {
-      return [{ valor: NOME_EDICAO_SEM_VINCULO, rotulo: NOME_EDICAO_SEM_VINCULO }]
+      return [
+        { valor: NOME_EDICAO_SEM_VINCULO, rotulo: NOME_EDICAO_SEM_VINCULO },
+      ]
     }
 
     if (!edicoesQuery.data) {

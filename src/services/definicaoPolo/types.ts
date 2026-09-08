@@ -1,19 +1,19 @@
 export type DefinicaoPoloApi = {
-  id: string
-  dre: string
-  tipoUe: string
-  nomePolo: string
+  polo_uuid: string
+  codigo_eol: string
+  nome_polo: string
+  dre_nome: string
+  dre_codigo_eol: string
+  tipo_ue: string
   gestao: string
-  tipo?: string | null
-  nomeEdicao?: string | null
-}
-
-export type RespostaListagemDefinicoesPoloApi = {
-  results: DefinicaoPoloApi[]
-  page: number
-  pageSize: number
-  total: number
-  totalPages: number
+  status: string
+  ativo: boolean
+  definicao_uuid: string | null
+  edicao_uuid: string | null
+  nome_edicao: string | null
+  tipo_polo_edicao: string | null
+  projecao_inscritos_edicao: number | null
+  total_inscritos_edicao: number | null
 }
 
 export type FiltrosListagemDefinicaoPolos = {
@@ -32,14 +32,6 @@ export type ResultadoSincronizacaoUnidadesDiretas = {
   executada: boolean
   motivoIgnorada: string | null
   ultimaExecucaoEm: string | null
-}
-
-export type OpcoesFiltroDefinicaoPolos = {
-  dres: string[]
-  tiposUe: string[]
-  gestoes: string[]
-  nomesEdicao: string[]
-  tiposPolo: string[]
 }
 
 export type ParametrosAtualizacaoDefinicoesPoloEmLote = {

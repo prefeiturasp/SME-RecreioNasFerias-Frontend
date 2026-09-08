@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '../api/http'
 import { listarDefinicoesPolo } from './listarDefinicoesPolo'
+import type { DefinicaoPoloApi } from './types'
 
 vi.mock('../api/http', () => ({
   api: { get: vi.fn() },
@@ -8,15 +9,23 @@ vi.mock('../api/http', () => ({
 
 const apiGetMock = vi.mocked(api.get)
 
-const polos = [
+const polos: DefinicaoPoloApi[] = [
   {
-    id: '11111111-1111-1111-1111-111111111111',
-    dre: 'DRE Butantã',
-    tipoUe: 'EMEF',
-    nomePolo: 'Escola Centro',
-    gestao: 'Direta',
-    tipo: 'Polo oficial',
-    nomeEdicao: 'Janeiro 2025',
+    polo_uuid: '3741975e-7002-447c-8b9b-b417d1616854',
+    codigo_eol: '400496',
+    nome_polo: '13 DE MAIO',
+    dre_nome: 'DIRETORIA REGIONAL DE EDUCACAO IPIRANGA',
+    dre_codigo_eol: '108600',
+    tipo_ue: 'CEI DIRET',
+    gestao: 'direta',
+    status: 'ativo',
+    ativo: true,
+    definicao_uuid: null,
+    edicao_uuid: null,
+    nome_edicao: null,
+    tipo_polo_edicao: 'pendente',
+    projecao_inscritos_edicao: null,
+    total_inscritos_edicao: null,
   },
 ]
 
@@ -26,19 +35,11 @@ describe('listarDefinicoesPolo', () => {
   })
 
   it('lista definições de polo e retorna os dados da API', async () => {
-    apiGetMock.mockResolvedValue({
-      data: {
-        results: polos,
-        page: 1,
-        pageSize: 10,
-        total: 1,
-        totalPages: 1,
-      },
-    })
+    apiGetMock.mockResolvedValue({ data: polos })
 
     await expect(listarDefinicoesPolo()).resolves.toEqual(polos)
 
-    expect(apiGetMock).toHaveBeenCalledWith('/api/polos/')
+    expect(apiGetMock).toHaveBeenCalledWith('/api/v1/definicoes-polos/')
   })
 
   it('lança erro quando a API retorna falha na listagem', async () => {
