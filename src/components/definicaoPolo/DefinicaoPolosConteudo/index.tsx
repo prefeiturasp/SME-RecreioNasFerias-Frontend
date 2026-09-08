@@ -65,7 +65,7 @@ export function DefinicaoPolosConteudo() {
     if (
       !sincronizacaoQuery.isSuccess ||
       !sincronizacaoQuery.data.executada ||
-      sincronizacaoQuery.data.totalNovos === 0
+      sincronizacaoQuery.data.total_novos === 0
     ) {
       return
     }

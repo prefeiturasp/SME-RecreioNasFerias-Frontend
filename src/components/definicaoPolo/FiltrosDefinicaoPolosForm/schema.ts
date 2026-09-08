@@ -4,7 +4,7 @@ const filtrosDefinicaoPolosSchema = z.object({
   dre: z.string(),
   tipoUe: z.string(),
   nomeUeOuCodigoEol: z.string(),
-  nomeEdicao: z.string(),
+  edicao: z.string(),
   tipoPolo: z.string(),
   gestao: z.string(),
 })

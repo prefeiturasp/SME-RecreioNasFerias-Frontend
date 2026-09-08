@@ -17,7 +17,6 @@ import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
 import { useGetTiposEscola } from '@/hooks/useGetTiposEscola'
 import { FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS } from '@/services/definicaoPolo/types'
 import type { FiltrosListagemDefinicaoPolos } from '@/services/definicaoPolo/types'
-import type { Dre } from '@/services/dre/types'
 import filtrosDefinicaoPolosSchema, {
   type FiltrosDefinicaoPolosFormValues,
 } from './schema'
@@ -38,14 +37,6 @@ const OPCOES_TIPO_POLO = [
   { valor: 'reserva', rotulo: 'Polo reserva' },
 ] as const
 
-function obterNomeDrePorCodigo(dres: Dre[] | undefined, codigoDre: string) {
-  if (!codigoDre) {
-    return ''
-  }
-
-  return dres?.find((dre) => dre.codigo_dre === codigoDre)?.nome_dre ?? ''
-}
-
 export function FiltrosDefinicaoPolosForm({
   onFiltrar,
   onLimpar,
@@ -61,10 +52,7 @@ export function FiltrosDefinicaoPolosForm({
   })
 
   function onSubmit(dados: FiltrosDefinicaoPolosFormValues) {
-    onFiltrar({
-      ...dados,
-      dre: obterNomeDrePorCodigo(dresQuery.data, dados.dre),
-    })
+    onFiltrar(dados)
   }
 
   function handleLimpar() {
@@ -78,7 +66,7 @@ export function FiltrosDefinicaoPolosForm({
     return (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Controller
-          name="nomeEdicao"
+          name="edicao"
           control={form.control}
           render={({ field }) => (
             <div className="flex flex-col gap-1.5">
@@ -97,7 +85,7 @@ export function FiltrosDefinicaoPolosForm({
                     : 'Selecione o Nome da Edição'}
                 </option>
                 {opcoesNomeEdicao.map((edicao) => (
-                  <option key={edicao.uuid} value={edicao.nome}>
+                  <option key={edicao.uuid} value={edicao.uuid}>
                     {edicao.nome}
                   </option>
                 ))}

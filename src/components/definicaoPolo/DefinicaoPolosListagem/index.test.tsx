@@ -2,7 +2,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { DefinicaoPoloApi } from '@/services/definicaoPolo/types'
+import type {
+  DefinicaoPoloApi,
+  FiltrosListagemDefinicaoPolos,
+} from '@/services/definicaoPolo/types'
+import { FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS } from '@/services/definicaoPolo/types'
 import { DefinicaoPolosListagem } from './index'
 
 const { listarDefinicoesPoloMock } = vi.hoisted(() => ({
@@ -65,6 +69,7 @@ function renderDefinicaoPolosListagem(
     onVisualizarPolo: (idPolo: string) => void
     onAlterarEdicaoPolo: (idsPolos: string[]) => void
     onAlterarTipoPolo: (idsPolos: string[]) => void
+    filtros: FiltrosListagemDefinicaoPolos
   }> = {},
 ) {
   const queryClient = new QueryClient({
@@ -77,6 +82,7 @@ function renderDefinicaoPolosListagem(
   return render(
     <QueryClientProvider client={queryClient}>
       <DefinicaoPolosListagem
+        filtros={props.filtros}
         onVisualizarPolo={props.onVisualizarPolo ?? vi.fn()}
         onAlterarEdicaoPolo={props.onAlterarEdicaoPolo ?? vi.fn()}
         onAlterarTipoPolo={props.onAlterarTipoPolo ?? vi.fn()}
@@ -115,6 +121,31 @@ describe('DefinicaoPolosListagem', () => {
     expect(screen.getByText(/cei diret aloysio/i)).toBeInTheDocument()
     expect(screen.getByText(/^direta$/i)).toBeInTheDocument()
     expect(screen.getByText(/^parceira$/i)).toBeInTheDocument()
+  })
+
+  it('envia os filtros aplicados para a API', async () => {
+    const filtros = {
+      ...FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
+      dre: '108100',
+      tipoUe: 'CEI DIRET',
+      nomeUeOuCodigoEol: '400496',
+      edicao: 'ed-1',
+      tipoPolo: 'pendente',
+      gestao: 'direta',
+    }
+
+    renderDefinicaoPolosListagem({ filtros })
+
+    await screen.findByRole('table')
+
+    expect(listarDefinicoesPoloMock).toHaveBeenCalledWith(
+      '400496',
+      '108100',
+      'CEI DIRET',
+      'ed-1',
+      'direta',
+      'pendente',
+    )
   })
 
   it('exibe barra de ações com contagem ao selecionar um polo', async () => {

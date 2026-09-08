@@ -108,14 +108,15 @@ vi.mock('../services/definicaoPolo/listarDefinicoesPolo', () => ({
   listarDefinicoesPolo: vi.fn().mockResolvedValue([]),
 }))
 
-vi.mock('../services/definicaoPolo/sincronizarUnidadesDiretas', () => ({
-  sincronizarUnidadesDiretas: vi.fn().mockResolvedValue({
-    totalConsultados: 0,
-    totalNovos: 0,
-    totalJaExistentes: 0,
+vi.mock('../services/definicaoPolo/popularPolos', () => ({
+  popularPolos: vi.fn().mockResolvedValue({
+    total_consultados: 0,
+    total_novos: 0,
+    total_ja_existentes: 0,
+    unidades_novas: [],
     executada: false,
-    motivoIgnorada: 'ja_executada_hoje',
-    ultimaExecucaoEm: null,
+    motivo_ignorada: 'ja_executada_hoje',
+    ultima_execucao_em: null,
   }),
 }))
 

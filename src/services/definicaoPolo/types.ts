@@ -1,3 +1,5 @@
+import type { PoloDetalhado } from '../polo/types'
+
 export type DefinicaoPoloApi = {
   polo_uuid: string
   codigo_eol: string
@@ -20,18 +22,19 @@ export type FiltrosListagemDefinicaoPolos = {
   dre: string
   tipoUe: string
   nomeUeOuCodigoEol: string
-  nomeEdicao: string
+  edicao: string
   tipoPolo: string
   gestao: string
 }
 
-export type ResultadoSincronizacaoUnidadesDiretas = {
-  totalConsultados: number
-  totalNovos: number
-  totalJaExistentes: number
+export type ResultadoPopularPolos = {
+  total_consultados: number
+  total_novos: number
+  total_ja_existentes: number
+  unidades_novas: PoloDetalhado[]
   executada: boolean
-  motivoIgnorada: string | null
-  ultimaExecucaoEm: string | null
+  motivo_ignorada: string | null
+  ultima_execucao_em: string | null
 }
 
 export type ParametrosAtualizacaoDefinicoesPoloEmLote = {
@@ -49,7 +52,7 @@ export const FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS: FiltrosListagemDefinicao
     dre: '',
     tipoUe: '',
     nomeUeOuCodigoEol: '',
-    nomeEdicao: '',
+    edicao: '',
     tipoPolo: '',
     gestao: '',
   }

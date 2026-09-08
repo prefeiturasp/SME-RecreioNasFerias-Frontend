@@ -5,7 +5,7 @@ const filtrosVazios = {
   dre: '',
   tipoUe: '',
   nomeUeOuCodigoEol: '',
-  nomeEdicao: '',
+  edicao: '',
   tipoPolo: '',
   gestao: '',
 }
@@ -23,9 +23,9 @@ describe('FiltrosDefinicaoPolosForm schema', () => {
         dre: 'DIRETORIA REGIONAL DE EDUCACAO BUTANTA',
         tipoUe: 'EMEF',
         nomeUeOuCodigoEol: '019241',
-        nomeEdicao: 'Janeiro 2025',
-        tipoPolo: 'Pendente',
-        gestao: 'Parceira',
+        edicao: 'ed-1',
+        tipoPolo: 'pendente',
+        gestao: 'parceira',
       }).success,
     ).toBe(true)
   })

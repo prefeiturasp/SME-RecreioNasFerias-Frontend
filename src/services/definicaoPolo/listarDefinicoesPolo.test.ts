@@ -39,7 +39,40 @@ describe('listarDefinicoesPolo', () => {
 
     await expect(listarDefinicoesPolo()).resolves.toEqual(polos)
 
-    expect(apiGetMock).toHaveBeenCalledWith('/api/v1/definicoes-polos/')
+    expect(apiGetMock).toHaveBeenCalledWith('/api/v1/definicoes-polos/', {
+      params: {
+        busca: undefined,
+        dre_codigos_eol: undefined,
+        tipo_ue: undefined,
+        edicao: undefined,
+        gestao: undefined,
+        tipo_polo: undefined,
+      },
+    })
+  })
+
+  it('envia os filtros informados para a API', async () => {
+    apiGetMock.mockResolvedValue({ data: polos })
+
+    await listarDefinicoesPolo(
+      '13 DE MAIO',
+      '108600',
+      'CEI DIRET',
+      'ed-1',
+      'direta',
+      'pendente',
+    )
+
+    expect(apiGetMock).toHaveBeenCalledWith('/api/v1/definicoes-polos/', {
+      params: {
+        busca: '13 DE MAIO',
+        dre_codigos_eol: '108600',
+        tipo_ue: 'CEI DIRET',
+        edicao: 'ed-1',
+        gestao: 'direta',
+        tipo_polo: 'pendente',
+      },
+    })
   })
 
   it('lança erro quando a API retorna falha na listagem', async () => {

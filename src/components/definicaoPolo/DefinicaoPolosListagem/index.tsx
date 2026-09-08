@@ -9,9 +9,10 @@ import type { DefinicaoColuna } from '@/components/TabelaListagem/types'
 import { Button } from '@/components/ui/button'
 import { OPCOES_ITENS_POR_PAGINA } from '@/constants/paginacao'
 import { useGetDefinicoesPolo } from '@/hooks/useGetDefinicoesPolo'
-import type {
-  DefinicaoPoloApi,
-  FiltrosListagemDefinicaoPolos,
+import {
+  FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
+  type DefinicaoPoloApi,
+  type FiltrosListagemDefinicaoPolos,
 } from '@/services/definicaoPolo/types'
 
 const TIPO_POLO_PADRAO = 'Pendente'
@@ -23,49 +24,6 @@ function formatarNomeEdicao(nomeEdicao?: string | null) {
 
 function formatarTipoPolo(tipo?: string | null) {
   return tipo?.trim() ? tipo : TIPO_POLO_PADRAO
-}
-
-function filtrarDefinicoesPolo(
-  polos: DefinicaoPoloApi[],
-  filtros: FiltrosListagemDefinicaoPolos,
-) {
-  return polos.filter((polo) => {
-    if (filtros.dre && polo.dre_nome !== filtros.dre) {
-      return false
-    }
-
-    if (filtros.tipoUe && polo.tipo_ue !== filtros.tipoUe) {
-      return false
-    }
-
-    if (filtros.gestao && polo.gestao !== filtros.gestao) {
-      return false
-    }
-
-    if (
-      filtros.nomeEdicao &&
-      formatarNomeEdicao(polo.nome_edicao) !== filtros.nomeEdicao
-    ) {
-      return false
-    }
-
-    if (
-      filtros.tipoPolo &&
-      formatarTipoPolo(polo.tipo_polo_edicao) !== filtros.tipoPolo
-    ) {
-      return false
-    }
-
-    if (filtros.nomeUeOuCodigoEol.trim()) {
-      const termo = filtros.nomeUeOuCodigoEol.trim().toLowerCase()
-
-      if (!polo.nome_polo.toLowerCase().includes(termo)) {
-        return false
-      }
-    }
-
-    return true
-  })
 }
 
 const COLUNAS = [
@@ -116,13 +74,20 @@ type DefinicaoPolosListagemProps = {
 }
 
 export function DefinicaoPolosListagem({
-  filtros,
+  filtros = FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
   chaveResetSelecao = 0,
   onVisualizarPolo,
   onAlterarEdicaoPolo,
   onAlterarTipoPolo,
 }: Readonly<DefinicaoPolosListagemProps>) {
-  const listagemQuery = useGetDefinicoesPolo()
+  const listagemQuery = useGetDefinicoesPolo(
+    filtros.nomeUeOuCodigoEol,
+    filtros.dre,
+    filtros.tipoUe,
+    filtros.edicao,
+    filtros.gestao,
+    filtros.tipoPolo,
+  )
   const [paginaAtual, setPaginaAtual] = useState(1)
   const [itensPorPagina, setItensPorPagina] = useState<number>(
     OPCOES_ITENS_POR_PAGINA[0],
@@ -131,9 +96,7 @@ export function DefinicaoPolosListagem({
     () => new Set(),
   )
 
-  const polosFiltrados = filtros
-    ? filtrarDefinicoesPolo(listagemQuery.data ?? [], filtros)
-    : (listagemQuery.data ?? [])
+  const polos = listagemQuery.data ?? []
 
   useEffect(() => {
     setPaginaAtual(1)
@@ -143,7 +106,6 @@ export function DefinicaoPolosListagem({
     setPolosSelecionados(new Set())
   }, [chaveResetSelecao])
 
-  const polos = polosFiltrados
   const totalPaginas = Math.ceil(polos.length / itensPorPagina)
   const paginaAjustada =
     totalPaginas > 0 ? Math.min(paginaAtual, totalPaginas) : 1

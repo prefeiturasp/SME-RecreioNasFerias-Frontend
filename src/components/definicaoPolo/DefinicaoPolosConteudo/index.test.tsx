@@ -32,13 +32,13 @@ vi.mock('@/components/definicaoPolo/DefinicaoPolosListagem', () => ({
 const {
   atualizarDefinicoesPoloEmLoteMock,
   listarEdicoesProgramaMock,
-  sincronizarUnidadesDiretasMock,
+  popularPolosMock,
   listarDresMock,
   listarTiposEscolaMock,
 } = vi.hoisted(() => ({
   atualizarDefinicoesPoloEmLoteMock: vi.fn(),
   listarEdicoesProgramaMock: vi.fn(),
-  sincronizarUnidadesDiretasMock: vi.fn(),
+  popularPolosMock: vi.fn(),
   listarDresMock: vi.fn(),
   listarTiposEscolaMock: vi.fn(),
 }))
@@ -47,8 +47,8 @@ vi.mock('@/services/definicaoPolo/atualizarDefinicoesPoloEmLote', () => ({
   atualizarDefinicoesPoloEmLote: atualizarDefinicoesPoloEmLoteMock,
 }))
 
-vi.mock('@/services/definicaoPolo/sincronizarUnidadesDiretas', () => ({
-  sincronizarUnidadesDiretas: sincronizarUnidadesDiretasMock,
+vi.mock('@/services/definicaoPolo/popularPolos', () => ({
+  popularPolos: popularPolosMock,
 }))
 
 vi.mock('@/services/edicaoPrograma/listarEdicoesPrograma', () => ({
@@ -96,17 +96,18 @@ describe('DefinicaoPolosConteudo', () => {
   beforeEach(() => {
     atualizarDefinicoesPoloEmLoteMock.mockReset()
     listarEdicoesProgramaMock.mockReset()
-    sincronizarUnidadesDiretasMock.mockReset()
+    popularPolosMock.mockReset()
     listarDresMock.mockReset()
     listarTiposEscolaMock.mockReset()
 
-    sincronizarUnidadesDiretasMock.mockResolvedValue({
-      totalConsultados: 0,
-      totalNovos: 0,
-      totalJaExistentes: 0,
+    popularPolosMock.mockResolvedValue({
+      total_consultados: 0,
+      total_novos: 0,
+      total_ja_existentes: 0,
+      unidades_novas: [],
       executada: false,
-      motivoIgnorada: 'ja_executada_hoje',
-      ultimaExecucaoEm: '2026-07-13T12:00:00+00:00',
+      motivo_ignorada: 'ja_executada_hoje',
+      ultima_execucao_em: '2026-07-13T12:00:00+00:00',
     })
     atualizarDefinicoesPoloEmLoteMock.mockResolvedValue({
       totalAtualizados: 1,

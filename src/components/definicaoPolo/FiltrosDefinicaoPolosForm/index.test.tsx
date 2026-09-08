@@ -160,7 +160,7 @@ describe('FiltrosDefinicaoPolosForm', () => {
     )
     await usuario.selectOptions(
       await screen.findByLabelText(/filtrar por nome da edição/i),
-      'Janeiro 2025',
+      'ed-1',
     )
     await usuario.selectOptions(
       screen.getByLabelText(/^tipo de polo$/i),
@@ -170,10 +170,10 @@ describe('FiltrosDefinicaoPolosForm', () => {
     await usuario.click(screen.getByRole('button', { name: /^filtrar$/i }))
 
     expect(onFiltrar).toHaveBeenCalledWith({
-      dre: 'DIRETORIA REGIONAL DE EDUCACAO BUTANTA',
+      dre: '108100',
       tipoUe: 'EMEF',
       nomeUeOuCodigoEol: '019241',
-      nomeEdicao: 'Janeiro 2025',
+      edicao: 'ed-1',
       tipoPolo: 'pendente',
       gestao: 'parceira',
     })

@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { sincronizarUnidadesDiretas } from '@/services/definicaoPolo/sincronizarUnidadesDiretas'
-import type { ResultadoSincronizacaoUnidadesDiretas } from '@/services/definicaoPolo/types'
+import { popularPolos } from '@/services/definicaoPolo/popularPolos'
+import type { ResultadoPopularPolos } from '@/services/definicaoPolo/types'
 
 export function useGetSincronizacaoUnidadesDiretas(enabled = false) {
-  return useQuery<ResultadoSincronizacaoUnidadesDiretas, Error>({
-    queryKey: ['sincronizacaoUnidadesDiretas'],
-    queryFn: () => sincronizarUnidadesDiretas(),
+  return useQuery<ResultadoPopularPolos, Error>({
+    queryKey: ['popularPolos'],
+    queryFn: () => popularPolos(),
     enabled,
     staleTime: Infinity,
     retry: false,
