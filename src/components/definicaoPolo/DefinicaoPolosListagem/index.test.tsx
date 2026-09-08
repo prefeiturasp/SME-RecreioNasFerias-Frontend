@@ -215,22 +215,42 @@ describe('DefinicaoPolosListagem', () => {
 
     await usuario.click(
       screen.getByRole('checkbox', {
-        name: /selecionar polo cei diret aloysio/i,
+        name: /selecionar polo emef amorim lima/i,
       }),
     )
 
     await usuario.click(
       screen.getByRole('button', { name: /^alterar edição$/i }),
     )
-    expect(onAlterarEdicaoPolo).toHaveBeenCalledWith(['1'])
+    expect(onAlterarEdicaoPolo).toHaveBeenCalledWith(['2'])
 
     await usuario.click(
       screen.getByRole('button', { name: /^alterar tipo de polo$/i }),
     )
-    expect(onAlterarTipoPolo).toHaveBeenCalledWith(['1'])
+    expect(onAlterarTipoPolo).toHaveBeenCalledWith(['2'])
 
     await usuario.click(screen.getByRole('button', { name: /^cancelar$/i }))
     expect(screen.queryByText(/ue selecionada/i)).not.toBeInTheDocument()
+  })
+
+  it('envia polo_uuid ao alterar edição mesmo sem definicao_uuid', async () => {
+    const usuario = userEvent.setup()
+    const onAlterarEdicaoPolo = vi.fn()
+
+    renderDefinicaoPolosListagem({ onAlterarEdicaoPolo })
+
+    await screen.findByRole('table')
+
+    await usuario.click(
+      screen.getByRole('checkbox', {
+        name: /selecionar polo cei diret aloysio/i,
+      }),
+    )
+    await usuario.click(
+      screen.getByRole('button', { name: /^alterar edição$/i }),
+    )
+
+    expect(onAlterarEdicaoPolo).toHaveBeenCalledWith(['1'])
   })
 
   it('chama visualizar e alterar edição pelos botões da linha', async () => {
@@ -254,10 +274,10 @@ describe('DefinicaoPolosListagem', () => {
 
     await usuario.click(
       screen.getByRole('button', {
-        name: /alterar edição do polo cei diret aloysio/i,
+        name: /alterar edição do polo emef amorim lima/i,
       }),
     )
-    expect(onAlterarEdicaoPolo).toHaveBeenCalledWith(['1'])
+    expect(onAlterarEdicaoPolo).toHaveBeenCalledWith(['2'])
   })
 
   it('ordena por Gestão em ordem descendente ao clicar duas vezes', async () => {

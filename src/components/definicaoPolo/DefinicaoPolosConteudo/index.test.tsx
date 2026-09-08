@@ -30,17 +30,23 @@ vi.mock('@/components/definicaoPolo/DefinicaoPolosListagem', () => ({
 }))
 
 const {
+  vincularEmMassaMock,
   atualizarDefinicoesPoloEmLoteMock,
   listarEdicoesProgramaMock,
   popularPolosMock,
   listarDresMock,
   listarTiposEscolaMock,
 } = vi.hoisted(() => ({
+  vincularEmMassaMock: vi.fn(),
   atualizarDefinicoesPoloEmLoteMock: vi.fn(),
   listarEdicoesProgramaMock: vi.fn(),
   popularPolosMock: vi.fn(),
   listarDresMock: vi.fn(),
   listarTiposEscolaMock: vi.fn(),
+}))
+
+vi.mock('@/services/definicaoPolo/vincularEmMassa', () => ({
+  vincularEmMassa: vincularEmMassaMock,
 }))
 
 vi.mock('@/services/definicaoPolo/atualizarDefinicoesPoloEmLote', () => ({
@@ -94,6 +100,7 @@ function renderConteudo() {
 
 describe('DefinicaoPolosConteudo', () => {
   beforeEach(() => {
+    vincularEmMassaMock.mockReset()
     atualizarDefinicoesPoloEmLoteMock.mockReset()
     listarEdicoesProgramaMock.mockReset()
     popularPolosMock.mockReset()
@@ -109,6 +116,7 @@ describe('DefinicaoPolosConteudo', () => {
       motivo_ignorada: 'ja_executada_hoje',
       ultima_execucao_em: '2026-07-13T12:00:00+00:00',
     })
+    vincularEmMassaMock.mockResolvedValue([])
     atualizarDefinicoesPoloEmLoteMock.mockResolvedValue({
       totalAtualizados: 1,
     })
@@ -183,7 +191,7 @@ describe('DefinicaoPolosConteudo', () => {
     renderConteudo()
 
     await usuario.click(
-      screen.getByRole('button', { name: /simular alterar edição/i }),
+      screen.getByRole('button', { name: /^simular alterar edição$/i }),
     )
 
     expect(
@@ -197,9 +205,9 @@ describe('DefinicaoPolosConteudo', () => {
     await usuario.click(screen.getByRole('button', { name: /^alterar$/i }))
 
     await waitFor(() => {
-      expect(atualizarDefinicoesPoloEmLoteMock.mock.calls[0]?.[0]).toEqual({
-        ids: ['polo-1'],
-        nomeEdicao: 'Janeiro 2025',
+      expect(vincularEmMassaMock.mock.calls[0]?.[0]).toEqual({
+        polos: ['polo-1'],
+        edicao: 'ed-1',
       })
     })
 
@@ -210,14 +218,14 @@ describe('DefinicaoPolosConteudo', () => {
 
   it('exibe erro da API ao falhar alterar edição', async () => {
     const usuario = userEvent.setup()
-    atualizarDefinicoesPoloEmLoteMock.mockRejectedValue({
+    vincularEmMassaMock.mockRejectedValue({
       response: { data: { detalhe: 'Edição inválida para o polo.' } },
     })
 
     renderConteudo()
 
     await usuario.click(
-      screen.getByRole('button', { name: /simular alterar edição/i }),
+      screen.getByRole('button', { name: /^simular alterar edição$/i }),
     )
     await usuario.selectOptions(
       screen.getByLabelText(/selecione o nome da edição/i),

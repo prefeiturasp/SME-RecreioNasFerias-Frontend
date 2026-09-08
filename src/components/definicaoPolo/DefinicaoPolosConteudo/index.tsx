@@ -4,6 +4,7 @@ import { ModalAlterarSelecao } from '@/components/definicaoPolo/ModalAlterarSele
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
 import { useGetSincronizacaoUnidadesDiretas } from '@/hooks/useGetSincronizacaoUnidadesDiretas'
 import { usePatchDefinicoesPoloEmLote } from '@/hooks/usePatchDefinicoesPoloEmLote'
+import { usePostVincularEmMassa } from '@/hooks/usePostVincularEmMassa'
 import { CartaoConteudoInterno } from '@/pages/shared/edicoesProgramaStyles'
 import { OPCOES_TIPO_POLO_ALTERACAO_MOCK } from '@/services/definicaoPolo/mocks'
 import {
@@ -13,18 +14,18 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
 
-const NOME_EDICAO_SEM_VINCULO = '-'
-
 export function DefinicaoPolosConteudo() {
   const queryClient = useQueryClient()
   const sincronizacaoQuery = useGetSincronizacaoUnidadesDiretas(true)
+  const vincularEmMassaMutation = usePostVincularEmMassa()
   const patchMutation = usePatchDefinicoesPoloEmLote()
 
   const [filtrosAplicados, setFiltrosAplicados] =
     useState<FiltrosListagemDefinicaoPolos>(
       FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
     )
-  const [polosParaAlterarEdicao, setPolosParaAlterarEdicao] = useState<
+  const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false)
+  const [polosParaVincularEdicao, setPolosParaVincularEdicao] = useState<
     string[]
   >([])
   const [polosParaAlterarTipoPolo, setPolosParaAlterarTipoPolo] = useState<
@@ -32,34 +33,21 @@ export function DefinicaoPolosConteudo() {
   >([])
   const [chaveResetSelecao, setChaveResetSelecao] = useState(0)
 
-  const modalEdicaoAberto = polosParaAlterarEdicao.length > 0
   const modalTipoAberto = polosParaAlterarTipoPolo.length > 0
   const edicoesQuery = useGetEdicoesPrograma(modalEdicaoAberto)
 
   const opcoesNomeEdicao = useMemo(() => {
-    if (edicoesQuery.isError) {
-      return [
-        { valor: NOME_EDICAO_SEM_VINCULO, rotulo: NOME_EDICAO_SEM_VINCULO },
-      ]
-    }
-
     if (!edicoesQuery.data) {
       return []
     }
 
-    const nomes = Array.from(
-      new Set(
-        edicoesQuery.data
-          .map((edicao) => edicao.nome.trim())
-          .filter((nome) => nome !== ''),
-      ),
-    ).sort((a, b) => a.localeCompare(b, 'pt-BR'))
-
-    return [
-      { valor: NOME_EDICAO_SEM_VINCULO, rotulo: NOME_EDICAO_SEM_VINCULO },
-      ...nomes.map((nome) => ({ valor: nome, rotulo: nome })),
-    ]
-  }, [edicoesQuery.data, edicoesQuery.isError])
+    return edicoesQuery.data
+      .filter((edicao) => edicao.nome.trim() !== '')
+      .map((edicao) => ({
+        valor: edicao.uuid,
+        rotulo: edicao.nome.trim(),
+      }))
+  }, [edicoesQuery.data])
 
   useEffect(() => {
     if (
@@ -82,9 +70,10 @@ export function DefinicaoPolosConteudo() {
   }
 
   function fecharModalAlterarEdicao() {
-    if (patchMutation.isPending) return
-    patchMutation.reset()
-    setPolosParaAlterarEdicao([])
+    if (vincularEmMassaMutation.isPending) return
+    vincularEmMassaMutation.reset()
+    setModalEdicaoAberto(false)
+    setPolosParaVincularEdicao([])
   }
 
   function fecharModalAlterarTipoPolo() {
@@ -94,8 +83,9 @@ export function DefinicaoPolosConteudo() {
   }
 
   function abrirModalAlterarEdicao(idsPolos: string[]) {
-    patchMutation.reset()
-    setPolosParaAlterarEdicao(idsPolos)
+    vincularEmMassaMutation.reset()
+    setPolosParaVincularEdicao(idsPolos)
+    setModalEdicaoAberto(true)
   }
 
   function abrirModalAlterarTipoPolo(idsPolos: string[]) {
@@ -103,17 +93,18 @@ export function DefinicaoPolosConteudo() {
     setPolosParaAlterarTipoPolo(idsPolos)
   }
 
-  function confirmarAlteracaoEdicao(nomeEdicao: string) {
-    if (!nomeEdicao.trim() || polosParaAlterarEdicao.length === 0) return
+  function confirmarAlteracaoEdicao(edicaoDestino: string) {
+    if (!edicaoDestino.trim() || polosParaVincularEdicao.length === 0) return
 
-    patchMutation.mutate(
+    vincularEmMassaMutation.mutate(
       {
-        ids: polosParaAlterarEdicao,
-        nomeEdicao: nomeEdicao.trim(),
+        polos: polosParaVincularEdicao,
+        edicao: edicaoDestino.trim(),
       },
       {
         onSuccess: () => {
-          setPolosParaAlterarEdicao([])
+          setModalEdicaoAberto(false)
+          setPolosParaVincularEdicao([])
           setChaveResetSelecao((chaveAtual) => chaveAtual + 1)
           void queryClient.invalidateQueries({ queryKey: ['definicoesPolo'] })
         },
@@ -166,8 +157,8 @@ export function DefinicaoPolosConteudo() {
         opcoes={opcoesNomeEdicao}
         estaCarregandoOpcoes={edicoesQuery.isPending}
         mensagemCarregamento="Carregando edições..."
-        estaSalvando={patchMutation.isPending}
-        erro={modalEdicaoAberto ? patchMutation.error : undefined}
+        estaSalvando={vincularEmMassaMutation.isPending}
+        erro={modalEdicaoAberto ? vincularEmMassaMutation.error : undefined}
         onFechar={fecharModalAlterarEdicao}
         onAlterar={confirmarAlteracaoEdicao}
       />

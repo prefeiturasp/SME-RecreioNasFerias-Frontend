@@ -37,6 +37,26 @@ export type ResultadoPopularPolos = {
   ultima_execucao_em: string | null
 }
 
+export type DadosVincularEmMassa = {
+  polos: string[]
+  edicao: string
+}
+
+export type DefinicaoPolo = {
+  uuid: string
+  polo: string
+  edicao: string
+  tipo: string
+  projecao_inscritos: number
+  total_inscritos: number
+  ponto_focal_nome: string
+  ponto_focal_telefone: string
+  ponto_focal_email: string
+  ativo: boolean
+  criado_em: string
+  atualizado_em: string
+}
+
 export type ParametrosAtualizacaoDefinicoesPoloEmLote = {
   ids: string[]
   nomeEdicao?: string
