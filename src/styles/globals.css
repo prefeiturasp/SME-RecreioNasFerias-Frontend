@@ -114,6 +114,9 @@
   --vermelho-escuro: #721c24;
   --rosa-claro: #f8d7da;
   --rosa-medio: #f8d7eb;
+  --verde-escuro: #155724;
+  --verde-claro: #d4edda;
+  --verde-medio: #a4c7af;
 
   --shadow-header-bottom: 0 3px 12px 0 rgba(0, 0, 0, 0.12);
   --shadow-card: 0 0 6px 0 rgba(0, 0, 0, 0.12);
@@ -271,6 +274,9 @@ body {
   --color-vermelho-escuro: var(--vermelho-escuro);
   --color-rosa-claro: var(--rosa-claro);
   --color-rosa-medio: var(--rosa-medio);
+  --color-verde-escuro: var(--verde-escuro);
+  --color-verde-claro: var(--verde-claro);
+  --color-verde-medio: var(--verde-medio);
 
   --color-input-border-muted: var(--color-input-border-muted);
   --color-input-disabled-bg: var(--color-input-disabled-bg);

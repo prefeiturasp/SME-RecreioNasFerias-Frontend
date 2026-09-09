@@ -1,7 +1,9 @@
 import { DefinicaoPolosListagem } from '@/components/definicaoPolo/DefinicaoPolosListagem'
 import { FiltrosDefinicaoPolosForm } from '@/components/definicaoPolo/FiltrosDefinicaoPolosForm'
 import { ModalAlterarSelecao } from '@/components/definicaoPolo/ModalAlterarSelecao'
+import { CloseIcon } from '@/components/icons'
 import { Modal } from '@/components/Modal'
+import { Alert, AlertAction, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
 import { useGetSincronizacaoUnidadesDiretas } from '@/hooks/useGetSincronizacaoUnidadesDiretas'
@@ -15,10 +17,12 @@ import {
   type PoloParaAlterarTipo,
 } from '@/services/definicaoPolo/types'
 import { useQueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 const MENSAGEM_BLOQUEIO_TIPO_SEM_EDICAO =
   'É necessário alterar a edição primeiro para, depois, vincular ou alterar o tipo de polo.'
+const MENSAGEM_POLO_ALTERADO = 'Polo alterado com sucesso!'
+const TEMPO_EXIBICAO_SUCESSO_MS = 3000
 
 export function DefinicaoPolosConteudo() {
   const queryClient = useQueryClient()
@@ -38,7 +42,22 @@ export function DefinicaoPolosConteudo() {
     PoloParaAlterarTipo[]
   >([])
   const [modalBloqueioTipoAberto, setModalBloqueioTipoAberto] = useState(false)
+  const [mensagemSucessoVisivel, setMensagemSucessoVisivel] = useState(false)
   const [chaveResetSelecao, setChaveResetSelecao] = useState(0)
+
+  const fecharMensagemSucesso = useCallback(() => {
+    setMensagemSucessoVisivel(false)
+  }, [])
+
+  useEffect(() => {
+    if (!mensagemSucessoVisivel) return
+
+    const temporizador = globalThis.setTimeout(
+      fecharMensagemSucesso,
+      TEMPO_EXIBICAO_SUCESSO_MS,
+    )
+    return () => globalThis.clearTimeout(temporizador)
+  }, [mensagemSucessoVisivel, fecharMensagemSucesso])
 
   const modalTipoAberto = polosParaAlterarTipoPolo.length > 0
   const edicoesQuery = useGetEdicoesPrograma(modalEdicaoAberto)
@@ -122,6 +141,7 @@ export function DefinicaoPolosConteudo() {
           setModalEdicaoAberto(false)
           setPolosParaVincularEdicao([])
           setChaveResetSelecao((chaveAtual) => chaveAtual + 1)
+          setMensagemSucessoVisivel(true)
           void queryClient.invalidateQueries({ queryKey: ['definicoesPolo'] })
         },
       },
@@ -151,6 +171,7 @@ export function DefinicaoPolosConteudo() {
       onSuccess: () => {
         setPolosParaAlterarTipoPolo([])
         setChaveResetSelecao((chaveAtual) => chaveAtual + 1)
+        setMensagemSucessoVisivel(true)
         void queryClient.invalidateQueries({ queryKey: ['definicoesPolo'] })
       },
     })
@@ -158,6 +179,29 @@ export function DefinicaoPolosConteudo() {
 
   return (
     <>
+      {mensagemSucessoVisivel ? (
+        <Alert
+          role="status"
+          className="mt-3 min-h-12 items-center border-verde-medio bg-verde-claro py-3 text-center font-bold text-verde-escuro"
+        >
+          <AlertDescription className="text-verde-escuro">
+            {MENSAGEM_POLO_ALTERADO}
+          </AlertDescription>
+          <AlertAction>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Fechar mensagem de sucesso"
+              className="text-verde-escuro hover:bg-verde-escuro/10 hover:text-verde-escuro"
+              onClick={fecharMensagemSucesso}
+            >
+              <CloseIcon />
+            </Button>
+          </AlertAction>
+        </Alert>
+      ) : null}
+
       <FiltrosDefinicaoPolosForm
         onFiltrar={aplicarFiltros}
         onLimpar={limparFiltros}

@@ -231,6 +231,9 @@ describe('DefinicaoPolosConteudo', () => {
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     })
+    expect(
+      await screen.findByText(/polo alterado com sucesso/i),
+    ).toBeInTheDocument()
   })
 
   it('exibe erro da API ao falhar alterar edição', async () => {
@@ -283,6 +286,10 @@ describe('DefinicaoPolosConteudo', () => {
         },
       ])
     })
+
+    expect(
+      await screen.findByText(/polo alterado com sucesso/i),
+    ).toBeInTheDocument()
   })
 
   it('bloqueia alterar tipo quando o polo não tem edição', async () => {
