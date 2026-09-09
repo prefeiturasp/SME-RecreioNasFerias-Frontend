@@ -16,8 +16,11 @@ import {
 import { useGetDres } from '@/hooks/useGetDres'
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
 import { useGetTiposEscola } from '@/hooks/useGetTiposEscola'
-import { FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS } from '@/services/definicaoPolo/types'
-import type { FiltrosListagemDefinicaoPolos } from '@/services/definicaoPolo/types'
+import {
+  FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
+  OPCOES_TIPO_POLO,
+  type FiltrosListagemDefinicaoPolos,
+} from '@/services/definicaoPolo/types'
 import filtrosDefinicaoPolosSchema, {
   type FiltrosDefinicaoPolosFormValues,
 } from './schema'
@@ -30,12 +33,6 @@ type FiltrosDefinicaoPolosFormProps = {
 const OPCOES_GESTAO = [
   { valor: 'direta', rotulo: 'Direta' },
   { valor: 'parceira', rotulo: 'Parceira' },
-] as const
-
-const OPCOES_TIPO_POLO = [
-  { valor: 'pendente', rotulo: 'Pendente' },
-  { valor: 'oficial', rotulo: 'Polo oficial' },
-  { valor: 'reserva', rotulo: 'Polo reserva' },
 ] as const
 
 type CampoFiltroSelectProps = {

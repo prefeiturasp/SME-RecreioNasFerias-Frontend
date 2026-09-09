@@ -90,3 +90,9 @@ export const FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS: FiltrosListagemDefinicao
     tipoPolo: '',
     gestao: '',
   }
+
+export const OPCOES_TIPO_POLO = [
+  { valor: 'pendente', rotulo: 'Pendente' },
+  { valor: 'oficial', rotulo: 'Polo oficial' },
+  { valor: 'reserva', rotulo: 'Polo reserva' },
+] as const

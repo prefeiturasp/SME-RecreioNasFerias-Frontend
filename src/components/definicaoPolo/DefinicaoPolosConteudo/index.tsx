@@ -10,9 +10,9 @@ import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
 import { usePostAlterarTipoEmMassa } from '@/hooks/usePostAlterarTipoEmMassa'
 import { usePostPopularPolos } from '@/hooks/usePostPopularPolos'
 import { usePostVincularEmMassa } from '@/hooks/usePostVincularEmMassa'
-import { OPCOES_TIPO_POLO_ALTERACAO_MOCK } from '@/services/definicaoPolo/mocks'
 import {
   FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
+  OPCOES_TIPO_POLO,
   type FiltrosListagemDefinicaoPolos,
   type PoloParaAlterarTipo,
 } from '@/services/definicaoPolo/types'
@@ -243,7 +243,7 @@ export function DefinicaoPolosConteudo() {
         rotuloCampo="Selecione o Tipo de Polo"
         idCampo="modal-tipo-polo"
         textoOpcaoVazia="Selecione o Tipo de Polo"
-        opcoes={OPCOES_TIPO_POLO_ALTERACAO_MOCK}
+        opcoes={OPCOES_TIPO_POLO}
         estaSalvando={alterarTipoMutation.isPending}
         erro={modalTipoAberto ? alterarTipoMutation.error : undefined}
         onFechar={fecharModalAlterarTipoPolo}

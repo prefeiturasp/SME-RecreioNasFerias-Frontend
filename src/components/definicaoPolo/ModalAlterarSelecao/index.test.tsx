@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { OPCOES_TIPO_POLO_ALTERACAO_MOCK } from '@/services/definicaoPolo/mocks'
+import { OPCOES_TIPO_POLO } from '@/services/definicaoPolo/types'
 import { ModalAlterarSelecao } from './index'
 
 const propsModalPadrao = {
@@ -128,13 +128,13 @@ describe('ModalAlterarSelecao', () => {
         rotuloCampo="Selecione o Tipo de Polo"
         idCampo="modal-tipo-polo"
         textoOpcaoVazia="Selecione o Tipo de Polo"
-        opcoes={OPCOES_TIPO_POLO_ALTERACAO_MOCK}
+        opcoes={OPCOES_TIPO_POLO}
         onFechar={vi.fn()}
         onAlterar={onAlterar}
       />,
     )
 
-    for (const opcao of OPCOES_TIPO_POLO_ALTERACAO_MOCK) {
+    for (const opcao of OPCOES_TIPO_POLO) {
       expect(
         screen.getByRole('option', { name: opcao.rotulo }),
       ).toBeInTheDocument()
