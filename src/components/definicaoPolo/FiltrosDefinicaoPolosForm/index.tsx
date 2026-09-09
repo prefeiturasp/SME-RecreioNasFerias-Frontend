@@ -1,6 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import type { ReactNode } from 'react'
-import { Controller, useForm } from 'react-hook-form'
 import { CollapsibleFilter } from '@/components/CollapsibleFilter'
 import { IconeFiltro } from '@/components/icons'
 import { Button } from '@/components/ui/button'
@@ -21,6 +18,9 @@ import {
   OPCOES_TIPO_POLO,
   type FiltrosListagemDefinicaoPolos,
 } from '@/services/definicaoPolo/types'
+import { zodResolver } from '@hookform/resolvers/zod'
+import type { ReactNode } from 'react'
+import { Controller, useForm } from 'react-hook-form'
 import filtrosDefinicaoPolosSchema, {
   type FiltrosDefinicaoPolosFormValues,
 } from './schema'
