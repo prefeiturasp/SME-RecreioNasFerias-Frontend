@@ -9,6 +9,7 @@ export function useGetDefinicoesPolo(
   edicao?: string,
   gestao?: string,
   tipo_polo?: string,
+  opcoes?: { refetchInterval?: number | false },
 ) {
   return useQuery<DefinicaoPoloApi[], Error>({
     queryKey: [
@@ -29,6 +30,7 @@ export function useGetDefinicoesPolo(
         gestao,
         tipo_polo,
       ),
+    refetchInterval: opcoes?.refetchInterval,
   })
 }
 

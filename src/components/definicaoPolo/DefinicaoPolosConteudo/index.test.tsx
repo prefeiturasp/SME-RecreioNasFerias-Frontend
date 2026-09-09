@@ -113,6 +113,12 @@ function renderConteudo() {
   )
 }
 
+async function esperarConteudoPronto() {
+  expect(
+    await screen.findByText(/listagem de definição de polos/i),
+  ).toBeInTheDocument()
+}
+
 describe('DefinicaoPolosConteudo', () => {
   beforeEach(() => {
     vincularEmMassaMock.mockReset()
@@ -164,22 +170,69 @@ describe('DefinicaoPolosConteudo', () => {
     ])
   })
 
-  it('renderiza filtros e listagem', async () => {
+  it('exibe loading enquanto a carga de polos está em andamento', async () => {
+    let concluirCarga: (resultado: unknown) => void = () => undefined
+    popularPolosMock.mockReturnValue(
+      new Promise((resolve) => {
+        concluirCarga = resolve
+      }),
+    )
+
     renderConteudo()
 
+    expect(
+      screen.getByText(/carregando polos da rede/i),
+    ).toBeInTheDocument()
     expect(screen.getByText('Filtrar Polos')).toBeInTheDocument()
     expect(
       screen.getByText(/listagem de definição de polos/i),
     ).toBeInTheDocument()
+
+    concluirCarga({
+      total_consultados: 0,
+      total_novos: 0,
+      total_ja_existentes: 0,
+      unidades_novas: [],
+      executada: false,
+      motivo_ignorada: 'ja_executada_hoje',
+      ultima_execucao_em: '2026-07-13T12:00:00+00:00',
+    })
+
+    await esperarConteudoPronto()
+    expect(screen.getByText('Filtrar Polos')).toBeInTheDocument()
+    expect(
+      screen.queryByText(/carregando polos da rede/i),
+    ).not.toBeInTheDocument()
+  })
+
+  it('renderiza filtros e listagem', async () => {
+    renderConteudo()
+
+    await esperarConteudoPronto()
+    expect(screen.getByText('Filtrar Polos')).toBeInTheDocument()
     await waitFor(() => {
       expect(popularPolosMock).toHaveBeenCalled()
     })
+  })
+
+  it('exibe erro da API quando a carga de polos falha', async () => {
+    popularPolosMock.mockRejectedValue({
+      response: { data: { detalhe: 'Falha ao carregar polos da rede.' } },
+    })
+
+    renderConteudo()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      /falha ao carregar polos da rede/i,
+    )
+    expect(screen.getByText('Filtrar Polos')).toBeInTheDocument()
   })
 
   it('aplica filtro de gestão Parceira ao filtrar', async () => {
     const usuario = userEvent.setup()
 
     renderConteudo()
+    await esperarConteudoPronto()
 
     await usuario.click(await screen.findByLabelText(/^gestão$/i))
     await usuario.click(await screen.findByRole('option', { name: /^parceira$/i }))
@@ -194,6 +247,7 @@ describe('DefinicaoPolosConteudo', () => {
     const usuario = userEvent.setup()
 
     renderConteudo()
+    await esperarConteudoPronto()
 
     await usuario.click(await screen.findByLabelText(/^gestão$/i))
     await usuario.click(await screen.findByRole('option', { name: /^parceira$/i }))
@@ -209,6 +263,7 @@ describe('DefinicaoPolosConteudo', () => {
     const usuario = userEvent.setup()
 
     renderConteudo()
+    await esperarConteudoPronto()
 
     await usuario.click(
       screen.getByRole('button', { name: /^simular alterar edição$/i }),
@@ -246,6 +301,7 @@ describe('DefinicaoPolosConteudo', () => {
     })
 
     renderConteudo()
+    await esperarConteudoPronto()
 
     await usuario.click(
       screen.getByRole('button', { name: /^simular alterar edição$/i }),
@@ -265,6 +321,7 @@ describe('DefinicaoPolosConteudo', () => {
     const usuario = userEvent.setup()
 
     renderConteudo()
+    await esperarConteudoPronto()
 
     await usuario.click(
       screen.getByRole('button', { name: /^simular alterar tipo$/i }),
@@ -299,6 +356,7 @@ describe('DefinicaoPolosConteudo', () => {
     const usuario = userEvent.setup()
 
     renderConteudo()
+    await esperarConteudoPronto()
 
     await usuario.click(
       screen.getByRole('button', { name: /simular alterar tipo sem edição/i }),

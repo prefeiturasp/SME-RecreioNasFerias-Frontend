@@ -1,7 +1,9 @@
+import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { DefinicaoPolosListagem } from '@/components/definicaoPolo/DefinicaoPolosListagem'
 import { FiltrosDefinicaoPolosForm } from '@/components/definicaoPolo/FiltrosDefinicaoPolosForm'
 import { ModalAlterarSelecao } from '@/components/definicaoPolo/ModalAlterarSelecao'
 import { CloseIcon } from '@/components/icons'
+import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 import { Modal } from '@/components/Modal'
 import { Alert, AlertAction, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -26,7 +28,7 @@ const TEMPO_EXIBICAO_SUCESSO_MS = 3000
 
 export function DefinicaoPolosConteudo() {
   const queryClient = useQueryClient()
-  const { mutate: popularizarPolos } = usePostPopularPolos()
+  const popularizacaoMutation = usePostPopularPolos()
   const vincularEmMassaMutation = usePostVincularEmMassa()
   const alterarTipoMutation = usePostAlterarTipoEmMassa()
   const popularizacaoDisparada = useRef(false)
@@ -80,13 +82,12 @@ export function DefinicaoPolosConteudo() {
     if (popularizacaoDisparada.current) return
     popularizacaoDisparada.current = true
 
-    popularizarPolos(undefined, {
-      onSuccess: (resultado) => {
-        if (!resultado.executada || resultado.total_novos === 0) return
+    popularizacaoMutation.mutate(undefined, {
+      onSettled: () => {
         void queryClient.invalidateQueries({ queryKey: ['definicoesPolo'] })
       },
     })
-  }, [popularizarPolos, queryClient])
+  }, [popularizacaoMutation.mutate, queryClient])
 
   function aplicarFiltros(filtros: FiltrosListagemDefinicaoPolos) {
     setFiltrosAplicados(filtros)
@@ -180,6 +181,12 @@ export function DefinicaoPolosConteudo() {
 
   return (
     <>
+      <AlertaErroApi erro={popularizacaoMutation.error} />
+
+      {popularizacaoMutation.isPending ? (
+        <IndicadorCarregamento mensagem="Carregando polos da rede..." />
+      ) : null}
+
       {mensagemSucessoVisivel ? (
         <Alert
           role="status"
@@ -208,11 +215,12 @@ export function DefinicaoPolosConteudo() {
         onLimpar={limparFiltros}
       />
 
-      <Card className="rounded-sm bg-background py-0 shadow-card ring-0">
+      <Card className="overflow-visible rounded-sm bg-background py-0 shadow-card ring-0">
         <CardContent className="p-8 max-md:p-4">
           <DefinicaoPolosListagem
             filtros={filtrosAplicados}
             chaveResetSelecao={chaveResetSelecao}
+            atualizarPeriodicamente={popularizacaoMutation.isPending}
             onVisualizarPolo={() => undefined}
             onAlterarEdicaoPolo={abrirModalAlterarEdicao}
             onAlterarTipoPolo={abrirModalAlterarTipoPolo}

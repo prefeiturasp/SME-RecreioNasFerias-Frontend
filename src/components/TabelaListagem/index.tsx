@@ -263,7 +263,7 @@ export function TabelaListagem<T>({
         <p className="mb-4 text-sm font-semibold text-brand-dark">{titulo}</p>
       ) : null}
 
-      <div className="w-full overflow-x-auto">
+      <div className="w-full">
         {possuiSelecaoNaPagina && renderizarBarraSelecao
           ? renderizarBarraSelecao({
               idsSelecionadosNaPagina,
@@ -277,13 +277,14 @@ export function TabelaListagem<T>({
               {selecao ? (
                 <TableHead
                   scope="col"
-                  className="h-auto w-12 border border-border px-4 py-3"
+                  className="h-auto w-12 min-w-12 max-w-12 border border-border px-0 py-3 text-center"
                 >
                   <Checkbox
                     aria-label={
                       selecao.rotuloSelecionarTodos ??
                       'Selecionar todos os itens da página'
                     }
+                    className="mx-auto"
                     checked={estadoCheckboxSelecionarTodos}
                     onCheckedChange={(marcado) =>
                       alternarSelecaoTodos(marcado === true)
@@ -330,7 +331,7 @@ export function TabelaListagem<T>({
               {renderizarAcoes ? (
                 <TableHead
                   scope="col"
-                  className="h-auto border border-border px-4 py-3 font-bold"
+                  className="h-auto w-24 min-w-24 border border-border px-4 py-3 text-center font-bold"
                 >
                   {rotuloAcoes}
                 </TableHead>
@@ -345,12 +346,13 @@ export function TabelaListagem<T>({
               return (
                 <TableRow key={idItem} className="border-0">
                   {selecao ? (
-                    <TableCell className="border border-border px-4 py-3">
+                    <TableCell className="w-12 min-w-12 max-w-12 border border-border px-0 py-3 text-center">
                       <Checkbox
                         aria-label={
                           selecao.rotuloSelecionarItem?.(item) ??
                           `Selecionar item ${idItem}`
                         }
+                        className="mx-auto"
                         checked={selecao.idsSelecionados.has(idItem)}
                         onCheckedChange={(marcado) =>
                           alternarSelecaoItem(idItem, marcado === true)
@@ -369,7 +371,7 @@ export function TabelaListagem<T>({
                   ))}
 
                   {renderizarAcoes ? (
-                    <TableCell className="border border-border px-4 py-3 text-center">
+                    <TableCell className="w-24 min-w-24 border border-border px-4 py-3 text-center">
                       {renderizarAcoes(item)}
                     </TableCell>
                   ) : null}

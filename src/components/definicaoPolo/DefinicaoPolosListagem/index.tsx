@@ -87,14 +87,18 @@ const COLUNAS = [
 type DefinicaoPolosListagemProps = {
   filtros?: FiltrosListagemDefinicaoPolos
   chaveResetSelecao?: number
+  atualizarPeriodicamente?: boolean
   onVisualizarPolo?: (idPolo: string) => void
   onAlterarEdicaoPolo: (idsPolos: string[]) => void
   onAlterarTipoPolo: (polos: PoloParaAlterarTipo[]) => void
 }
 
+const INTERVALO_ATUALIZACAO_CARGA_MS = 10_000
+
 export function DefinicaoPolosListagem({
   filtros = FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
   chaveResetSelecao = 0,
+  atualizarPeriodicamente = false,
   onVisualizarPolo,
   onAlterarEdicaoPolo,
   onAlterarTipoPolo,
@@ -106,6 +110,11 @@ export function DefinicaoPolosListagem({
     filtros.edicao,
     filtros.gestao,
     filtros.tipoPolo,
+    {
+      refetchInterval: atualizarPeriodicamente
+        ? INTERVALO_ATUALIZACAO_CARGA_MS
+        : false,
+    },
   )
   const [paginaAtual, setPaginaAtual] = useState(1)
   const [itensPorPagina, setItensPorPagina] = useState<number>(
