@@ -94,6 +94,15 @@ function renderFiltrosDefinicaoPolosForm(
   )
 }
 
+async function selecionarOpcao(
+  usuario: ReturnType<typeof userEvent.setup>,
+  rotuloCampo: RegExp,
+  nomeOpcao: string | RegExp,
+) {
+  await usuario.click(await screen.findByLabelText(rotuloCampo))
+  await usuario.click(await screen.findByRole('option', { name: nomeOpcao }))
+}
+
 describe('FiltrosDefinicaoPolosForm', () => {
   beforeEach(() => {
     listarDresMock.mockResolvedValue(dresPadrao)
@@ -106,22 +115,22 @@ describe('FiltrosDefinicaoPolosForm', () => {
 
     renderFiltrosDefinicaoPolosForm()
 
-    const botaoCabecalho = screen.getByRole('button', {
-      name: /filtrar polos/i,
-    })
+    const cabecalho = screen
+      .getByText('Filtrar Polos')
+      .closest('[data-slot="collapsible-trigger"]')
 
-    expect(botaoCabecalho).toHaveAttribute('aria-expanded', 'true')
-    expect(await screen.findByLabelText(/filtrar por dre/i)).toBeInTheDocument()
+    expect(cabecalho).toHaveAttribute('aria-expanded', 'true')
+    expect(await screen.findByLabelText(/filtrar por dre/i)).toBeVisible()
 
-    await usuario.click(botaoCabecalho)
+    await usuario.click(cabecalho!)
 
-    expect(botaoCabecalho).toHaveAttribute('aria-expanded', 'false')
+    expect(cabecalho).toHaveAttribute('aria-expanded', 'false')
     expect(screen.queryByLabelText(/filtrar por dre/i)).not.toBeInTheDocument()
 
-    await usuario.click(botaoCabecalho)
+    await usuario.click(cabecalho!)
 
-    expect(botaoCabecalho).toHaveAttribute('aria-expanded', 'true')
-    expect(await screen.findByLabelText(/filtrar por dre/i)).toBeInTheDocument()
+    expect(cabecalho).toHaveAttribute('aria-expanded', 'true')
+    expect(await screen.findByLabelText(/filtrar por dre/i)).toBeVisible()
   })
 
   it('chama onFiltrar com gestão Parceira ao submeter', async () => {
@@ -130,8 +139,7 @@ describe('FiltrosDefinicaoPolosForm', () => {
 
     renderFiltrosDefinicaoPolosForm({ onFiltrar })
 
-    await screen.findByLabelText(/^gestão$/i)
-    await usuario.selectOptions(screen.getByLabelText(/^gestão$/i), 'parceira')
+    await selecionarOpcao(usuario, /^gestão$/i, /^parceira$/i)
     await usuario.click(screen.getByRole('button', { name: /^filtrar$/i }))
 
     expect(onFiltrar).toHaveBeenCalledWith({
@@ -146,27 +154,19 @@ describe('FiltrosDefinicaoPolosForm', () => {
 
     renderFiltrosDefinicaoPolosForm({ onFiltrar })
 
-    await usuario.click(await screen.findByLabelText(/filtrar por dre/i))
-    await usuario.click(
-      await screen.findByRole('option', {
-        name: /diretoria regional de educacao butanta/i,
-      }),
+    await selecionarOpcao(
+      usuario,
+      /filtrar por dre/i,
+      /diretoria regional de educacao butanta/i,
     )
-    await usuario.click(screen.getByLabelText(/filtrar por tipo de ue/i))
-    await usuario.click(await screen.findByRole('option', { name: 'EMEF' }))
+    await selecionarOpcao(usuario, /filtrar por tipo de ue/i, 'EMEF')
     await usuario.type(
       screen.getByLabelText(/filtrar por nome da ue ou código eol/i),
       '019241',
     )
-    await usuario.selectOptions(
-      await screen.findByLabelText(/filtrar por nome da edição/i),
-      'ed-1',
-    )
-    await usuario.selectOptions(
-      screen.getByLabelText(/^tipo de polo$/i),
-      'pendente',
-    )
-    await usuario.selectOptions(screen.getByLabelText(/^gestão$/i), 'parceira')
+    await selecionarOpcao(usuario, /filtrar por nome da edição/i, /janeiro 2025/i)
+    await selecionarOpcao(usuario, /^tipo de polo$/i, /^pendente$/i)
+    await selecionarOpcao(usuario, /^gestão$/i, /^parceira$/i)
     await usuario.click(screen.getByRole('button', { name: /^filtrar$/i }))
 
     expect(onFiltrar).toHaveBeenCalledWith({
@@ -186,14 +186,15 @@ describe('FiltrosDefinicaoPolosForm', () => {
 
     renderFiltrosDefinicaoPolosForm({ onFiltrar, onLimpar })
 
-    await screen.findByLabelText(/^gestão$/i)
-    await usuario.selectOptions(screen.getByLabelText(/^gestão$/i), 'parceira')
+    await selecionarOpcao(usuario, /^gestão$/i, /^parceira$/i)
     await usuario.click(screen.getByRole('button', { name: /^filtrar$/i }))
     await usuario.click(screen.getByRole('button', { name: /limpar filtros/i }))
 
     expect(onFiltrar).toHaveBeenCalledTimes(1)
     expect(onLimpar).toHaveBeenCalledTimes(1)
-    expect(screen.getByLabelText(/^gestão$/i)).toHaveValue('')
+    expect(screen.getByLabelText(/^gestão$/i)).toHaveTextContent(
+      /selecione a gestão/i,
+    )
   })
 
   it('exibe opções de DRE, Tipo de UE, Gestão, Nome da Edição e Tipo de Polo', async () => {
@@ -219,17 +220,22 @@ describe('FiltrosDefinicaoPolosForm', () => {
     ).toBeInTheDocument()
     await usuario.click(screen.getByRole('option', { name: /cei diret/i }))
 
+    await usuario.click(screen.getByLabelText(/^gestão$/i))
     expect(
       await screen.findByRole('option', { name: /^parceira$/i }),
     ).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /^direta$/i })).toBeInTheDocument()
+    await usuario.click(screen.getByRole('option', { name: /^parceira$/i }))
+
+    await usuario.click(screen.getByLabelText(/filtrar por nome da edição/i))
     expect(
-      screen.getByRole('option', { name: /^direta$/i }),
+      await screen.findByRole('option', { name: /janeiro 2025/i }),
     ).toBeInTheDocument()
+    await usuario.click(screen.getByRole('option', { name: /janeiro 2025/i }))
+
+    await usuario.click(screen.getByLabelText(/^tipo de polo$/i))
     expect(
-      screen.getByRole('option', { name: /janeiro 2025/i }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('option', { name: /polo oficial/i }),
+      await screen.findByRole('option', { name: /polo oficial/i }),
     ).toBeInTheDocument()
   })
 

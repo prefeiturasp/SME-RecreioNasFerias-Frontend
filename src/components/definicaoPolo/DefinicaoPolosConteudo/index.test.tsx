@@ -167,9 +167,7 @@ describe('DefinicaoPolosConteudo', () => {
   it('renderiza filtros e listagem', () => {
     renderConteudo()
 
-    expect(
-      screen.getByRole('button', { name: /filtrar polos/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Filtrar Polos')).toBeInTheDocument()
     expect(
       screen.getByText(/listagem de definição de polos/i),
     ).toBeInTheDocument()
@@ -180,8 +178,8 @@ describe('DefinicaoPolosConteudo', () => {
 
     renderConteudo()
 
-    await screen.findByLabelText(/^gestão$/i)
-    await usuario.selectOptions(screen.getByLabelText(/^gestão$/i), 'Parceira')
+    await usuario.click(await screen.findByLabelText(/^gestão$/i))
+    await usuario.click(await screen.findByRole('option', { name: /^parceira$/i }))
     await usuario.click(screen.getByRole('button', { name: /^filtrar$/i }))
 
     expect(screen.getByTestId('filtros-aplicados-gestao')).toHaveTextContent(
@@ -194,11 +192,13 @@ describe('DefinicaoPolosConteudo', () => {
 
     renderConteudo()
 
-    await screen.findByLabelText(/^gestão$/i)
-    await usuario.selectOptions(screen.getByLabelText(/^gestão$/i), 'Parceira')
+    await usuario.click(await screen.findByLabelText(/^gestão$/i))
+    await usuario.click(await screen.findByRole('option', { name: /^parceira$/i }))
     await usuario.click(screen.getByRole('button', { name: /limpar filtros/i }))
 
-    expect(screen.getByLabelText(/^gestão$/i)).toHaveValue('')
+    expect(screen.getByLabelText(/^gestão$/i)).toHaveTextContent(
+      /selecione a gestão/i,
+    )
     expect(screen.getByTestId('filtros-aplicados-gestao')).toHaveTextContent('')
   })
 
