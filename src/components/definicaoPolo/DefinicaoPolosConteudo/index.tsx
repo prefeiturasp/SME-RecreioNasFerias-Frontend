@@ -5,11 +5,11 @@ import { CloseIcon } from '@/components/icons'
 import { Modal } from '@/components/Modal'
 import { Alert, AlertAction, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
 import { useGetSincronizacaoUnidadesDiretas } from '@/hooks/useGetSincronizacaoUnidadesDiretas'
 import { usePostAlterarTipoEmMassa } from '@/hooks/usePostAlterarTipoEmMassa'
 import { usePostVincularEmMassa } from '@/hooks/usePostVincularEmMassa'
-import { CartaoConteudoInterno } from '@/pages/shared/edicoesProgramaStyles'
 import { OPCOES_TIPO_POLO_ALTERACAO_MOCK } from '@/services/definicaoPolo/mocks'
 import {
   FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
@@ -207,15 +207,17 @@ export function DefinicaoPolosConteudo() {
         onLimpar={limparFiltros}
       />
 
-      <CartaoConteudoInterno>
-        <DefinicaoPolosListagem
-          filtros={filtrosAplicados}
-          chaveResetSelecao={chaveResetSelecao}
-          onVisualizarPolo={() => undefined}
-          onAlterarEdicaoPolo={abrirModalAlterarEdicao}
-          onAlterarTipoPolo={abrirModalAlterarTipoPolo}
-        />
-      </CartaoConteudoInterno>
+      <Card className="rounded-sm bg-background py-0 shadow-card ring-0">
+        <CardContent className="p-8 max-md:p-4">
+          <DefinicaoPolosListagem
+            filtros={filtrosAplicados}
+            chaveResetSelecao={chaveResetSelecao}
+            onVisualizarPolo={() => undefined}
+            onAlterarEdicaoPolo={abrirModalAlterarEdicao}
+            onAlterarTipoPolo={abrirModalAlterarTipoPolo}
+          />
+        </CardContent>
+      </Card>
 
       <ModalAlterarSelecao
         aberto={modalEdicaoAberto}
