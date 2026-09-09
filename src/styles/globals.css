@@ -107,7 +107,6 @@
   --color-button-primary-disabled-bg: #7b7b97;
   --color-button-primary-disabled-border: #7b7b97;
   --color-user-card-border: #d9d9d9;
-  --color-logout-label: #929394;
   --color-destructive: #c62828;
   --color-destructive-foreground: #ffffff;
 
@@ -118,7 +117,7 @@
   --verde-claro: #d4edda;
   --verde-medio: #a4c7af;
 
-  --shadow-header-bottom: 0 3px 12px 0 rgba(0, 0, 0, 0.12);
+  --shadow-header: 0 3px 12px 0 rgba(0, 0, 0, 0.12);
   --shadow-card: 0 0 6px 0 rgba(0, 0, 0, 0.12);
   --shadow-button-outline-hover: 0 0 4px rgba(29, 10, 85, 0.12);
   --shadow-button-primary-hover: 0 2px 6px rgba(29, 10, 85, 0.2);
@@ -138,19 +137,7 @@
     transform 0.15s ease;
   --transition-input: border-color 0.2s ease, outline-color 0.2s ease;
 
-  --size-main-header-height: 7.375rem;
-  --size-main-header-padding-y: 0.65625rem;
-  --size-main-header-padding-x: 2rem;
-  --size-main-logo-width: 8.5625rem;
-  --size-main-logo-height: 4.8125rem;
-  --size-logout-icon-wrapper: 2.625rem;
-  --size-user-card-min-width: 12.875rem;
-  --size-user-card-padding: 0.625rem;
   --size-radius-sm: 0.25rem;
-  --size-user-logout-gap: 1.375rem;
-
-  --font-size-user-info: 0.625rem;
-  --font-size-logout-label: 0.625rem;
 
   --breakpoint-tablet: 64rem;
   --breakpoint-mobile: 48rem;
@@ -281,7 +268,9 @@ body {
   --color-input-border-muted: var(--color-input-border-muted);
   --color-input-disabled-bg: var(--color-input-disabled-bg);
   --color-button-primary-disabled-bg: var(--color-button-primary-disabled-bg);
+  --color-user-card-border: var(--color-user-card-border);
 
+  --shadow-header: var(--shadow-header);
   --shadow-card: var(--shadow-card);
 
   --radius-sm: 0.25rem;
