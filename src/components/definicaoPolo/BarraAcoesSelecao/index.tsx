@@ -1,5 +1,6 @@
 import { iconeLapisEditar } from '@/assets'
 import { CloseIcon } from '@/components/icons'
+import { Button } from '@/components/ui/button'
 
 type BarraAcoesSelecaoProps = {
   quantidadeSelecionada: number
@@ -32,9 +33,10 @@ export function BarraAcoesSelecao({
       </p>
 
       <div className="flex flex-wrap items-center">
-        <button
+        <Button
           type="button"
-          className="inline-flex items-center gap-2 rounded-sm px-0 py-1 text-sm font-bold whitespace-nowrap text-background transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-background"
+          variant="ghost"
+          className="h-auto gap-2 rounded-sm px-0 py-1 text-sm font-bold whitespace-nowrap text-background hover:bg-transparent hover:text-background hover:opacity-85 focus-visible:border-background focus-visible:ring-background/50"
           onClick={onAlterarEdicao}
         >
           <img
@@ -44,16 +46,17 @@ export function BarraAcoesSelecao({
             className="size-4 object-contain brightness-0 invert"
           />
           <span>Alterar Edição</span>
-        </button>
+        </Button>
 
         <span
           aria-hidden="true"
           className="mx-3 h-5 w-px bg-background/45"
         />
 
-        <button
+        <Button
           type="button"
-          className="inline-flex items-center gap-2 rounded-sm px-0 py-1 text-sm font-bold whitespace-nowrap text-background transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-background"
+          variant="ghost"
+          className="h-auto gap-2 rounded-sm px-0 py-1 text-sm font-bold whitespace-nowrap text-background hover:bg-transparent hover:text-background hover:opacity-85 focus-visible:border-background focus-visible:ring-background/50"
           onClick={onAlterarTipoPolo}
         >
           <img
@@ -63,21 +66,22 @@ export function BarraAcoesSelecao({
             className="size-4 object-contain brightness-0 invert"
           />
           <span>Alterar Tipo de Polo</span>
-        </button>
+        </Button>
 
         <span
           aria-hidden="true"
           className="mx-3 h-5 w-px bg-background/45"
         />
 
-        <button
+        <Button
           type="button"
-          className="inline-flex items-center gap-2 rounded-sm px-0 py-1 text-sm font-bold whitespace-nowrap text-background transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-background"
+          variant="ghost"
+          className="h-auto gap-2 rounded-sm px-0 py-1 text-sm font-bold whitespace-nowrap text-background hover:bg-transparent hover:text-background hover:opacity-85 focus-visible:border-background focus-visible:ring-background/50"
           onClick={onCancelar}
         >
           <CloseIcon />
           <span>Cancelar</span>
-        </button>
+        </Button>
       </div>
     </div>
   )
