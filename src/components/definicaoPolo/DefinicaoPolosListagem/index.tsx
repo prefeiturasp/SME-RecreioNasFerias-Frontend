@@ -13,7 +13,26 @@ import {
   FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
   type DefinicaoPoloApi,
   type FiltrosListagemDefinicaoPolos,
+  type PoloParaAlterarTipo,
 } from '@/services/definicaoPolo/types'
+
+function obterPolosParaAlterarTipo(
+  polos: DefinicaoPoloApi[],
+  idsPolos: string[],
+): PoloParaAlterarTipo[] {
+  return polos.flatMap((polo) => {
+    if (!idsPolos.includes(polo.polo_uuid)) {
+      return []
+    }
+
+    return [
+      {
+        polo_uuid: polo.polo_uuid,
+        edicao_uuid: polo.edicao_uuid,
+      },
+    ]
+  })
+}
 
 const TIPO_POLO_PADRAO = 'Pendente'
 const NOME_EDICAO_PADRAO = '-'
@@ -70,7 +89,7 @@ type DefinicaoPolosListagemProps = {
   chaveResetSelecao?: number
   onVisualizarPolo?: (idPolo: string) => void
   onAlterarEdicaoPolo: (idsPolos: string[]) => void
-  onAlterarTipoPolo: (idsPolos: string[]) => void
+  onAlterarTipoPolo: (polos: PoloParaAlterarTipo[]) => void
 }
 
 export function DefinicaoPolosListagem({
@@ -146,7 +165,11 @@ export function DefinicaoPolosListagem({
         <BarraAcoesSelecao
           quantidadeSelecionada={idsSelecionadosNaPagina.length}
           onAlterarEdicao={() => onAlterarEdicaoPolo(idsSelecionadosNaPagina)}
-          onAlterarTipoPolo={() => onAlterarTipoPolo(idsSelecionadosNaPagina)}
+          onAlterarTipoPolo={() =>
+            onAlterarTipoPolo(
+              obterPolosParaAlterarTipo(polos, idsSelecionadosNaPagina),
+            )
+          }
           onCancelar={limparSelecao}
         />
       )}

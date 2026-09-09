@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type {
   DefinicaoPoloApi,
   FiltrosListagemDefinicaoPolos,
+  PoloParaAlterarTipo,
 } from '@/services/definicaoPolo/types'
 import { FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS } from '@/services/definicaoPolo/types'
 import { DefinicaoPolosListagem } from './index'
@@ -68,7 +69,7 @@ function renderDefinicaoPolosListagem(
   props: Partial<{
     onVisualizarPolo: (idPolo: string) => void
     onAlterarEdicaoPolo: (idsPolos: string[]) => void
-    onAlterarTipoPolo: (idsPolos: string[]) => void
+    onAlterarTipoPolo: (polos: PoloParaAlterarTipo[]) => void
     filtros: FiltrosListagemDefinicaoPolos
   }> = {},
 ) {
@@ -227,10 +228,41 @@ describe('DefinicaoPolosListagem', () => {
     await usuario.click(
       screen.getByRole('button', { name: /^alterar tipo de polo$/i }),
     )
-    expect(onAlterarTipoPolo).toHaveBeenCalledWith(['2'])
+    expect(onAlterarTipoPolo).toHaveBeenCalledWith([
+      { polo_uuid: '2', edicao_uuid: 'ed-1' },
+    ])
 
     await usuario.click(screen.getByRole('button', { name: /^cancelar$/i }))
     expect(screen.queryByText(/ue selecionada/i)).not.toBeInTheDocument()
+  })
+
+  it('envia edicao_uuid nulo ao alterar tipo de polo sem edição', async () => {
+    const usuario = userEvent.setup()
+    const onAlterarTipoPolo = vi.fn()
+    listarDefinicoesPoloMock.mockResolvedValue([
+      {
+        ...poloDiretaApi,
+        edicao_uuid: null,
+        nome_edicao: null,
+      },
+    ])
+
+    renderDefinicaoPolosListagem({ onAlterarTipoPolo })
+
+    await screen.findByRole('table')
+
+    await usuario.click(
+      screen.getByRole('checkbox', {
+        name: /selecionar polo cei diret aloysio/i,
+      }),
+    )
+    await usuario.click(
+      screen.getByRole('button', { name: /^alterar tipo de polo$/i }),
+    )
+
+    expect(onAlterarTipoPolo).toHaveBeenCalledWith([
+      { polo_uuid: '1', edicao_uuid: null },
+    ])
   })
 
   it('envia polo_uuid ao alterar edição mesmo sem definicao_uuid', async () => {

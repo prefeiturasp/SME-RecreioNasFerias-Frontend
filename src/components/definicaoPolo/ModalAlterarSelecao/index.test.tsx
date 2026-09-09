@@ -146,6 +146,6 @@ describe('ModalAlterarSelecao', () => {
     )
     await usuario.click(screen.getByRole('button', { name: /^alterar$/i }))
 
-    expect(onAlterar).toHaveBeenCalledWith('Polo oficial')
+    expect(onAlterar).toHaveBeenCalledWith('oficial')
   })
 })

@@ -1,24 +1,30 @@
 import { DefinicaoPolosListagem } from '@/components/definicaoPolo/DefinicaoPolosListagem'
 import { FiltrosDefinicaoPolosForm } from '@/components/definicaoPolo/FiltrosDefinicaoPolosForm'
 import { ModalAlterarSelecao } from '@/components/definicaoPolo/ModalAlterarSelecao'
+import { Modal } from '@/components/Modal'
+import { Button } from '@/components/ui/button'
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
 import { useGetSincronizacaoUnidadesDiretas } from '@/hooks/useGetSincronizacaoUnidadesDiretas'
-import { usePatchDefinicoesPoloEmLote } from '@/hooks/usePatchDefinicoesPoloEmLote'
+import { usePostAlterarTipoEmMassa } from '@/hooks/usePostAlterarTipoEmMassa'
 import { usePostVincularEmMassa } from '@/hooks/usePostVincularEmMassa'
 import { CartaoConteudoInterno } from '@/pages/shared/edicoesProgramaStyles'
 import { OPCOES_TIPO_POLO_ALTERACAO_MOCK } from '@/services/definicaoPolo/mocks'
 import {
   FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
   type FiltrosListagemDefinicaoPolos,
+  type PoloParaAlterarTipo,
 } from '@/services/definicaoPolo/types'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
+
+const MENSAGEM_BLOQUEIO_TIPO_SEM_EDICAO =
+  'É necessário alterar a edição primeiro para, depois, vincular ou alterar o tipo de polo.'
 
 export function DefinicaoPolosConteudo() {
   const queryClient = useQueryClient()
   const sincronizacaoQuery = useGetSincronizacaoUnidadesDiretas(true)
   const vincularEmMassaMutation = usePostVincularEmMassa()
-  const patchMutation = usePatchDefinicoesPoloEmLote()
+  const alterarTipoMutation = usePostAlterarTipoEmMassa()
 
   const [filtrosAplicados, setFiltrosAplicados] =
     useState<FiltrosListagemDefinicaoPolos>(
@@ -29,8 +35,9 @@ export function DefinicaoPolosConteudo() {
     string[]
   >([])
   const [polosParaAlterarTipoPolo, setPolosParaAlterarTipoPolo] = useState<
-    string[]
+    PoloParaAlterarTipo[]
   >([])
+  const [modalBloqueioTipoAberto, setModalBloqueioTipoAberto] = useState(false)
   const [chaveResetSelecao, setChaveResetSelecao] = useState(0)
 
   const modalTipoAberto = polosParaAlterarTipoPolo.length > 0
@@ -77,8 +84,8 @@ export function DefinicaoPolosConteudo() {
   }
 
   function fecharModalAlterarTipoPolo() {
-    if (patchMutation.isPending) return
-    patchMutation.reset()
+    if (alterarTipoMutation.isPending) return
+    alterarTipoMutation.reset()
     setPolosParaAlterarTipoPolo([])
   }
 
@@ -88,9 +95,18 @@ export function DefinicaoPolosConteudo() {
     setModalEdicaoAberto(true)
   }
 
-  function abrirModalAlterarTipoPolo(idsPolos: string[]) {
-    patchMutation.reset()
-    setPolosParaAlterarTipoPolo(idsPolos)
+  function fecharModalBloqueioTipo() {
+    setModalBloqueioTipoAberto(false)
+  }
+
+  function abrirModalAlterarTipoPolo(polos: PoloParaAlterarTipo[]) {
+    if (polos.some((polo) => !polo.edicao_uuid)) {
+      setModalBloqueioTipoAberto(true)
+      return
+    }
+
+    alterarTipoMutation.reset()
+    setPolosParaAlterarTipoPolo(polos)
   }
 
   function confirmarAlteracaoEdicao(edicaoDestino: string) {
@@ -113,21 +129,31 @@ export function DefinicaoPolosConteudo() {
   }
 
   function confirmarAlteracaoTipoPolo(tipoPolo: string) {
-    if (!tipoPolo.trim() || polosParaAlterarTipoPolo.length === 0) return
+    if (!tipoPolo.trim()) return
 
-    patchMutation.mutate(
-      {
-        ids: polosParaAlterarTipoPolo,
-        tipo: tipoPolo.trim(),
-      },
-      {
-        onSuccess: () => {
-          setPolosParaAlterarTipoPolo([])
-          setChaveResetSelecao((chaveAtual) => chaveAtual + 1)
-          void queryClient.invalidateQueries({ queryKey: ['definicoesPolo'] })
+    const operacoes = polosParaAlterarTipoPolo.flatMap((polo) => {
+      if (!polo.edicao_uuid) {
+        return []
+      }
+
+      return [
+        {
+          polo_uuid: polo.polo_uuid,
+          edicao: polo.edicao_uuid,
+          tipo: tipoPolo.trim(),
         },
+      ]
+    })
+
+    if (operacoes.length === 0) return
+
+    alterarTipoMutation.mutate(operacoes, {
+      onSuccess: () => {
+        setPolosParaAlterarTipoPolo([])
+        setChaveResetSelecao((chaveAtual) => chaveAtual + 1)
+        void queryClient.invalidateQueries({ queryKey: ['definicoesPolo'] })
       },
-    )
+    })
   }
 
   return (
@@ -171,11 +197,24 @@ export function DefinicaoPolosConteudo() {
         idCampo="modal-tipo-polo"
         textoOpcaoVazia="Selecione o Tipo de Polo"
         opcoes={OPCOES_TIPO_POLO_ALTERACAO_MOCK}
-        estaSalvando={patchMutation.isPending}
-        erro={modalTipoAberto ? patchMutation.error : undefined}
+        estaSalvando={alterarTipoMutation.isPending}
+        erro={modalTipoAberto ? alterarTipoMutation.error : undefined}
         onFechar={fecharModalAlterarTipoPolo}
         onAlterar={confirmarAlteracaoTipoPolo}
       />
+
+      <Modal
+        aberto={modalBloqueioTipoAberto}
+        titulo="Não é possível alterar o tipo de polo"
+        onOpenChange={setModalBloqueioTipoAberto}
+        acoes={
+          <Button type="button" onClick={fecharModalBloqueioTipo}>
+            Fechar
+          </Button>
+        }
+      >
+        {MENSAGEM_BLOQUEIO_TIPO_SEM_EDICAO}
+      </Modal>
     </>
   )
 }

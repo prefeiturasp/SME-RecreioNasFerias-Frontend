@@ -12,7 +12,9 @@ vi.mock('@/components/definicaoPolo/DefinicaoPolosListagem', () => ({
   }: {
     filtros?: { gestao?: string }
     onAlterarEdicaoPolo: (idsPolos: string[]) => void
-    onAlterarTipoPolo: (idsPolos: string[]) => void
+    onAlterarTipoPolo: (
+      polos: { polo_uuid: string; edicao_uuid: string | null }[],
+    ) => void
   }) => (
     <div>
       <div>Listagem de definição de polos</div>
@@ -22,8 +24,21 @@ vi.mock('@/components/definicaoPolo/DefinicaoPolosListagem', () => ({
       <button type="button" onClick={() => onAlterarEdicaoPolo(['polo-1'])}>
         Simular alterar edição
       </button>
-      <button type="button" onClick={() => onAlterarTipoPolo(['polo-1'])}>
+      <button
+        type="button"
+        onClick={() =>
+          onAlterarTipoPolo([{ polo_uuid: 'polo-1', edicao_uuid: 'ed-1' }])
+        }
+      >
         Simular alterar tipo
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          onAlterarTipoPolo([{ polo_uuid: 'polo-1', edicao_uuid: null }])
+        }
+      >
+        Simular alterar tipo sem edição
       </button>
     </div>
   ),
@@ -31,14 +46,14 @@ vi.mock('@/components/definicaoPolo/DefinicaoPolosListagem', () => ({
 
 const {
   vincularEmMassaMock,
-  atualizarDefinicoesPoloEmLoteMock,
+  alterarTipoEmMassaMock,
   listarEdicoesProgramaMock,
   popularPolosMock,
   listarDresMock,
   listarTiposEscolaMock,
 } = vi.hoisted(() => ({
   vincularEmMassaMock: vi.fn(),
-  atualizarDefinicoesPoloEmLoteMock: vi.fn(),
+  alterarTipoEmMassaMock: vi.fn(),
   listarEdicoesProgramaMock: vi.fn(),
   popularPolosMock: vi.fn(),
   listarDresMock: vi.fn(),
@@ -49,8 +64,8 @@ vi.mock('@/services/definicaoPolo/vincularEmMassa', () => ({
   vincularEmMassa: vincularEmMassaMock,
 }))
 
-vi.mock('@/services/definicaoPolo/atualizarDefinicoesPoloEmLote', () => ({
-  atualizarDefinicoesPoloEmLote: atualizarDefinicoesPoloEmLoteMock,
+vi.mock('@/services/definicaoPolo/alterarTipoEmMassa', () => ({
+  alterarTipoEmMassa: alterarTipoEmMassaMock,
 }))
 
 vi.mock('@/services/definicaoPolo/popularPolos', () => ({
@@ -101,7 +116,7 @@ function renderConteudo() {
 describe('DefinicaoPolosConteudo', () => {
   beforeEach(() => {
     vincularEmMassaMock.mockReset()
-    atualizarDefinicoesPoloEmLoteMock.mockReset()
+    alterarTipoEmMassaMock.mockReset()
     listarEdicoesProgramaMock.mockReset()
     popularPolosMock.mockReset()
     listarDresMock.mockReset()
@@ -117,8 +132,10 @@ describe('DefinicaoPolosConteudo', () => {
       ultima_execucao_em: '2026-07-13T12:00:00+00:00',
     })
     vincularEmMassaMock.mockResolvedValue([])
-    atualizarDefinicoesPoloEmLoteMock.mockResolvedValue({
-      totalAtualizados: 1,
+    alterarTipoEmMassaMock.mockResolvedValue({
+      mensagem: 'Tipos de polo alterados com sucesso.',
+      alterados: [],
+      ignorados: [],
     })
     listarDresMock.mockResolvedValue([
       {
@@ -244,11 +261,11 @@ describe('DefinicaoPolosConteudo', () => {
     renderConteudo()
 
     await usuario.click(
-      screen.getByRole('button', { name: /simular alterar tipo/i }),
+      screen.getByRole('button', { name: /^simular alterar tipo$/i }),
     )
 
     expect(
-      await screen.findByRole('dialog', { name: /alterar tipo de polo/i }),
+      await screen.findByRole('dialog', { name: /^alterar tipo de polo$/i }),
     ).toBeInTheDocument()
 
     await usuario.selectOptions(
@@ -258,10 +275,44 @@ describe('DefinicaoPolosConteudo', () => {
     await usuario.click(screen.getByRole('button', { name: /^alterar$/i }))
 
     await waitFor(() => {
-      expect(atualizarDefinicoesPoloEmLoteMock.mock.calls[0]?.[0]).toEqual({
-        ids: ['polo-1'],
-        tipo: 'Polo oficial',
-      })
+      expect(alterarTipoEmMassaMock.mock.calls[0]?.[0]).toEqual([
+        {
+          polo_uuid: 'polo-1',
+          edicao: 'ed-1',
+          tipo: 'oficial',
+        },
+      ])
+    })
+  })
+
+  it('bloqueia alterar tipo quando o polo não tem edição', async () => {
+    const usuario = userEvent.setup()
+
+    renderConteudo()
+
+    await usuario.click(
+      screen.getByRole('button', { name: /simular alterar tipo sem edição/i }),
+    )
+
+    expect(
+      await screen.findByRole('dialog', {
+        name: /não é possível alterar o tipo de polo/i,
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        /é necessário alterar a edição primeiro para, depois, vincular ou alterar o tipo de polo/i,
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByLabelText(/selecione o tipo de polo/i),
+    ).not.toBeInTheDocument()
+    expect(alterarTipoEmMassaMock).not.toHaveBeenCalled()
+
+    await usuario.click(screen.getByRole('button', { name: /^fechar$/i }))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     })
   })
 })

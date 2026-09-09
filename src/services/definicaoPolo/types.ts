@@ -42,6 +42,30 @@ export type DadosVincularEmMassa = {
   edicao: string
 }
 
+export type PoloParaAlterarTipo = {
+  polo_uuid: string
+  edicao_uuid: string | null
+}
+
+export type ItemAlterarTipoEmMassa = {
+  polo_uuid: string
+  edicao: string
+  tipo: string
+}
+
+export type ResultadoAlterarTipoEmMassa = {
+  mensagem: string
+  alterados: {
+    polo_uuid: string
+    edicao_uuid: string
+    tipo: string
+  }[]
+  ignorados: {
+    polo_uuid: string
+    motivo: string
+  }[]
+}
+
 export type DefinicaoPolo = {
   uuid: string
   polo: string
@@ -55,16 +79,6 @@ export type DefinicaoPolo = {
   ativo: boolean
   criado_em: string
   atualizado_em: string
-}
-
-export type ParametrosAtualizacaoDefinicoesPoloEmLote = {
-  ids: string[]
-  nomeEdicao?: string
-  tipo?: string
-}
-
-export type ResultadoAtualizacaoDefinicoesPoloEmLote = {
-  totalAtualizados: number
 }
 
 export const FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS: FiltrosListagemDefinicaoPolos =
