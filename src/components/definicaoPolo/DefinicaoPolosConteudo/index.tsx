@@ -8,6 +8,7 @@ import { Modal } from '@/components/Modal'
 import { Alert, AlertAction, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { useGetDefinicoesPolo } from '@/hooks/useGetDefinicoesPolo'
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
 import { usePostAlterarTipoEmMassa } from '@/hooks/usePostAlterarTipoEmMassa'
 import { usePostPopularPolos } from '@/hooks/usePostPopularPolos'
@@ -64,6 +65,16 @@ export function DefinicaoPolosConteudo() {
 
   const modalTipoAberto = polosParaAlterarTipoPolo.length > 0
   const edicoesQuery = useGetEdicoesPrograma(modalEdicaoAberto)
+  const listagemQuery = useGetDefinicoesPolo(
+    filtrosAplicados.nomeUeOuCodigoEol,
+    filtrosAplicados.dre,
+    filtrosAplicados.tipoUe,
+    filtrosAplicados.edicao,
+    filtrosAplicados.gestao,
+    filtrosAplicados.tipoPolo,
+  )
+  const cargaAindaSemResultados =
+    popularizacaoMutation.isPending && (listagemQuery.data?.length ?? 0) === 0
 
   const opcoesNomeEdicao = useMemo(() => {
     if (!edicoesQuery.data) {
@@ -183,7 +194,7 @@ export function DefinicaoPolosConteudo() {
     <>
       <AlertaErroApi erro={popularizacaoMutation.error} />
 
-      {popularizacaoMutation.isPending ? (
+      {cargaAindaSemResultados ? (
         <IndicadorCarregamento mensagem="Carregando polos da rede..." />
       ) : null}
 

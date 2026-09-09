@@ -49,6 +49,7 @@ const {
   alterarTipoEmMassaMock,
   listarEdicoesProgramaMock,
   popularPolosMock,
+  listarDefinicoesPoloMock,
   listarDresMock,
   listarTiposEscolaMock,
 } = vi.hoisted(() => ({
@@ -56,6 +57,7 @@ const {
   alterarTipoEmMassaMock: vi.fn(),
   listarEdicoesProgramaMock: vi.fn(),
   popularPolosMock: vi.fn(),
+  listarDefinicoesPoloMock: vi.fn(),
   listarDresMock: vi.fn(),
   listarTiposEscolaMock: vi.fn(),
 }))
@@ -71,6 +73,18 @@ vi.mock('@/services/definicaoPolo/alterarTipoEmMassa', () => ({
 vi.mock('@/services/definicaoPolo/popularPolos', () => ({
   popularPolos: popularPolosMock,
 }))
+
+vi.mock('@/services/definicaoPolo/listarDefinicoesPolo', async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import('@/services/definicaoPolo/listarDefinicoesPolo')
+    >()
+
+  return {
+    ...actual,
+    listarDefinicoesPolo: listarDefinicoesPoloMock,
+  }
+})
 
 vi.mock('@/services/edicaoPrograma/listarEdicoesPrograma', () => ({
   listarEdicoesPrograma: listarEdicoesProgramaMock,
@@ -125,6 +139,7 @@ describe('DefinicaoPolosConteudo', () => {
     alterarTipoEmMassaMock.mockReset()
     listarEdicoesProgramaMock.mockReset()
     popularPolosMock.mockReset()
+    listarDefinicoesPoloMock.mockReset()
     listarDresMock.mockReset()
     listarTiposEscolaMock.mockReset()
 
@@ -137,6 +152,7 @@ describe('DefinicaoPolosConteudo', () => {
       motivo_ignorada: 'ja_executada_hoje',
       ultima_execucao_em: '2026-07-13T12:00:00+00:00',
     })
+    listarDefinicoesPoloMock.mockResolvedValue([])
     vincularEmMassaMock.mockResolvedValue([])
     alterarTipoEmMassaMock.mockResolvedValue({
       mensagem: 'Tipos de polo alterados com sucesso.',
@@ -203,6 +219,39 @@ describe('DefinicaoPolosConteudo', () => {
     expect(
       screen.queryByText(/carregando polos da rede/i),
     ).not.toBeInTheDocument()
+  })
+
+  it('oculta o loading da carga quando a listagem já tem polos', async () => {
+    popularPolosMock.mockReturnValue(new Promise(() => undefined))
+    listarDefinicoesPoloMock.mockResolvedValue([
+      {
+        polo_uuid: 'polo-1',
+        codigo_eol: '400001',
+        nome_polo: 'CEI DIRET ALOYSIO',
+        dre_nome: 'BUTANTA',
+        dre_codigo_eol: '108100',
+        tipo_ue: 'CEI',
+        gestao: 'direta',
+        status: 'ativo',
+        ativo: true,
+        definicao_uuid: null,
+        edicao_uuid: null,
+        nome_edicao: null,
+        tipo_polo_edicao: null,
+        projecao_inscritos_edicao: null,
+        total_inscritos_edicao: null,
+      },
+    ])
+
+    renderConteudo()
+
+    await esperarConteudoPronto()
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/carregando polos da rede/i),
+      ).not.toBeInTheDocument()
+    })
+    expect(screen.getByText('Filtrar Polos')).toBeInTheDocument()
   })
 
   it('renderiza filtros e listagem', async () => {
