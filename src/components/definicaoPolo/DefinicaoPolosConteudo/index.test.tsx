@@ -164,13 +164,16 @@ describe('DefinicaoPolosConteudo', () => {
     ])
   })
 
-  it('renderiza filtros e listagem', () => {
+  it('renderiza filtros e listagem', async () => {
     renderConteudo()
 
     expect(screen.getByText('Filtrar Polos')).toBeInTheDocument()
     expect(
       screen.getByText(/listagem de definição de polos/i),
     ).toBeInTheDocument()
+    await waitFor(() => {
+      expect(popularPolosMock).toHaveBeenCalled()
+    })
   })
 
   it('aplica filtro de gestão Parceira ao filtrar', async () => {

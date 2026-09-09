@@ -7,8 +7,8 @@ import { Alert, AlertAction, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
-import { useGetSincronizacaoUnidadesDiretas } from '@/hooks/useGetSincronizacaoUnidadesDiretas'
 import { usePostAlterarTipoEmMassa } from '@/hooks/usePostAlterarTipoEmMassa'
+import { usePostPopularPolos } from '@/hooks/usePostPopularPolos'
 import { usePostVincularEmMassa } from '@/hooks/usePostVincularEmMassa'
 import { OPCOES_TIPO_POLO_ALTERACAO_MOCK } from '@/services/definicaoPolo/mocks'
 import {
@@ -17,7 +17,7 @@ import {
   type PoloParaAlterarTipo,
 } from '@/services/definicaoPolo/types'
 import { useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 const MENSAGEM_BLOQUEIO_TIPO_SEM_EDICAO =
   'É necessário alterar a edição primeiro para, depois, vincular ou alterar o tipo de polo.'
@@ -26,9 +26,10 @@ const TEMPO_EXIBICAO_SUCESSO_MS = 3000
 
 export function DefinicaoPolosConteudo() {
   const queryClient = useQueryClient()
-  const sincronizacaoQuery = useGetSincronizacaoUnidadesDiretas(true)
+  const { mutate: popularizarPolos } = usePostPopularPolos()
   const vincularEmMassaMutation = usePostVincularEmMassa()
   const alterarTipoMutation = usePostAlterarTipoEmMassa()
+  const popularizacaoDisparada = useRef(false)
 
   const [filtrosAplicados, setFiltrosAplicados] =
     useState<FiltrosListagemDefinicaoPolos>(
@@ -76,16 +77,16 @@ export function DefinicaoPolosConteudo() {
   }, [edicoesQuery.data])
 
   useEffect(() => {
-    if (
-      !sincronizacaoQuery.isSuccess ||
-      !sincronizacaoQuery.data.executada ||
-      sincronizacaoQuery.data.total_novos === 0
-    ) {
-      return
-    }
+    if (popularizacaoDisparada.current) return
+    popularizacaoDisparada.current = true
 
-    void queryClient.invalidateQueries({ queryKey: ['definicoesPolo'] })
-  }, [queryClient, sincronizacaoQuery.data, sincronizacaoQuery.isSuccess])
+    popularizarPolos(undefined, {
+      onSuccess: (resultado) => {
+        if (!resultado.executada || resultado.total_novos === 0) return
+        void queryClient.invalidateQueries({ queryKey: ['definicoesPolo'] })
+      },
+    })
+  }, [popularizarPolos, queryClient])
 
   function aplicarFiltros(filtros: FiltrosListagemDefinicaoPolos) {
     setFiltrosAplicados(filtros)
