@@ -191,7 +191,7 @@ describe('DefinicaoPolosConteudo', () => {
     ])
   })
 
-  it('exibe loading enquanto a carga de polos está em andamento', async () => {
+  it('exibe loading e não monta a listagem enquanto a rotina está em andamento', async () => {
     let concluirCarga: (resultado: unknown) => void = () => undefined
     popularPolosMock.mockReturnValue(
       new Promise((resolve) => {
@@ -204,10 +204,16 @@ describe('DefinicaoPolosConteudo', () => {
     expect(
       screen.getByText(/carregando polos da rede/i),
     ).toBeInTheDocument()
+    expect(
+      screen.getByRole('progressbar', {
+        name: /progresso do carregamento dos polos/i,
+      }),
+    ).toBeInTheDocument()
     expect(screen.getByText('Filtrar Polos')).toBeInTheDocument()
     expect(
-      screen.getByText(/listagem de definição de polos/i),
-    ).toBeInTheDocument()
+      screen.queryByText(/listagem de definição de polos/i),
+    ).not.toBeInTheDocument()
+    expect(listarDefinicoesPoloMock).not.toHaveBeenCalled()
 
     concluirCarga({
       total_consultados: 0,
@@ -226,41 +232,23 @@ describe('DefinicaoPolosConteudo', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('oculta o loading da carga quando a listagem já tem polos', async () => {
-    popularPolosMock.mockReturnValue(new Promise(() => undefined))
-    listarDefinicoesPoloMock.mockResolvedValue({
-      count: 1,
-      next: null,
-      previous: null,
-      results: [
-        {
-          polo_uuid: 'polo-1',
-          codigo_eol: '400001',
-          nome_polo: 'CEI DIRET ALOYSIO',
-          dre_nome: 'BUTANTA',
-          dre_codigo_eol: '108100',
-          tipo_ue: 'CEI',
-          gestao: 'direta',
-          status: 'ativo',
-          ativo: true,
-          definicao_uuid: null,
-          edicao_uuid: null,
-          nome_edicao: null,
-          tipo_polo_edicao: null,
-          projecao_inscritos_edicao: null,
-          total_inscritos_edicao: null,
-        },
-      ],
+  it('libera a listagem após a rotina mesmo sem dados novos', async () => {
+    popularPolosMock.mockResolvedValue({
+      total_consultados: 0,
+      total_novos: 0,
+      total_ja_existentes: 0,
+      unidades_novas: [],
+      executada: false,
+      motivo_ignorada: 'ja_executada_hoje',
+      ultima_execucao_em: '2026-07-13T12:00:00+00:00',
     })
 
     renderConteudo()
 
     await esperarConteudoPronto()
-    await waitFor(() => {
-      expect(
-        screen.queryByText(/carregando polos da rede/i),
-      ).not.toBeInTheDocument()
-    })
+    expect(
+      screen.queryByText(/carregando polos da rede/i),
+    ).not.toBeInTheDocument()
     expect(screen.getByText('Filtrar Polos')).toBeInTheDocument()
   })
 
@@ -274,7 +262,7 @@ describe('DefinicaoPolosConteudo', () => {
     })
   })
 
-  it('exibe erro da API quando a carga de polos falha', async () => {
+  it('exibe erro da API quando a carga de polos falha e libera a listagem', async () => {
     popularPolosMock.mockRejectedValue({
       response: { data: { detalhe: 'Falha ao carregar polos da rede.' } },
     })
@@ -284,6 +272,7 @@ describe('DefinicaoPolosConteudo', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       /falha ao carregar polos da rede/i,
     )
+    await esperarConteudoPronto()
     expect(screen.getByText('Filtrar Polos')).toBeInTheDocument()
   })
 

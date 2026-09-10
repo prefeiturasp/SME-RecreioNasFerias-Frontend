@@ -1,14 +1,13 @@
 import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { DefinicaoPolosListagem } from '@/components/definicaoPolo/DefinicaoPolosListagem'
 import { FiltrosDefinicaoPolosForm } from '@/components/definicaoPolo/FiltrosDefinicaoPolosForm'
+import { IndicadorCargaPolos } from '@/components/definicaoPolo/IndicadorCargaPolos'
 import { ModalAlterarSelecao } from '@/components/definicaoPolo/ModalAlterarSelecao'
 import { CloseIcon } from '@/components/icons'
-import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 import { Modal } from '@/components/Modal'
 import { Alert, AlertAction, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { useGetDefinicoesPolo } from '@/hooks/useGetDefinicoesPolo'
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
 import { usePostAlterarTipoEmMassa } from '@/hooks/usePostAlterarTipoEmMassa'
 import { usePostPopularPolos } from '@/hooks/usePostPopularPolos'
@@ -20,7 +19,7 @@ import {
   type PoloParaAlterarTipo,
 } from '@/services/definicaoPolo/types'
 import { useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 const MENSAGEM_BLOQUEIO_TIPO_SEM_EDICAO =
   'É necessário alterar a edição primeiro para, depois, vincular ou alterar o tipo de polo.'
@@ -32,7 +31,6 @@ export function DefinicaoPolosConteudo() {
   const popularizacaoMutation = usePostPopularPolos()
   const vincularEmMassaMutation = usePostVincularEmMassa()
   const alterarTipoMutation = usePostAlterarTipoEmMassa()
-  const popularizacaoDisparada = useRef(false)
 
   const [filtrosAplicados, setFiltrosAplicados] =
     useState<FiltrosListagemDefinicaoPolos>(
@@ -65,16 +63,8 @@ export function DefinicaoPolosConteudo() {
 
   const modalTipoAberto = polosParaAlterarTipoPolo.length > 0
   const edicoesQuery = useGetEdicoesPrograma(modalEdicaoAberto)
-  const listagemQuery = useGetDefinicoesPolo({
-    busca: filtrosAplicados.nomeUeOuCodigoEol,
-    dre_codigos_eol: filtrosAplicados.dre,
-    tipo_ue: filtrosAplicados.tipoUe,
-    edicao: filtrosAplicados.edicao,
-    gestao: filtrosAplicados.gestao,
-    tipo_polo: filtrosAplicados.tipoPolo,
-  })
-  const cargaAindaSemResultados =
-    popularizacaoMutation.isPending && (listagemQuery.data?.count ?? 0) === 0
+  const listagemLiberada =
+    popularizacaoMutation.isSuccess || popularizacaoMutation.isError
 
   const opcoesNomeEdicao = useMemo(() => {
     if (!edicoesQuery.data) {
@@ -90,15 +80,8 @@ export function DefinicaoPolosConteudo() {
   }, [edicoesQuery.data])
 
   useEffect(() => {
-    if (popularizacaoDisparada.current) return
-    popularizacaoDisparada.current = true
-
-    popularizacaoMutation.mutate(undefined, {
-      onSettled: () => {
-        void queryClient.invalidateQueries({ queryKey: ['definicoesPolo'] })
-      },
-    })
-  }, [popularizacaoMutation.mutate, queryClient])
+    popularizacaoMutation.mutate()
+  }, [popularizacaoMutation.mutate])
 
   function aplicarFiltros(filtros: FiltrosListagemDefinicaoPolos) {
     setFiltrosAplicados(filtros)
@@ -194,10 +177,6 @@ export function DefinicaoPolosConteudo() {
     <>
       <AlertaErroApi erro={popularizacaoMutation.error} />
 
-      {cargaAindaSemResultados ? (
-        <IndicadorCarregamento mensagem="Carregando polos da rede..." />
-      ) : null}
-
       {mensagemSucessoVisivel ? (
         <Alert
           role="status"
@@ -228,14 +207,16 @@ export function DefinicaoPolosConteudo() {
 
       <Card className="overflow-visible rounded-sm bg-background py-0 shadow-card ring-0">
         <CardContent className="p-8 max-md:p-4">
-          <DefinicaoPolosListagem
-            filtros={filtrosAplicados}
-            chaveResetSelecao={chaveResetSelecao}
-            atualizarPeriodicamente={popularizacaoMutation.isPending}
-            onVisualizarPolo={() => undefined}
-            onAlterarEdicaoPolo={abrirModalAlterarEdicao}
-            onAlterarTipoPolo={abrirModalAlterarTipoPolo}
-          />
+          {!listagemLiberada ? (
+            <IndicadorCargaPolos />
+          ) : (
+            <DefinicaoPolosListagem
+              filtros={filtrosAplicados}
+              chaveResetSelecao={chaveResetSelecao}
+              onAlterarEdicaoPolo={abrirModalAlterarEdicao}
+              onAlterarTipoPolo={abrirModalAlterarTipoPolo}
+            />
+          )}
         </CardContent>
       </Card>
 

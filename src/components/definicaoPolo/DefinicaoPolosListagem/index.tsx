@@ -87,18 +87,14 @@ const COLUNAS = [
 type DefinicaoPolosListagemProps = {
   filtros?: FiltrosListagemDefinicaoPolos
   chaveResetSelecao?: number
-  atualizarPeriodicamente?: boolean
   onVisualizarPolo?: (idPolo: string) => void
   onAlterarEdicaoPolo: (idsPolos: string[]) => void
   onAlterarTipoPolo: (polos: PoloParaAlterarTipo[]) => void
 }
 
-const INTERVALO_ATUALIZACAO_CARGA_MS = 10_000
-
 export function DefinicaoPolosListagem({
   filtros = FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
   chaveResetSelecao = 0,
-  atualizarPeriodicamente = false,
   onVisualizarPolo,
   onAlterarEdicaoPolo,
   onAlterarTipoPolo,
@@ -111,23 +107,16 @@ export function DefinicaoPolosListagem({
     () => new Set(),
   )
 
-  const listagemQuery = useGetDefinicoesPolo(
-    {
-      busca: filtros.nomeUeOuCodigoEol,
-      dre_codigos_eol: filtros.dre,
-      tipo_ue: filtros.tipoUe,
-      edicao: filtros.edicao,
-      gestao: filtros.gestao,
-      tipo_polo: filtros.tipoPolo,
-      page: paginaAtual,
-      page_size: itensPorPagina,
-    },
-    {
-      refetchInterval: atualizarPeriodicamente
-        ? INTERVALO_ATUALIZACAO_CARGA_MS
-        : false,
-    },
-  )
+  const listagemQuery = useGetDefinicoesPolo({
+    busca: filtros.nomeUeOuCodigoEol,
+    dre_codigos_eol: filtros.dre,
+    tipo_ue: filtros.tipoUe,
+    edicao: filtros.edicao,
+    gestao: filtros.gestao,
+    tipo_polo: filtros.tipoPolo,
+    page: paginaAtual,
+    page_size: itensPorPagina,
+  })
 
   const polos = listagemQuery.data?.results ?? []
   const totalRegistros = listagemQuery.data?.count ?? 0
@@ -141,21 +130,28 @@ export function DefinicaoPolosListagem({
   }, [chaveResetSelecao])
 
   const totalPaginas = Math.ceil(totalRegistros / itensPorPagina)
-  const paginaAjustada =
-    totalPaginas > 0 ? Math.min(paginaAtual, totalPaginas) : 1
 
   useEffect(() => {
-    if (paginaAtual !== paginaAjustada) {
-      setPaginaAtual(paginaAjustada)
+    if (!listagemQuery.isSuccess || listagemQuery.isPlaceholderData) {
+      return
     }
-  }, [paginaAtual, paginaAjustada])
+
+    if (totalPaginas > 0 && paginaAtual > totalPaginas) {
+      setPaginaAtual(totalPaginas)
+    }
+  }, [
+    listagemQuery.isPlaceholderData,
+    listagemQuery.isSuccess,
+    paginaAtual,
+    totalPaginas,
+  ])
 
   function mudarItensPorPagina(novoTamanho: number) {
     setItensPorPagina(novoTamanho)
     setPaginaAtual(1)
   }
 
-  if (listagemQuery.isPending) {
+  if (listagemQuery.isPending && !listagemQuery.isPlaceholderData) {
     return <IndicadorCarregamento mensagem="Carregando definição de polos..." />
   }
 
@@ -171,7 +167,7 @@ export function DefinicaoPolosListagem({
       colunaOrdenacaoInicial="nome_polo"
       modoPaginacao="servidor"
       titulo="Resultados da pesquisa"
-      paginaAtual={paginaAjustada}
+      paginaAtual={paginaAtual}
       totalPaginas={totalPaginas}
       itensPorPagina={itensPorPagina}
       onMudarPagina={setPaginaAtual}
