@@ -19,7 +19,7 @@ import {
   type PoloParaAlterarTipo,
 } from '@/services/definicaoPolo/types'
 import { useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 const MENSAGEM_BLOQUEIO_TIPO_SEM_EDICAO =
   'É necessário alterar a edição primeiro para, depois, vincular ou alterar o tipo de polo.'
@@ -47,37 +47,31 @@ export function DefinicaoPolosConteudo() {
   const [mensagemSucessoVisivel, setMensagemSucessoVisivel] = useState(false)
   const [chaveResetSelecao, setChaveResetSelecao] = useState(0)
 
-  const fecharMensagemSucesso = useCallback(() => {
+  function fecharMensagemSucesso() {
     setMensagemSucessoVisivel(false)
-  }, [])
+  }
 
   useEffect(() => {
     if (!mensagemSucessoVisivel) return
 
-    const temporizador = globalThis.setTimeout(
-      fecharMensagemSucesso,
-      TEMPO_EXIBICAO_SUCESSO_MS,
-    )
+    const temporizador = globalThis.setTimeout(() => {
+      setMensagemSucessoVisivel(false)
+    }, TEMPO_EXIBICAO_SUCESSO_MS)
+
     return () => globalThis.clearTimeout(temporizador)
-  }, [mensagemSucessoVisivel, fecharMensagemSucesso])
+  }, [mensagemSucessoVisivel])
 
   const modalTipoAberto = polosParaAlterarTipoPolo.length > 0
   const edicoesQuery = useGetEdicoesPrograma(modalEdicaoAberto)
   const listagemLiberada =
     popularizacaoMutation.isSuccess || popularizacaoMutation.isError
 
-  const opcoesNomeEdicao = useMemo(() => {
-    if (!edicoesQuery.data) {
-      return []
-    }
-
-    return edicoesQuery.data
-      .filter((edicao) => edicao.nome.trim() !== '')
-      .map((edicao) => ({
-        valor: edicao.uuid,
-        rotulo: edicao.nome.trim(),
-      }))
-  }, [edicoesQuery.data])
+  const opcoesNomeEdicao = (edicoesQuery.data ?? [])
+    .filter((edicao) => edicao.nome.trim() !== '')
+    .map((edicao) => ({
+      valor: edicao.uuid,
+      rotulo: edicao.nome.trim(),
+    }))
 
   useEffect(() => {
     popularizacaoMutation.mutate()
