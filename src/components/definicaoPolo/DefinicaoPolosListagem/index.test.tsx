@@ -156,7 +156,7 @@ describe('DefinicaoPolosListagem', () => {
 
     expect(listarDefinicoesPoloMock).toHaveBeenCalledWith({
       busca: '400496',
-      dre_codigos_eol: ['108100'],
+      dre_codigos_eol: '108100',
       tipo_ue: 'CEI DIRET',
       edicao: 'ed-1',
       gestao: 'direta',

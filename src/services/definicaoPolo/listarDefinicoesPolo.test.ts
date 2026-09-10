@@ -54,7 +54,6 @@ describe('listarDefinicoesPolo', () => {
         page: 1,
         page_size: 10,
       },
-      paramsSerializer: { indexes: null },
     })
   })
 
@@ -63,7 +62,7 @@ describe('listarDefinicoesPolo', () => {
 
     await listarDefinicoesPolo({
       busca: '13 DE MAIO',
-      dre_codigos_eol: ['108600'],
+      dre_codigos_eol: '108600',
       tipo_ue: 'CEI DIRET',
       edicao: 'ed-1',
       gestao: 'direta',
@@ -77,13 +76,12 @@ describe('listarDefinicoesPolo', () => {
         page: 2,
         page_size: 20,
         busca: '13 DE MAIO',
-        dre_codigos_eol: ['108600'],
+        dre_codigos_eol: '108600',
         tipo_ue: 'CEI DIRET',
         edicao: 'ed-1',
         gestao: 'direta',
         tipo_polo: 'pendente',
       },
-      paramsSerializer: { indexes: null },
     })
   })
 
@@ -92,7 +90,7 @@ describe('listarDefinicoesPolo', () => {
 
     await listarDefinicoesPolo({
       busca: '   ',
-      dre_codigos_eol: [],
+      dre_codigos_eol: '',
       tipo_ue: '',
       edicao: '',
       gestao: '',
@@ -106,7 +104,6 @@ describe('listarDefinicoesPolo', () => {
         page: 1,
         page_size: 10,
       },
-      paramsSerializer: { indexes: null },
     })
   })
 

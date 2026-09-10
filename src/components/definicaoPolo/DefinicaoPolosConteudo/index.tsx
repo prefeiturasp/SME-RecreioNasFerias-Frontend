@@ -67,9 +67,7 @@ export function DefinicaoPolosConteudo() {
   const edicoesQuery = useGetEdicoesPrograma(modalEdicaoAberto)
   const listagemQuery = useGetDefinicoesPolo({
     busca: filtrosAplicados.nomeUeOuCodigoEol,
-    dre_codigos_eol: filtrosAplicados.dre
-      ? [filtrosAplicados.dre]
-      : undefined,
+    dre_codigos_eol: filtrosAplicados.dre,
     tipo_ue: filtrosAplicados.tipoUe,
     edicao: filtrosAplicados.edicao,
     gestao: filtrosAplicados.gestao,

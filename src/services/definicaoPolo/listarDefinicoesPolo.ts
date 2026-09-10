@@ -9,7 +9,7 @@ export async function listarDefinicoesPolo(
 ): Promise<ListagemDefinicoesPoloPaginada> {
   const {
     busca = '',
-    dre_codigos_eol = [],
+    dre_codigos_eol = '',
     tipo_ue = '',
     edicao = '',
     gestao = '',
@@ -18,7 +18,7 @@ export async function listarDefinicoesPolo(
     page_size = 10,
   } = parametros
 
-  const params: Record<string, string | number | string[]> = {
+  const params: Record<string, string | number> = {
     page,
     page_size,
   }
@@ -27,8 +27,8 @@ export async function listarDefinicoesPolo(
     params.busca = busca.trim()
   }
 
-  if (dre_codigos_eol.length > 0) {
-    params.dre_codigos_eol = dre_codigos_eol
+  if (dre_codigos_eol.trim()) {
+    params.dre_codigos_eol = dre_codigos_eol.trim()
   }
 
   if (tipo_ue.trim()) {
@@ -49,11 +49,7 @@ export async function listarDefinicoesPolo(
 
   const { data } = await api.get<ListagemDefinicoesPoloPaginada>(
     '/api/v1/definicoes-polos/',
-    {
-      params,
-      // DRF espera `dre_codigos_eol=a&dre_codigos_eol=b` (sem colchetes).
-      paramsSerializer: { indexes: null },
-    },
+    { params },
   )
 
   return data

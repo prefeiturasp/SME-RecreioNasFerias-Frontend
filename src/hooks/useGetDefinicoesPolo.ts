@@ -13,40 +13,13 @@ export function useGetDefinicoesPolo(
   parametros: ParametrosListagemDefinicoesPolo = {},
   opcoes?: OpcoesUseGetDefinicoesPolo,
 ) {
-  const {
-    busca,
-    dre_codigos_eol,
-    tipo_ue,
-    edicao,
-    gestao,
-    tipo_polo,
-    page = 1,
-    page_size = 10,
-  } = parametros
+  const page = parametros.page ?? 1
+  const page_size = parametros.page_size ?? 10
+  const parametrosComPaginacao = { ...parametros, page, page_size }
 
   return useQuery<ListagemDefinicoesPoloPaginada, Error>({
-    queryKey: [
-      'definicoesPolo',
-      busca,
-      dre_codigos_eol,
-      tipo_ue,
-      edicao,
-      gestao,
-      tipo_polo,
-      page,
-      page_size,
-    ],
-    queryFn: () =>
-      listarDefinicoesPolo({
-        busca,
-        dre_codigos_eol,
-        tipo_ue,
-        edicao,
-        gestao,
-        tipo_polo,
-        page,
-        page_size,
-      }),
+    queryKey: ['definicoesPolo', parametrosComPaginacao],
+    queryFn: () => listarDefinicoesPolo(parametrosComPaginacao),
     refetchInterval: opcoes?.refetchInterval,
   })
 }

@@ -29,7 +29,7 @@ export type FiltrosListagemDefinicaoPolos = {
 
 export type ParametrosListagemDefinicoesPolo = {
   busca?: string
-  dre_codigos_eol?: string[]
+  dre_codigos_eol?: string
   tipo_ue?: string
   edicao?: string
   gestao?: string
