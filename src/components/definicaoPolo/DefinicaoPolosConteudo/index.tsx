@@ -65,16 +65,16 @@ export function DefinicaoPolosConteudo() {
 
   const modalTipoAberto = polosParaAlterarTipoPolo.length > 0
   const edicoesQuery = useGetEdicoesPrograma(modalEdicaoAberto)
-  const listagemQuery = useGetDefinicoesPolo(
-    filtrosAplicados.nomeUeOuCodigoEol,
-    filtrosAplicados.dre,
-    filtrosAplicados.tipoUe,
-    filtrosAplicados.edicao,
-    filtrosAplicados.gestao,
-    filtrosAplicados.tipoPolo,
-  )
+  const listagemQuery = useGetDefinicoesPolo({
+    busca: filtrosAplicados.nomeUeOuCodigoEol,
+    dre_codigos_eol: filtrosAplicados.dre,
+    tipo_ue: filtrosAplicados.tipoUe,
+    edicao: filtrosAplicados.edicao,
+    gestao: filtrosAplicados.gestao,
+    tipo_polo: filtrosAplicados.tipoPolo,
+  })
   const cargaAindaSemResultados =
-    popularizacaoMutation.isPending && (listagemQuery.data?.length ?? 0) === 0
+    popularizacaoMutation.isPending && (listagemQuery.data?.count ?? 0) === 0
 
   const opcoesNomeEdicao = useMemo(() => {
     if (!edicoesQuery.data) {

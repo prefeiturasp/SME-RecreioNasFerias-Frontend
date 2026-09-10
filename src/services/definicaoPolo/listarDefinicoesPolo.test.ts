@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '../api/http'
 import { listarDefinicoesPolo } from './listarDefinicoesPolo'
-import type { DefinicaoPoloApi } from './types'
+import type {
+  DefinicaoPoloApi,
+  ListagemDefinicoesPoloPaginada,
+} from './types'
 
 vi.mock('../api/http', () => ({
   api: { get: vi.fn() },
@@ -29,15 +32,22 @@ const polos: DefinicaoPoloApi[] = [
   },
 ]
 
+const listagemPaginada: ListagemDefinicoesPoloPaginada = {
+  count: 1,
+  next: null,
+  previous: null,
+  results: polos,
+}
+
 describe('listarDefinicoesPolo', () => {
   beforeEach(() => {
     apiGetMock.mockReset()
   })
 
-  it('lista definições de polo e retorna os dados da API', async () => {
-    apiGetMock.mockResolvedValue({ data: polos })
+  it('lista definições de polo e retorna os dados paginados da API', async () => {
+    apiGetMock.mockResolvedValue({ data: listagemPaginada })
 
-    await expect(listarDefinicoesPolo()).resolves.toEqual(polos)
+    await expect(listarDefinicoesPolo()).resolves.toEqual(listagemPaginada)
 
     expect(apiGetMock).toHaveBeenCalledWith('/api/v1/definicoes-polos/', {
       params: {
@@ -47,21 +57,25 @@ describe('listarDefinicoesPolo', () => {
         edicao: undefined,
         gestao: undefined,
         tipo_polo: undefined,
+        page: 1,
+        page_size: 10,
       },
     })
   })
 
-  it('envia os filtros informados para a API', async () => {
-    apiGetMock.mockResolvedValue({ data: polos })
+  it('envia os filtros e a paginação informados para a API', async () => {
+    apiGetMock.mockResolvedValue({ data: listagemPaginada })
 
-    await listarDefinicoesPolo(
-      '13 DE MAIO',
-      '108600',
-      'CEI DIRET',
-      'ed-1',
-      'direta',
-      'pendente',
-    )
+    await listarDefinicoesPolo({
+      busca: '13 DE MAIO',
+      dre_codigos_eol: '108600',
+      tipo_ue: 'CEI DIRET',
+      edicao: 'ed-1',
+      gestao: 'direta',
+      tipo_polo: 'pendente',
+      page: 2,
+      page_size: 20,
+    })
 
     expect(apiGetMock).toHaveBeenCalledWith('/api/v1/definicoes-polos/', {
       params: {
@@ -71,6 +85,8 @@ describe('listarDefinicoesPolo', () => {
         edicao: 'ed-1',
         gestao: 'direta',
         tipo_polo: 'pendente',
+        page: 2,
+        page_size: 20,
       },
     })
   })

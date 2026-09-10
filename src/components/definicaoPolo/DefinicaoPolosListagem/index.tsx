@@ -103,19 +103,6 @@ export function DefinicaoPolosListagem({
   onAlterarEdicaoPolo,
   onAlterarTipoPolo,
 }: Readonly<DefinicaoPolosListagemProps>) {
-  const listagemQuery = useGetDefinicoesPolo(
-    filtros.nomeUeOuCodigoEol,
-    filtros.dre,
-    filtros.tipoUe,
-    filtros.edicao,
-    filtros.gestao,
-    filtros.tipoPolo,
-    {
-      refetchInterval: atualizarPeriodicamente
-        ? INTERVALO_ATUALIZACAO_CARGA_MS
-        : false,
-    },
-  )
   const [paginaAtual, setPaginaAtual] = useState(1)
   const [itensPorPagina, setItensPorPagina] = useState<number>(
     OPCOES_ITENS_POR_PAGINA[0],
@@ -124,7 +111,26 @@ export function DefinicaoPolosListagem({
     () => new Set(),
   )
 
-  const polos = listagemQuery.data ?? []
+  const listagemQuery = useGetDefinicoesPolo(
+    {
+      busca: filtros.nomeUeOuCodigoEol,
+      dre_codigos_eol: filtros.dre,
+      tipo_ue: filtros.tipoUe,
+      edicao: filtros.edicao,
+      gestao: filtros.gestao,
+      tipo_polo: filtros.tipoPolo,
+      page: paginaAtual,
+      page_size: itensPorPagina,
+    },
+    {
+      refetchInterval: atualizarPeriodicamente
+        ? INTERVALO_ATUALIZACAO_CARGA_MS
+        : false,
+    },
+  )
+
+  const polos = listagemQuery.data?.results ?? []
+  const totalRegistros = listagemQuery.data?.count ?? 0
 
   useEffect(() => {
     setPaginaAtual(1)
@@ -134,9 +140,15 @@ export function DefinicaoPolosListagem({
     setPolosSelecionados(new Set())
   }, [chaveResetSelecao])
 
-  const totalPaginas = Math.ceil(polos.length / itensPorPagina)
+  const totalPaginas = Math.ceil(totalRegistros / itensPorPagina)
   const paginaAjustada =
     totalPaginas > 0 ? Math.min(paginaAtual, totalPaginas) : 1
+
+  useEffect(() => {
+    if (paginaAtual !== paginaAjustada) {
+      setPaginaAtual(paginaAjustada)
+    }
+  }, [paginaAtual, paginaAjustada])
 
   function mudarItensPorPagina(novoTamanho: number) {
     setItensPorPagina(novoTamanho)
@@ -157,6 +169,7 @@ export function DefinicaoPolosListagem({
       colunas={COLUNAS}
       obterId={(polo) => polo.polo_uuid}
       colunaOrdenacaoInicial="nome_polo"
+      modoPaginacao="servidor"
       titulo="Resultados da pesquisa"
       paginaAtual={paginaAjustada}
       totalPaginas={totalPaginas}

@@ -1,15 +1,24 @@
 import { api } from '../api/http'
-import type { DefinicaoPoloApi } from './types'
+import type {
+  ListagemDefinicoesPoloPaginada,
+  ParametrosListagemDefinicoesPolo,
+} from './types'
 
 export async function listarDefinicoesPolo(
-  busca?: string,
-  dre_codigos_eol?: string,
-  tipo_ue?: string,
-  edicao?: string,
-  gestao?: string,
-  tipo_polo?: string,
-): Promise<DefinicaoPoloApi[]> {
-  const { data } = await api.get<DefinicaoPoloApi[]>(
+  parametros: ParametrosListagemDefinicoesPolo = {},
+): Promise<ListagemDefinicoesPoloPaginada> {
+  const {
+    busca,
+    dre_codigos_eol,
+    tipo_ue,
+    edicao,
+    gestao,
+    tipo_polo,
+    page = 1,
+    page_size = 10,
+  } = parametros
+
+  const { data } = await api.get<ListagemDefinicoesPoloPaginada>(
     '/api/v1/definicoes-polos/',
     {
       params: {
@@ -19,6 +28,8 @@ export async function listarDefinicoesPolo(
         edicao,
         gestao,
         tipo_polo,
+        page,
+        page_size,
       },
     },
   )

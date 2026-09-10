@@ -152,7 +152,12 @@ describe('DefinicaoPolosConteudo', () => {
       motivo_ignorada: 'ja_executada_hoje',
       ultima_execucao_em: '2026-07-13T12:00:00+00:00',
     })
-    listarDefinicoesPoloMock.mockResolvedValue([])
+    listarDefinicoesPoloMock.mockResolvedValue({
+      count: 0,
+      next: null,
+      previous: null,
+      results: [],
+    })
     vincularEmMassaMock.mockResolvedValue([])
     alterarTipoEmMassaMock.mockResolvedValue({
       mensagem: 'Tipos de polo alterados com sucesso.',
@@ -223,25 +228,30 @@ describe('DefinicaoPolosConteudo', () => {
 
   it('oculta o loading da carga quando a listagem já tem polos', async () => {
     popularPolosMock.mockReturnValue(new Promise(() => undefined))
-    listarDefinicoesPoloMock.mockResolvedValue([
-      {
-        polo_uuid: 'polo-1',
-        codigo_eol: '400001',
-        nome_polo: 'CEI DIRET ALOYSIO',
-        dre_nome: 'BUTANTA',
-        dre_codigo_eol: '108100',
-        tipo_ue: 'CEI',
-        gestao: 'direta',
-        status: 'ativo',
-        ativo: true,
-        definicao_uuid: null,
-        edicao_uuid: null,
-        nome_edicao: null,
-        tipo_polo_edicao: null,
-        projecao_inscritos_edicao: null,
-        total_inscritos_edicao: null,
-      },
-    ])
+    listarDefinicoesPoloMock.mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [
+        {
+          polo_uuid: 'polo-1',
+          codigo_eol: '400001',
+          nome_polo: 'CEI DIRET ALOYSIO',
+          dre_nome: 'BUTANTA',
+          dre_codigo_eol: '108100',
+          tipo_ue: 'CEI',
+          gestao: 'direta',
+          status: 'ativo',
+          ativo: true,
+          definicao_uuid: null,
+          edicao_uuid: null,
+          nome_edicao: null,
+          tipo_polo_edicao: null,
+          projecao_inscritos_edicao: null,
+          total_inscritos_edicao: null,
+        },
+      ],
+    })
 
     renderConteudo()
 

@@ -1,17 +1,30 @@
 import { useQuery } from '@tanstack/react-query'
 import { listarDefinicoesPolo } from '@/services/definicaoPolo/listarDefinicoesPolo'
-import type { DefinicaoPoloApi } from '@/services/definicaoPolo/types'
+import type {
+  ListagemDefinicoesPoloPaginada,
+  ParametrosListagemDefinicoesPolo,
+} from '@/services/definicaoPolo/types'
+
+type OpcoesUseGetDefinicoesPolo = {
+  refetchInterval?: number | false
+}
 
 export function useGetDefinicoesPolo(
-  busca?: string,
-  dre_codigos_eol?: string,
-  tipo_ue?: string,
-  edicao?: string,
-  gestao?: string,
-  tipo_polo?: string,
-  opcoes?: { refetchInterval?: number | false },
+  parametros: ParametrosListagemDefinicoesPolo = {},
+  opcoes?: OpcoesUseGetDefinicoesPolo,
 ) {
-  return useQuery<DefinicaoPoloApi[], Error>({
+  const {
+    busca,
+    dre_codigos_eol,
+    tipo_ue,
+    edicao,
+    gestao,
+    tipo_polo,
+    page = 1,
+    page_size = 10,
+  } = parametros
+
+  return useQuery<ListagemDefinicoesPoloPaginada, Error>({
     queryKey: [
       'definicoesPolo',
       busca,
@@ -20,16 +33,20 @@ export function useGetDefinicoesPolo(
       edicao,
       gestao,
       tipo_polo,
+      page,
+      page_size,
     ],
     queryFn: () =>
-      listarDefinicoesPolo(
+      listarDefinicoesPolo({
         busca,
         dre_codigos_eol,
         tipo_ue,
         edicao,
         gestao,
         tipo_polo,
-      ),
+        page,
+        page_size,
+      }),
     refetchInterval: opcoes?.refetchInterval,
   })
 }

@@ -105,7 +105,12 @@ function renderRotas(initialEntry: string) {
 }
 
 vi.mock('../services/definicaoPolo/listarDefinicoesPolo', () => ({
-  listarDefinicoesPolo: vi.fn().mockResolvedValue([]),
+  listarDefinicoesPolo: vi.fn().mockResolvedValue({
+    count: 0,
+    next: null,
+    previous: null,
+    results: [],
+  }),
 }))
 
 vi.mock('../services/definicaoPolo/popularPolos', () => ({

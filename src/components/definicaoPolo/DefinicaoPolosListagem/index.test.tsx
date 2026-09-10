@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type {
   DefinicaoPoloApi,
   FiltrosListagemDefinicaoPolos,
+  ListagemDefinicoesPoloPaginada,
   PoloParaAlterarTipo,
 } from '@/services/definicaoPolo/types'
 import { FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS } from '@/services/definicaoPolo/types'
@@ -65,6 +66,18 @@ const poloParceiraApi: DefinicaoPoloApi = {
   total_inscritos_edicao: null,
 }
 
+function criarListagemPaginada(
+  results: DefinicaoPoloApi[],
+  count = results.length,
+): ListagemDefinicoesPoloPaginada {
+  return {
+    count,
+    next: null,
+    previous: null,
+    results,
+  }
+}
+
 function renderDefinicaoPolosListagem(
   props: Partial<{
     onVisualizarPolo: (idPolo: string) => void
@@ -94,11 +107,13 @@ function renderDefinicaoPolosListagem(
 
 describe('DefinicaoPolosListagem', () => {
   beforeEach(() => {
-    listarDefinicoesPoloMock.mockResolvedValue([poloDiretaApi, poloParceiraApi])
+    listarDefinicoesPoloMock.mockResolvedValue(
+      criarListagemPaginada([poloDiretaApi, poloParceiraApi]),
+    )
   })
 
   it('exibe mensagem de listagem vazia', async () => {
-    listarDefinicoesPoloMock.mockResolvedValue([])
+    listarDefinicoesPoloMock.mockResolvedValue(criarListagemPaginada([]))
 
     renderDefinicaoPolosListagem()
 
@@ -124,7 +139,7 @@ describe('DefinicaoPolosListagem', () => {
     expect(screen.getByText(/^parceira$/i)).toBeInTheDocument()
   })
 
-  it('envia os filtros aplicados para a API', async () => {
+  it('envia os filtros e a paginação aplicados para a API', async () => {
     const filtros = {
       ...FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
       dre: '108100',
@@ -139,14 +154,84 @@ describe('DefinicaoPolosListagem', () => {
 
     await screen.findByRole('table')
 
-    expect(listarDefinicoesPoloMock).toHaveBeenCalledWith(
-      '400496',
-      '108100',
-      'CEI DIRET',
-      'ed-1',
-      'direta',
-      'pendente',
+    expect(listarDefinicoesPoloMock).toHaveBeenCalledWith({
+      busca: '400496',
+      dre_codigos_eol: '108100',
+      tipo_ue: 'CEI DIRET',
+      edicao: 'ed-1',
+      gestao: 'direta',
+      tipo_polo: 'pendente',
+      page: 1,
+      page_size: 10,
+    })
+  })
+
+  it('solicita a página seguinte ao backend ao navegar na paginação', async () => {
+    const usuario = userEvent.setup()
+    listarDefinicoesPoloMock.mockResolvedValue(
+      criarListagemPaginada([poloDiretaApi], 25),
     )
+
+    renderDefinicaoPolosListagem()
+
+    await screen.findByRole('table')
+
+    await usuario.click(screen.getByRole('button', { name: /próxima página/i }))
+
+    await waitFor(() => {
+      expect(listarDefinicoesPoloMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          page: 2,
+          page_size: 10,
+        }),
+      )
+    })
+  })
+
+  it('solicita novo page_size ao backend ao alterar itens por página', async () => {
+    const usuario = userEvent.setup()
+    listarDefinicoesPoloMock.mockResolvedValue(
+      criarListagemPaginada([poloDiretaApi], 25),
+    )
+
+    renderDefinicaoPolosListagem()
+
+    await screen.findByRole('table')
+
+    await usuario.click(
+      screen.getByRole('combobox', { name: /itens por página/i }),
+    )
+    await usuario.click(await screen.findByRole('option', { name: '20' }))
+
+    await waitFor(() => {
+      expect(listarDefinicoesPoloMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          page: 1,
+          page_size: 20,
+        }),
+      )
+    })
+  })
+
+  it('não recorta a página no frontend quando o backend já paginou', async () => {
+    listarDefinicoesPoloMock.mockResolvedValue(
+      criarListagemPaginada(
+        Array.from({ length: 10 }, (_, indice) => ({
+          ...poloDiretaApi,
+          polo_uuid: String(indice + 1),
+          nome_polo: `POLO ${indice + 1}`,
+        })),
+        25,
+      ),
+    )
+
+    renderDefinicaoPolosListagem()
+
+    await screen.findByRole('table')
+
+    expect(screen.getAllByRole('row')).toHaveLength(11)
+    expect(screen.getByText('POLO 1')).toBeInTheDocument()
+    expect(screen.getByText('POLO 10')).toBeInTheDocument()
   })
 
   it('exibe barra de ações com contagem ao selecionar um polo', async () => {
@@ -239,13 +324,15 @@ describe('DefinicaoPolosListagem', () => {
   it('envia edicao_uuid nulo ao alterar tipo de polo sem edição', async () => {
     const usuario = userEvent.setup()
     const onAlterarTipoPolo = vi.fn()
-    listarDefinicoesPoloMock.mockResolvedValue([
-      {
-        ...poloDiretaApi,
-        edicao_uuid: null,
-        nome_edicao: null,
-      },
-    ])
+    listarDefinicoesPoloMock.mockResolvedValue(
+      criarListagemPaginada([
+        {
+          ...poloDiretaApi,
+          edicao_uuid: null,
+          nome_edicao: null,
+        },
+      ]),
+    )
 
     renderDefinicaoPolosListagem({ onAlterarTipoPolo })
 
@@ -335,15 +422,17 @@ describe('DefinicaoPolosListagem', () => {
   })
 
   it('exibe valores padrão para tipo e nome da edição ausentes', async () => {
-    listarDefinicoesPoloMock.mockResolvedValue([
-      {
-        ...poloDiretaApi,
-        polo_uuid: '3',
-        nome_polo: 'CEI SEM TIPO',
-        nome_edicao: null,
-        tipo_polo_edicao: null,
-      },
-    ])
+    listarDefinicoesPoloMock.mockResolvedValue(
+      criarListagemPaginada([
+        {
+          ...poloDiretaApi,
+          polo_uuid: '3',
+          nome_polo: 'CEI SEM TIPO',
+          nome_edicao: null,
+          tipo_polo_edicao: null,
+        },
+      ]),
+    )
 
     renderDefinicaoPolosListagem()
 
@@ -369,7 +458,10 @@ describe('DefinicaoPolosListagem', () => {
     listarDefinicoesPoloMock.mockImplementation(
       () =>
         new Promise((resolve) => {
-          setTimeout(() => resolve([poloDiretaApi]), 100)
+          setTimeout(
+            () => resolve(criarListagemPaginada([poloDiretaApi])),
+            100,
+          )
         }),
     )
 

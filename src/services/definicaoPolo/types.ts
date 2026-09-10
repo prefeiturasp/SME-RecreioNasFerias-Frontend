@@ -27,6 +27,24 @@ export type FiltrosListagemDefinicaoPolos = {
   gestao: string
 }
 
+export type ParametrosListagemDefinicoesPolo = {
+  busca?: string
+  dre_codigos_eol?: string
+  tipo_ue?: string
+  edicao?: string
+  gestao?: string
+  tipo_polo?: string
+  page?: number
+  page_size?: number
+}
+
+export type ListagemDefinicoesPoloPaginada = {
+  count: number
+  next: string | null
+  previous: string | null
+  results: DefinicaoPoloApi[]
+}
+
 export type ResultadoPopularPolos = {
   total_consultados: number
   total_novos: number
