@@ -201,15 +201,15 @@ export function DefinicaoPolosConteudo() {
 
       <Card className="overflow-visible rounded-sm bg-background py-0 shadow-card ring-0">
         <CardContent className="p-8 max-md:p-4">
-          {!listagemLiberada ? (
-            <IndicadorCargaPolos />
-          ) : (
+          {listagemLiberada ? (
             <DefinicaoPolosListagem
               filtros={filtrosAplicados}
               chaveResetSelecao={chaveResetSelecao}
               onAlterarEdicaoPolo={abrirModalAlterarEdicao}
               onAlterarTipoPolo={abrirModalAlterarTipoPolo}
             />
+          ) : (
+            <IndicadorCargaPolos />
           )}
         </CardContent>
       </Card>
