@@ -51,24 +51,19 @@ describe('listarDefinicoesPolo', () => {
 
     expect(apiGetMock).toHaveBeenCalledWith('/api/v1/definicoes-polos/', {
       params: {
-        busca: undefined,
-        dre_codigos_eol: undefined,
-        tipo_ue: undefined,
-        edicao: undefined,
-        gestao: undefined,
-        tipo_polo: undefined,
         page: 1,
         page_size: 10,
       },
+      paramsSerializer: { indexes: null },
     })
   })
 
-  it('envia os filtros e a paginação informados para a API', async () => {
+  it('envia apenas os filtros preenchidos junto com a paginação', async () => {
     apiGetMock.mockResolvedValue({ data: listagemPaginada })
 
     await listarDefinicoesPolo({
       busca: '13 DE MAIO',
-      dre_codigos_eol: '108600',
+      dre_codigos_eol: ['108600'],
       tipo_ue: 'CEI DIRET',
       edicao: 'ed-1',
       gestao: 'direta',
@@ -79,15 +74,39 @@ describe('listarDefinicoesPolo', () => {
 
     expect(apiGetMock).toHaveBeenCalledWith('/api/v1/definicoes-polos/', {
       params: {
+        page: 2,
+        page_size: 20,
         busca: '13 DE MAIO',
-        dre_codigos_eol: '108600',
+        dre_codigos_eol: ['108600'],
         tipo_ue: 'CEI DIRET',
         edicao: 'ed-1',
         gestao: 'direta',
         tipo_polo: 'pendente',
-        page: 2,
-        page_size: 20,
       },
+      paramsSerializer: { indexes: null },
+    })
+  })
+
+  it('omite filtros vazios da query', async () => {
+    apiGetMock.mockResolvedValue({ data: listagemPaginada })
+
+    await listarDefinicoesPolo({
+      busca: '   ',
+      dre_codigos_eol: [],
+      tipo_ue: '',
+      edicao: '',
+      gestao: '',
+      tipo_polo: '',
+      page: 1,
+      page_size: 10,
+    })
+
+    expect(apiGetMock).toHaveBeenCalledWith('/api/v1/definicoes-polos/', {
+      params: {
+        page: 1,
+        page_size: 10,
+      },
+      paramsSerializer: { indexes: null },
     })
   })
 

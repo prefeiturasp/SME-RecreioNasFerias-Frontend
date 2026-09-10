@@ -114,7 +114,7 @@ export function DefinicaoPolosListagem({
   const listagemQuery = useGetDefinicoesPolo(
     {
       busca: filtros.nomeUeOuCodigoEol,
-      dre_codigos_eol: filtros.dre,
+      dre_codigos_eol: filtros.dre ? [filtros.dre] : undefined,
       tipo_ue: filtros.tipoUe,
       edicao: filtros.edicao,
       gestao: filtros.gestao,
