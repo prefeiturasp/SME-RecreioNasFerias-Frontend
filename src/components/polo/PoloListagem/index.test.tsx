@@ -286,4 +286,31 @@ describe('PoloListagem', () => {
       )
     })
   })
+
+  it('aplica o filtro de tipo de UE na primeira página', async () => {
+    const usuario = userEvent.setup()
+    useGetPolosMock.mockReturnValue({
+      data: criarListagemPaginada([polo], 25),
+      isPending: false,
+      isError: false,
+      error: null,
+    })
+    renderListagem()
+
+    await usuario.click(screen.getByRole('button', { name: /próxima página/i }))
+    await usuario.click(screen.getByLabelText(/filtrar por tipo de ue/i))
+    await usuario.click(await screen.findByRole('option', { name: 'EMEF' }))
+    await usuario.click(screen.getByRole('button', { name: 'Filtrar' }))
+
+    await waitFor(() => {
+      expect(useGetPolosMock).toHaveBeenLastCalledWith(
+        '',
+        '',
+        'EMEF',
+        1,
+        10,
+        'parceira',
+      )
+    })
+  })
 })
