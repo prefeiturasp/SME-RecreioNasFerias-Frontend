@@ -15,7 +15,6 @@ import {
   type FiltrosListagemDefinicaoPolos,
   type PoloParaAlterarTipo,
 } from '@/services/definicaoPolo/types'
-import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 
 const MENSAGEM_BLOQUEIO_TIPO_SEM_EDICAO =
@@ -24,7 +23,6 @@ const MENSAGEM_POLO_ALTERADO = 'Polo alterado com sucesso!'
 const TEMPO_EXIBICAO_SUCESSO_MS = 3000
 
 export function DefinicaoPolosConteudo() {
-  const queryClient = useQueryClient()
   const vincularEmMassaMutation = usePostVincularEmMassa()
   const alterarTipoMutation = usePostAlterarTipoEmMassa()
 
@@ -122,7 +120,6 @@ export function DefinicaoPolosConteudo() {
           setPolosParaVincularEdicao([])
           setChaveResetSelecao((chaveAtual) => chaveAtual + 1)
           setMensagemSucessoVisivel(true)
-          void queryClient.invalidateQueries({ queryKey: ['definicoesPolo'] })
         },
       },
     )
@@ -152,7 +149,6 @@ export function DefinicaoPolosConteudo() {
         setPolosParaAlterarTipoPolo([])
         setChaveResetSelecao((chaveAtual) => chaveAtual + 1)
         setMensagemSucessoVisivel(true)
-        void queryClient.invalidateQueries({ queryKey: ['definicoesPolo'] })
       },
     })
   }

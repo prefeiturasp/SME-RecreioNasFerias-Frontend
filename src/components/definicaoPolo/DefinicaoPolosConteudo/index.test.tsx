@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { queryClient } from '@/lib/queryClient'
 import { DefinicaoPolosConteudo } from './index'
 
 vi.mock('@/components/definicaoPolo/DefinicaoPolosListagem', () => ({
@@ -109,6 +110,8 @@ vi.mock('@/services/tipoEscola/listarTiposEscola', async (importOriginal) => {
   }
 })
 
+const invalidarQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries')
+
 function renderConteudo() {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -138,6 +141,7 @@ describe('DefinicaoPolosConteudo', () => {
     listarDefinicoesPoloMock.mockReset()
     listarDresMock.mockReset()
     listarTiposEscolaMock.mockReset()
+    invalidarQueriesSpy.mockClear()
 
     listarDefinicoesPoloMock.mockResolvedValue({
       count: 0,
@@ -253,6 +257,9 @@ describe('DefinicaoPolosConteudo', () => {
     expect(
       await screen.findByText(/polo alterado com sucesso/i),
     ).toBeInTheDocument()
+    expect(invalidarQueriesSpy).toHaveBeenCalledWith({
+      queryKey: ['definicoesPolo'],
+    })
   })
 
   it('exibe erro da API ao falhar alterar edição', async () => {
@@ -311,6 +318,9 @@ describe('DefinicaoPolosConteudo', () => {
     expect(
       await screen.findByText(/polo alterado com sucesso/i),
     ).toBeInTheDocument()
+    expect(invalidarQueriesSpy).toHaveBeenCalledWith({
+      queryKey: ['definicoesPolo'],
+    })
   })
 
   it('bloqueia alterar tipo quando o polo não tem edição', async () => {
