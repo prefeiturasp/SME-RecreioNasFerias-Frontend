@@ -73,6 +73,21 @@ const segundoPolo: PoloDetalhado = {
   status: 'inativo',
 }
 
+function criarListagemPaginada(
+  results: PoloDetalhado[],
+  count = results.length,
+) {
+  return {
+    count,
+    next:
+      count > results.length
+        ? 'http://localhost:8000/api/v1/polos/?page=2'
+        : null,
+    previous: null,
+    results,
+  }
+}
+
 function renderListagem() {
   return render(
     <MemoryRouter>
@@ -85,7 +100,7 @@ describe('PoloListagem', () => {
   beforeEach(() => {
     useGetPolosMock.mockReset()
     useGetPolosMock.mockReturnValue({
-      data: [polo],
+      data: criarListagemPaginada([polo]),
       isPending: false,
       isError: false,
       error: null,
@@ -127,11 +142,12 @@ describe('PoloListagem', () => {
     expect(
       screen.getByRole('link', { name: /editar polo polo teste/i }),
     ).toHaveAttribute('href', `/editar-polo-parceiro/${polo.uuid}`)
+    expect(useGetPolosMock).toHaveBeenCalledWith('', '', '', 1, 10, 'parceira')
   })
 
   it('ordena por cada coluna e permite alterar itens por página', async () => {
     useGetPolosMock.mockReturnValue({
-      data: [polo, segundoPolo],
+      data: criarListagemPaginada([polo, segundoPolo]),
       isPending: false,
       isError: false,
       error: null,
@@ -164,9 +180,60 @@ describe('PoloListagem', () => {
     )
   })
 
+  it('solicita a próxima página ao backend', async () => {
+    const usuario = userEvent.setup()
+    useGetPolosMock.mockReturnValue({
+      data: criarListagemPaginada([polo], 25),
+      isPending: false,
+      isError: false,
+      error: null,
+    })
+
+    renderListagem()
+
+    await usuario.click(screen.getByRole('button', { name: /próxima página/i }))
+
+    await waitFor(() => {
+      expect(useGetPolosMock).toHaveBeenLastCalledWith(
+        '',
+        '',
+        '',
+        2,
+        10,
+        'parceira',
+      )
+    })
+  })
+
+  it('aplica a busca por nome na primeira página', async () => {
+    const usuario = userEvent.setup()
+    useGetPolosMock.mockReturnValue({
+      data: criarListagemPaginada([polo], 25),
+      isPending: false,
+      isError: false,
+      error: null,
+    })
+    renderListagem()
+
+    await usuario.click(screen.getByRole('button', { name: /próxima página/i }))
+    await usuario.type(screen.getByLabelText(/filtrar por nome/i), 'Polo Teste')
+    await usuario.click(screen.getByRole('button', { name: 'Filtrar' }))
+
+    await waitFor(() => {
+      expect(useGetPolosMock).toHaveBeenLastCalledWith(
+        'Polo Teste',
+        '',
+        '',
+        1,
+        10,
+        'parceira',
+      )
+    })
+  })
+
   it('exibe mensagens diferentes para listagem vazia com e sem filtros', async () => {
     useGetPolosMock.mockReturnValue({
-      data: [],
+      data: criarListagemPaginada([]),
       isPending: false,
       isError: false,
       error: null,
@@ -190,10 +257,10 @@ describe('PoloListagem', () => {
     expect(screen.getByLabelText(/filtrar por nome/i)).toHaveValue('')
   })
 
-  it('aplica os filtros selecionados ao consultar a listagem', async () => {
+  it('aplica o filtro de DRE na primeira página', async () => {
     useGetPolosMock.mockImplementation(
       (busca?: string, dre?: string, tipoUe?: string) => ({
-        data: [polo],
+        data: criarListagemPaginada([polo], 25),
         isPending: false,
         isError: false,
         error: null,
@@ -203,12 +270,47 @@ describe('PoloListagem', () => {
     const usuario = userEvent.setup()
     renderListagem()
 
+    await usuario.click(screen.getByRole('button', { name: /próxima página/i }))
     await usuario.click(screen.getByLabelText(/filtrar por dre/i))
     await usuario.click(await screen.findByRole('option', { name: /butanta/i }))
     await usuario.click(screen.getByRole('button', { name: 'Filtrar' }))
 
     await waitFor(() => {
-      expect(useGetPolosMock).toHaveBeenLastCalledWith('', '108100', '')
+      expect(useGetPolosMock).toHaveBeenLastCalledWith(
+        '',
+        '108100',
+        '',
+        1,
+        10,
+        'parceira',
+      )
+    })
+  })
+
+  it('aplica o filtro de tipo de UE na primeira página', async () => {
+    const usuario = userEvent.setup()
+    useGetPolosMock.mockReturnValue({
+      data: criarListagemPaginada([polo], 25),
+      isPending: false,
+      isError: false,
+      error: null,
+    })
+    renderListagem()
+
+    await usuario.click(screen.getByRole('button', { name: /próxima página/i }))
+    await usuario.click(screen.getByLabelText(/filtrar por tipo de ue/i))
+    await usuario.click(await screen.findByRole('option', { name: 'EMEF' }))
+    await usuario.click(screen.getByRole('button', { name: 'Filtrar' }))
+
+    await waitFor(() => {
+      expect(useGetPolosMock).toHaveBeenLastCalledWith(
+        '',
+        '',
+        'EMEF',
+        1,
+        10,
+        'parceira',
+      )
     })
   })
 })

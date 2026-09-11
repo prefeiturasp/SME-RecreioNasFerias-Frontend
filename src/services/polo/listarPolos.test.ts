@@ -38,32 +38,49 @@ const polos: PoloDetalhado[] = [
   },
 ]
 
+const listagemPaginada = {
+  count: 1,
+  next: null,
+  previous: null,
+  results: polos,
+}
+
 describe('listarPolos', () => {
   beforeEach(() => {
     apiGetMock.mockReset()
   })
 
   it('lista polos sem filtros e retorna os dados da API', async () => {
-    apiGetMock.mockResolvedValue({ data: polos })
+    apiGetMock.mockResolvedValue({ data: listagemPaginada })
 
-    await expect(listarPolos()).resolves.toEqual(polos)
+    await expect(listarPolos()).resolves.toEqual(listagemPaginada)
 
     expect(apiGetMock).toHaveBeenCalledTimes(1)
     expect(apiGetMock).toHaveBeenCalledWith('/api/v1/polos/', {
-      params: { busca: undefined, dre_codigo_eol: undefined, tipo_ue: undefined },
+      params: {
+        busca: undefined,
+        dre_codigo_eol: undefined,
+        tipo_ue: undefined,
+        page: 1,
+        page_size: 10,
+        gestao: undefined,
+      },
     })
   })
 
   it('envia os filtros informados para a API', async () => {
-    apiGetMock.mockResolvedValue({ data: polos })
+    apiGetMock.mockResolvedValue({ data: listagemPaginada })
 
-    await listarPolos('Polo Centro', '108100', 'EMEF')
+    await listarPolos('Polo Centro', '108100', 'EMEF', 2, 20, 'parceira')
 
     expect(apiGetMock).toHaveBeenCalledWith('/api/v1/polos/', {
       params: {
         busca: 'Polo Centro',
         dre_codigo_eol: '108100',
         tipo_ue: 'EMEF',
+        page: 2,
+        page_size: 20,
+        gestao: 'parceira',
       },
     })
   })

@@ -76,6 +76,13 @@ const poloExemplo: PoloDetalhado = {
   atualizado_em: '2026-08-27T11:28:47.128Z',
 }
 
+const listagemPolos = {
+  count: 1,
+  next: null,
+  previous: null,
+  results: [poloExemplo],
+}
+
 function renderPagina() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -93,7 +100,7 @@ function renderPagina() {
 describe('PaginaPolosParceiros', () => {
   beforeEach(() => {
     navegarMock.mockReset()
-    listarPolosMock.mockResolvedValue([poloExemplo])
+    listarPolosMock.mockResolvedValue(listagemPolos)
     listarDresMock.mockResolvedValue([
       {
         codigo_dre: '108100',
@@ -176,7 +183,14 @@ describe('PaginaPolosParceiros', () => {
     await usuario.click(screen.getByRole('button', { name: /^filtrar$/i }))
 
     await waitFor(() => {
-      expect(listarPolosMock).toHaveBeenLastCalledWith('', '108100', '')
+      expect(listarPolosMock).toHaveBeenLastCalledWith(
+        '',
+        '108100',
+        '',
+        1,
+        10,
+        'parceira',
+      )
     })
   })
 
@@ -198,7 +212,14 @@ describe('PaginaPolosParceiros', () => {
     expect(screen.getByLabelText(/filtrar por tipo de ue/i)).toHaveValue('')
 
     await waitFor(() => {
-      expect(listarPolosMock).toHaveBeenLastCalledWith('', '', '')
+      expect(listarPolosMock).toHaveBeenLastCalledWith(
+        '',
+        '',
+        '',
+        1,
+        10,
+        'parceira',
+      )
     })
   })
 

@@ -33,6 +33,7 @@ describe('Cabecalho', () => {
       </MemoryRouter>,
     )
 
+    expect(screen.getByRole('banner')).toBeInTheDocument()
     expect(screen.getByText(/^RF:\s*$/i)).toBeInTheDocument()
     const cartao = screen.getByText(/^RF:\s*$/i).parentElement
     expect(cartao?.querySelectorAll('p')).toHaveLength(3)
