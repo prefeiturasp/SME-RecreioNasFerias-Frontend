@@ -17,21 +17,27 @@ const payload = [
   },
   {
     polo_uuid: '22222222-2222-2222-2222-222222222222',
-    edicao: '33333333-3333-3333-3333-333333333333',
+    edicao: null,
     tipo: 'oficial',
   },
 ]
 
 const resposta: ResultadoAlterarTipoEmMassa = {
-  mensagem: 'Tipos de polo alterados com sucesso.',
+  mensagem:
+    'Houve polos que não tiveram o tipo alterado, pois não existe vínculo com edição.',
   alterados: [
     {
       polo_uuid: payload[0].polo_uuid,
-      edicao_uuid: payload[0].edicao,
+      edicao_uuid: '33333333-3333-3333-3333-333333333333',
       tipo: 'oficial',
     },
   ],
-  ignorados: [],
+  ignorados: [
+    {
+      polo_uuid: payload[1].polo_uuid,
+      motivo: 'Polo sem vínculo com edição.',
+    },
+  ],
 }
 
 describe('alterarTipoEmMassa', () => {

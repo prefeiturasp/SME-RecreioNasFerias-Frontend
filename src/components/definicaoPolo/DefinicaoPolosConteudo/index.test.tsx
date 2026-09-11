@@ -36,10 +36,13 @@ vi.mock('@/components/definicaoPolo/DefinicaoPolosListagem', () => ({
       <button
         type="button"
         onClick={() =>
-          onAlterarTipoPolo([{ polo_uuid: 'polo-1', edicao_uuid: null }])
+          onAlterarTipoPolo([
+            { polo_uuid: 'polo-1', edicao_uuid: 'ed-1' },
+            { polo_uuid: 'polo-2', edicao_uuid: null },
+          ])
         }
       >
-        Simular alterar tipo sem edição
+        Simular alterar tipo com seleção mista
       </button>
     </div>
   ),
@@ -316,42 +319,83 @@ describe('DefinicaoPolosConteudo', () => {
     })
 
     expect(
-      await screen.findByText(/polo alterado com sucesso/i),
+      await screen.findByText(/tipos de polo alterados com sucesso/i),
     ).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveClass(
+      'border-verde-medio',
+      'bg-verde-claro',
+      'text-verde-escuro',
+    )
     expect(invalidarQueriesSpy).toHaveBeenCalledWith({
       queryKey: ['definicoesPolo'],
     })
   })
 
-  it('bloqueia alterar tipo quando o polo não tem edição', async () => {
+  it('envia polos sem edição e exibe a mensagem retornada pela API', async () => {
     const usuario = userEvent.setup()
+    alterarTipoEmMassaMock.mockResolvedValue({
+      mensagem:
+        'Houve polos que não tiveram o tipo alterado, pois não existe vínculo com edição.',
+      alterados: [
+        {
+          polo_uuid: 'polo-1',
+          edicao_uuid: 'ed-1',
+          tipo: 'oficial',
+        },
+      ],
+      ignorados: [
+        {
+          polo_uuid: 'polo-2',
+          motivo: 'Polo sem vínculo com edição.',
+        },
+      ],
+    })
 
     renderConteudo()
     await esperarConteudoPronto()
 
     await usuario.click(
-      screen.getByRole('button', { name: /simular alterar tipo sem edição/i }),
+      screen.getByRole('button', {
+        name: /simular alterar tipo com seleção mista/i,
+      }),
     )
 
     expect(
       await screen.findByRole('dialog', {
-        name: /não é possível alterar o tipo de polo/i,
+        name: /^alterar tipo de polo$/i,
       }),
     ).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        /é necessário alterar a edição primeiro para, depois, vincular ou alterar o tipo de polo/i,
-      ),
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByLabelText(/selecione o tipo de polo/i),
-    ).not.toBeInTheDocument()
-    expect(alterarTipoEmMassaMock).not.toHaveBeenCalled()
 
-    await usuario.click(screen.getByRole('button', { name: /^fechar$/i }))
+    await usuario.selectOptions(
+      screen.getByLabelText(/selecione o tipo de polo/i),
+      'Polo oficial',
+    )
+    await usuario.click(screen.getByRole('button', { name: /^alterar$/i }))
 
     await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      expect(alterarTipoEmMassaMock.mock.calls[0]?.[0]).toEqual([
+        {
+          polo_uuid: 'polo-1',
+          edicao: 'ed-1',
+          tipo: 'oficial',
+        },
+        {
+          polo_uuid: 'polo-2',
+          edicao: null,
+          tipo: 'oficial',
+        },
+      ])
     })
+
+    expect(
+      await screen.findByText(
+        /houve polos que não tiveram o tipo alterado, pois não existe vínculo com edição/i,
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveClass(
+      'border-yellow-400',
+      'bg-yellow-50',
+      'text-yellow-800',
+    )
   })
 })

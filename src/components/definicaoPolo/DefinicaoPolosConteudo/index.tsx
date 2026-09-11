@@ -2,13 +2,13 @@ import { DefinicaoPolosListagem } from '@/components/definicaoPolo/DefinicaoPolo
 import { FiltrosDefinicaoPolosForm } from '@/components/definicaoPolo/FiltrosDefinicaoPolosForm'
 import { ModalAlterarSelecao } from '@/components/definicaoPolo/ModalAlterarSelecao'
 import { CloseIcon } from '@/components/icons'
-import { Modal } from '@/components/Modal'
 import { Alert, AlertAction, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
 import { usePostAlterarTipoEmMassa } from '@/hooks/usePostAlterarTipoEmMassa'
 import { usePostVincularEmMassa } from '@/hooks/usePostVincularEmMassa'
+import { cn } from '@/lib/utils'
 import {
   FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
   OPCOES_TIPO_POLO,
@@ -17,10 +17,13 @@ import {
 } from '@/services/definicaoPolo/types'
 import { useEffect, useState } from 'react'
 
-const MENSAGEM_BLOQUEIO_TIPO_SEM_EDICAO =
-  'É necessário alterar a edição primeiro para, depois, vincular ou alterar o tipo de polo.'
 const MENSAGEM_POLO_ALTERADO = 'Polo alterado com sucesso!'
 const TEMPO_EXIBICAO_SUCESSO_MS = 3000
+
+type ResultadoOperacao = {
+  mensagem: string
+  tipo: 'sucesso' | 'aviso'
+}
 
 export function DefinicaoPolosConteudo() {
   const vincularEmMassaMutation = usePostVincularEmMassa()
@@ -37,23 +40,23 @@ export function DefinicaoPolosConteudo() {
   const [polosParaAlterarTipoPolo, setPolosParaAlterarTipoPolo] = useState<
     PoloParaAlterarTipo[]
   >([])
-  const [modalBloqueioTipoAberto, setModalBloqueioTipoAberto] = useState(false)
-  const [mensagemSucessoVisivel, setMensagemSucessoVisivel] = useState(false)
+  const [resultadoOperacao, setResultadoOperacao] =
+    useState<ResultadoOperacao | null>(null)
   const [chaveResetSelecao, setChaveResetSelecao] = useState(0)
 
-  function fecharMensagemSucesso() {
-    setMensagemSucessoVisivel(false)
+  function fecharMensagemResultado() {
+    setResultadoOperacao(null)
   }
 
   useEffect(() => {
-    if (!mensagemSucessoVisivel) return
+    if (!resultadoOperacao) return
 
     const temporizador = globalThis.setTimeout(() => {
-      setMensagemSucessoVisivel(false)
+      setResultadoOperacao(null)
     }, TEMPO_EXIBICAO_SUCESSO_MS)
 
     return () => globalThis.clearTimeout(temporizador)
-  }, [mensagemSucessoVisivel])
+  }, [resultadoOperacao])
 
   const modalTipoAberto = polosParaAlterarTipoPolo.length > 0
   const edicoesQuery = useGetEdicoesPrograma(modalEdicaoAberto)
@@ -85,16 +88,7 @@ export function DefinicaoPolosConteudo() {
     setModalEdicaoAberto(true)
   }
 
-  function fecharModalBloqueioTipo() {
-    setModalBloqueioTipoAberto(false)
-  }
-
   function abrirModalAlterarTipoPolo(polos: PoloParaAlterarTipo[]) {
-    if (polos.some((polo) => !polo.edicao_uuid)) {
-      setModalBloqueioTipoAberto(true)
-      return
-    }
-
     alterarTipoMutation.reset()
     setPolosParaAlterarTipoPolo(polos)
   }
@@ -112,7 +106,10 @@ export function DefinicaoPolosConteudo() {
           setModalEdicaoAberto(false)
           setPolosParaVincularEdicao([])
           setChaveResetSelecao((chaveAtual) => chaveAtual + 1)
-          setMensagemSucessoVisivel(true)
+          setResultadoOperacao({
+            mensagem: MENSAGEM_POLO_ALTERADO,
+            tipo: 'sucesso',
+          })
         },
       },
     )
@@ -121,49 +118,59 @@ export function DefinicaoPolosConteudo() {
   function confirmarAlteracaoTipoPolo(tipoPolo: string) {
     if (!tipoPolo.trim()) return
 
-    const operacoes = polosParaAlterarTipoPolo.flatMap((polo) => {
-      if (!polo.edicao_uuid) {
-        return []
-      }
-
-      return [
-        {
-          polo_uuid: polo.polo_uuid,
-          edicao: polo.edicao_uuid,
-          tipo: tipoPolo.trim(),
-        },
-      ]
-    })
+    const operacoes = polosParaAlterarTipoPolo.map((polo) => ({
+      polo_uuid: polo.polo_uuid,
+      edicao: polo.edicao_uuid,
+      tipo: tipoPolo.trim(),
+    }))
 
     if (operacoes.length === 0) return
 
     alterarTipoMutation.mutate(operacoes, {
-      onSuccess: () => {
+      onSuccess: (resultado) => {
         setPolosParaAlterarTipoPolo([])
         setChaveResetSelecao((chaveAtual) => chaveAtual + 1)
-        setMensagemSucessoVisivel(true)
+        setResultadoOperacao({
+          mensagem: resultado.mensagem,
+          tipo: resultado.ignorados.length > 0 ? 'aviso' : 'sucesso',
+        })
       },
     })
   }
 
   return (
     <>
-      {mensagemSucessoVisivel ? (
+      {resultadoOperacao ? (
         <Alert
           role="status"
-          className="mt-3 min-h-12 items-center border-verde-medio bg-verde-claro py-3 text-center font-bold text-verde-escuro"
+          className={cn(
+            'mt-3 min-h-12 items-center py-3 text-center font-bold',
+            resultadoOperacao.tipo === 'aviso'
+              ? 'border-yellow-400 bg-yellow-50 text-yellow-800'
+              : 'border-verde-medio bg-verde-claro text-verde-escuro',
+          )}
         >
-          <AlertDescription className="text-verde-escuro">
-            {MENSAGEM_POLO_ALTERADO}
+          <AlertDescription
+            className={
+              resultadoOperacao.tipo === 'aviso'
+                ? 'text-yellow-800'
+                : 'text-verde-escuro'
+            }
+          >
+            {resultadoOperacao.mensagem}
           </AlertDescription>
           <AlertAction>
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
-              aria-label="Fechar mensagem de sucesso"
-              className="text-verde-escuro hover:bg-verde-escuro/10 hover:text-verde-escuro"
-              onClick={fecharMensagemSucesso}
+              aria-label="Fechar mensagem de resultado"
+              className={
+                resultadoOperacao.tipo === 'aviso'
+                  ? 'text-yellow-800 hover:bg-yellow-800/10 hover:text-yellow-800'
+                  : 'text-verde-escuro hover:bg-verde-escuro/10 hover:text-verde-escuro'
+              }
+              onClick={fecharMensagemResultado}
             >
               <CloseIcon />
             </Button>
@@ -216,19 +223,6 @@ export function DefinicaoPolosConteudo() {
         onFechar={fecharModalAlterarTipoPolo}
         onAlterar={confirmarAlteracaoTipoPolo}
       />
-
-      <Modal
-        aberto={modalBloqueioTipoAberto}
-        titulo="Não é possível alterar o tipo de polo"
-        onOpenChange={setModalBloqueioTipoAberto}
-        acoes={
-          <Button type="button" onClick={fecharModalBloqueioTipo}>
-            Fechar
-          </Button>
-        }
-      >
-        {MENSAGEM_BLOQUEIO_TIPO_SEM_EDICAO}
-      </Modal>
     </>
   )
 }

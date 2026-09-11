@@ -55,7 +55,7 @@ export type PoloParaAlterarTipo = {
 
 export type ItemAlterarTipoEmMassa = {
   polo_uuid: string
-  edicao: string
+  edicao: string | null
   tipo: string
 }
 
