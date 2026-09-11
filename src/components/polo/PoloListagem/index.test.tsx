@@ -142,6 +142,7 @@ describe('PoloListagem', () => {
     expect(
       screen.getByRole('link', { name: /editar polo polo teste/i }),
     ).toHaveAttribute('href', `/editar-polo-parceiro/${polo.uuid}`)
+    expect(useGetPolosMock).toHaveBeenCalledWith('', '', '', 1, 10, 'parceira')
   })
 
   it('ordena por cada coluna e permite alterar itens por página', async () => {
@@ -193,7 +194,14 @@ describe('PoloListagem', () => {
     await usuario.click(screen.getByRole('button', { name: /próxima página/i }))
 
     await waitFor(() => {
-      expect(useGetPolosMock).toHaveBeenLastCalledWith('', '', '', 2, 10)
+      expect(useGetPolosMock).toHaveBeenLastCalledWith(
+        '',
+        '',
+        '',
+        2,
+        10,
+        'parceira',
+      )
     })
   })
 
@@ -241,7 +249,14 @@ describe('PoloListagem', () => {
     await usuario.click(screen.getByRole('button', { name: 'Filtrar' }))
 
     await waitFor(() => {
-      expect(useGetPolosMock).toHaveBeenLastCalledWith('', '108100', '', 1, 10)
+      expect(useGetPolosMock).toHaveBeenLastCalledWith(
+        '',
+        '108100',
+        '',
+        1,
+        10,
+        'parceira',
+      )
     })
   })
 })

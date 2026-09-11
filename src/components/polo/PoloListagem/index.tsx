@@ -17,6 +17,8 @@ import {
 import { CollapsibleFilter } from '@/components/CollapsibleFilter'
 import { IconeFiltro } from '@/components/icons'
 
+const GESTAO_PARCEIRA = 'parceira'
+
 const COLUNAS = [
   {
     id: 'nome_polo',
@@ -81,6 +83,7 @@ export function PoloListagem() {
     filtrosAplicados.tipo_ue,
     paginaAtual,
     itensPorPagina,
+    GESTAO_PARCEIRA,
   )
 
   function mudarItensPorPagina(novoTamanho: number) {

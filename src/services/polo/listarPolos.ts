@@ -7,9 +7,10 @@ export async function listarPolos(
   tipo_ue?: string,
   page = 1,
   page_size = 10,
+  gestao?: string,
 ): Promise<ListagemPolosPaginada> {
   const { data } = await api.get<ListagemPolosPaginada>('/api/v1/polos/', {
-    params: { busca, dre_codigo_eol, tipo_ue, page, page_size },
+    params: { busca, dre_codigo_eol, tipo_ue, page, page_size, gestao },
   })
   return data
 }

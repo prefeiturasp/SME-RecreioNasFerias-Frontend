@@ -63,6 +63,7 @@ describe('listarPolos', () => {
         tipo_ue: undefined,
         page: 1,
         page_size: 10,
+        gestao: undefined,
       },
     })
   })
@@ -70,7 +71,7 @@ describe('listarPolos', () => {
   it('envia os filtros informados para a API', async () => {
     apiGetMock.mockResolvedValue({ data: listagemPaginada })
 
-    await listarPolos('Polo Centro', '108100', 'EMEF', 2, 20)
+    await listarPolos('Polo Centro', '108100', 'EMEF', 2, 20, 'parceira')
 
     expect(apiGetMock).toHaveBeenCalledWith('/api/v1/polos/', {
       params: {
@@ -79,6 +80,7 @@ describe('listarPolos', () => {
         tipo_ue: 'EMEF',
         page: 2,
         page_size: 20,
+        gestao: 'parceira',
       },
     })
   })
