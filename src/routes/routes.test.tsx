@@ -27,7 +27,12 @@ vi.mock('../components/MenuLateral', () => ({
 }))
 
 vi.mock('../services/polo/listarPolos', () => ({
-  listarPolos: vi.fn().mockResolvedValue([]),
+  listarPolos: vi.fn().mockResolvedValue({
+    count: 0,
+    next: null,
+    previous: null,
+    results: [],
+  }),
 }))
 
 vi.mock('../services/dre/listarDres', () => ({

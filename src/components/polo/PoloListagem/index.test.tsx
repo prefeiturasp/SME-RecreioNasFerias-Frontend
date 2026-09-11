@@ -73,6 +73,21 @@ const segundoPolo: PoloDetalhado = {
   status: 'inativo',
 }
 
+function criarListagemPaginada(
+  results: PoloDetalhado[],
+  count = results.length,
+) {
+  return {
+    count,
+    next:
+      count > results.length
+        ? 'http://localhost:8000/api/v1/polos/?page=2'
+        : null,
+    previous: null,
+    results,
+  }
+}
+
 function renderListagem() {
   return render(
     <MemoryRouter>
@@ -85,7 +100,7 @@ describe('PoloListagem', () => {
   beforeEach(() => {
     useGetPolosMock.mockReset()
     useGetPolosMock.mockReturnValue({
-      data: [polo],
+      data: criarListagemPaginada([polo]),
       isPending: false,
       isError: false,
       error: null,
@@ -131,7 +146,7 @@ describe('PoloListagem', () => {
 
   it('ordena por cada coluna e permite alterar itens por página', async () => {
     useGetPolosMock.mockReturnValue({
-      data: [polo, segundoPolo],
+      data: criarListagemPaginada([polo, segundoPolo]),
       isPending: false,
       isError: false,
       error: null,
@@ -164,9 +179,27 @@ describe('PoloListagem', () => {
     )
   })
 
+  it('solicita a próxima página ao backend', async () => {
+    const usuario = userEvent.setup()
+    useGetPolosMock.mockReturnValue({
+      data: criarListagemPaginada([polo], 25),
+      isPending: false,
+      isError: false,
+      error: null,
+    })
+
+    renderListagem()
+
+    await usuario.click(screen.getByRole('button', { name: /próxima página/i }))
+
+    await waitFor(() => {
+      expect(useGetPolosMock).toHaveBeenLastCalledWith('', '', '', 2, 10)
+    })
+  })
+
   it('exibe mensagens diferentes para listagem vazia com e sem filtros', async () => {
     useGetPolosMock.mockReturnValue({
-      data: [],
+      data: criarListagemPaginada([]),
       isPending: false,
       isError: false,
       error: null,
@@ -193,7 +226,7 @@ describe('PoloListagem', () => {
   it('aplica os filtros selecionados ao consultar a listagem', async () => {
     useGetPolosMock.mockImplementation(
       (busca?: string, dre?: string, tipoUe?: string) => ({
-        data: [polo],
+        data: criarListagemPaginada([polo]),
         isPending: false,
         isError: false,
         error: null,
@@ -208,7 +241,7 @@ describe('PoloListagem', () => {
     await usuario.click(screen.getByRole('button', { name: 'Filtrar' }))
 
     await waitFor(() => {
-      expect(useGetPolosMock).toHaveBeenLastCalledWith('', '108100', '')
+      expect(useGetPolosMock).toHaveBeenLastCalledWith('', '108100', '', 1, 10)
     })
   })
 })
