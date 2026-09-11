@@ -1,19 +1,17 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useState } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS } from '@/services/definicaoPolo/types'
 import { FiltrosDefinicaoPolosForm } from './index'
 
-const {
-  listarDresMock,
-  listarTiposEscolaMock,
-  listarEdicoesProgramaMock,
-} = vi.hoisted(() => ({
-  listarDresMock: vi.fn(),
-  listarTiposEscolaMock: vi.fn(),
-  listarEdicoesProgramaMock: vi.fn(),
-}))
+const { listarDresMock, listarTiposEscolaMock, listarEdicoesProgramaMock } =
+  vi.hoisted(() => ({
+    listarDresMock: vi.fn(),
+    listarTiposEscolaMock: vi.fn(),
+    listarEdicoesProgramaMock: vi.fn(),
+  }))
 
 vi.mock('@/services/dre/listarDres', async (importOriginal) => {
   const actual =
@@ -71,9 +69,10 @@ const tiposEscolaPadrao = [
 
 function renderFiltrosDefinicaoPolosForm(
   props: Partial<{
-    onFiltrar: (
+    onChange: (
       filtros: typeof FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
     ) => void
+    onFiltrar: () => void
     onLimpar: () => void
   }> = {},
 ) {
@@ -84,12 +83,36 @@ function renderFiltrosDefinicaoPolosForm(
     },
   })
 
+  function FiltrosControlados() {
+    const [valores, setValores] = useState(
+      FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
+    )
+
+    function onChange(
+      novosValores: typeof FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
+    ) {
+      setValores(novosValores)
+      props.onChange?.(novosValores)
+    }
+
+    function onLimpar() {
+      setValores(FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS)
+      props.onLimpar?.()
+    }
+
+    return (
+      <FiltrosDefinicaoPolosForm
+        valores={valores}
+        onChange={onChange}
+        onFiltrar={props.onFiltrar ?? vi.fn()}
+        onLimpar={onLimpar}
+      />
+    )
+  }
+
   return render(
     <QueryClientProvider client={queryClient}>
-      <FiltrosDefinicaoPolosForm
-        onFiltrar={props.onFiltrar ?? vi.fn()}
-        onLimpar={props.onLimpar ?? vi.fn()}
-      />
+      <FiltrosControlados />
     </QueryClientProvider>,
   )
 }
@@ -133,26 +156,28 @@ describe('FiltrosDefinicaoPolosForm', () => {
     expect(await screen.findByLabelText(/filtrar por dre/i)).toBeVisible()
   })
 
-  it('chama onFiltrar com gestão Parceira ao submeter', async () => {
+  it('atualiza gestão e chama onFiltrar', async () => {
     const usuario = userEvent.setup()
+    const onChange = vi.fn()
     const onFiltrar = vi.fn()
 
-    renderFiltrosDefinicaoPolosForm({ onFiltrar })
+    renderFiltrosDefinicaoPolosForm({ onChange, onFiltrar })
 
     await selecionarOpcao(usuario, /^gestão$/i, /^parceira$/i)
     await usuario.click(screen.getByRole('button', { name: /^filtrar$/i }))
 
-    expect(onFiltrar).toHaveBeenCalledWith({
+    expect(onChange).toHaveBeenLastCalledWith({
       ...FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
       gestao: 'parceira',
     })
+    expect(onFiltrar).toHaveBeenCalledTimes(1)
   })
 
-  it('chama onFiltrar com todos os campos preenchidos', async () => {
+  it('atualiza todos os campos controlados', async () => {
     const usuario = userEvent.setup()
-    const onFiltrar = vi.fn()
+    const onChange = vi.fn()
 
-    renderFiltrosDefinicaoPolosForm({ onFiltrar })
+    renderFiltrosDefinicaoPolosForm({ onChange })
 
     await selecionarOpcao(
       usuario,
@@ -164,12 +189,15 @@ describe('FiltrosDefinicaoPolosForm', () => {
       screen.getByLabelText(/filtrar por nome da ue ou código eol/i),
       '019241',
     )
-    await selecionarOpcao(usuario, /filtrar por nome da edição/i, /janeiro 2025/i)
+    await selecionarOpcao(
+      usuario,
+      /filtrar por nome da edição/i,
+      /janeiro 2025/i,
+    )
     await selecionarOpcao(usuario, /^tipo de polo$/i, /^pendente$/i)
     await selecionarOpcao(usuario, /^gestão$/i, /^parceira$/i)
-    await usuario.click(screen.getByRole('button', { name: /^filtrar$/i }))
 
-    expect(onFiltrar).toHaveBeenCalledWith({
+    expect(onChange).toHaveBeenLastCalledWith({
       dre: '108100',
       tipoUe: 'EMEF',
       nomeUeOuCodigoEol: '019241',
@@ -224,7 +252,9 @@ describe('FiltrosDefinicaoPolosForm', () => {
     expect(
       await screen.findByRole('option', { name: /^parceira$/i }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /^direta$/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('option', { name: /^direta$/i }),
+    ).toBeInTheDocument()
     await usuario.click(screen.getByRole('option', { name: /^parceira$/i }))
 
     await usuario.click(screen.getByLabelText(/filtrar por nome da edição/i))

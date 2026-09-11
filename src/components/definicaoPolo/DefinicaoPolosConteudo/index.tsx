@@ -29,6 +29,9 @@ export function DefinicaoPolosConteudo() {
   const vincularEmMassaMutation = usePostVincularEmMassa()
   const alterarTipoMutation = usePostAlterarTipoEmMassa()
 
+  const [filtros, setFiltros] = useState<FiltrosListagemDefinicaoPolos>(
+    FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
+  )
   const [filtrosAplicados, setFiltrosAplicados] =
     useState<FiltrosListagemDefinicaoPolos>(
       FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
@@ -61,11 +64,12 @@ export function DefinicaoPolosConteudo() {
   const modalTipoAberto = polosParaAlterarTipoPolo.length > 0
   const edicoesQuery = useGetEdicoesPrograma(modalEdicaoAberto)
 
-  function aplicarFiltros(filtros: FiltrosListagemDefinicaoPolos) {
+  function aplicarFiltros() {
     setFiltrosAplicados(filtros)
   }
 
   function limparFiltros() {
+    setFiltros(FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS)
     setFiltrosAplicados(FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS)
   }
 
@@ -179,6 +183,8 @@ export function DefinicaoPolosConteudo() {
       ) : null}
 
       <FiltrosDefinicaoPolosForm
+        valores={filtros}
+        onChange={setFiltros}
         onFiltrar={aplicarFiltros}
         onLimpar={limparFiltros}
       />

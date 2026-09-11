@@ -14,19 +14,15 @@ import { useGetDres } from '@/hooks/useGetDres'
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
 import { useGetTiposEscola } from '@/hooks/useGetTiposEscola'
 import {
-  FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
   OPCOES_TIPO_POLO,
   type FiltrosListagemDefinicaoPolos,
 } from '@/services/definicaoPolo/types'
-import { zodResolver } from '@hookform/resolvers/zod'
 import type { ReactNode } from 'react'
-import { Controller, useForm } from 'react-hook-form'
-import filtrosDefinicaoPolosSchema, {
-  type FiltrosDefinicaoPolosFormValues,
-} from './schema'
 
 type FiltrosDefinicaoPolosFormProps = {
-  onFiltrar: (filtros: FiltrosListagemDefinicaoPolos) => void
+  valores: FiltrosListagemDefinicaoPolos
+  onChange: (filtros: FiltrosListagemDefinicaoPolos) => void
+  onFiltrar: () => void
   onLimpar: () => void
 }
 
@@ -77,6 +73,8 @@ function CampoFiltroSelect({
 }
 
 export function FiltrosDefinicaoPolosForm({
+  valores,
+  onChange,
   onFiltrar,
   onLimpar,
 }: Readonly<FiltrosDefinicaoPolosFormProps>) {
@@ -84,203 +82,155 @@ export function FiltrosDefinicaoPolosForm({
   const tiposEscolaQuery = useGetTiposEscola()
   const edicoesQuery = useGetEdicoesPrograma()
 
-  const form = useForm<FiltrosDefinicaoPolosFormValues>({
-    resolver: zodResolver(filtrosDefinicaoPolosSchema),
-    defaultValues: FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
-  })
-
-  function onSubmit(dados: FiltrosDefinicaoPolosFormValues) {
-    onFiltrar(dados)
-  }
-
-  function handleLimpar() {
-    form.reset(FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS)
-    onLimpar()
+  function atualizarCampo(
+    campo: keyof FiltrosListagemDefinicaoPolos,
+    valor: string,
+  ) {
+    onChange({ ...valores, [campo]: valor })
   }
 
   return (
     <CollapsibleFilter icon={<IconeFiltro />} title="Filtrar Polos">
-      <form
-        aria-label="Filtrar polos"
-        className="flex flex-col gap-5"
-        onSubmit={form.handleSubmit(onSubmit)}
-      >
+      <div aria-label="Filtrar polos" className="flex flex-col gap-5">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Controller
-            name="dre"
-            control={form.control}
-            render={({ field }) => (
-              <CampoFiltroSelect
-                id="filtro-dre"
-                rotulo="Filtrar por DRE"
-                placeholder="Selecione a DRE"
-                valor={field.value}
-                onValorChange={field.onChange}
-              >
-                {dresQuery.isLoading && (
-                  <SelectItem value="loading" disabled>
-                    Carregando...
-                  </SelectItem>
-                )}
-                {dresQuery.isError && (
-                  <SelectItem value="error" disabled>
-                    Erro ao carregar DREs
-                  </SelectItem>
-                )}
-                {!dresQuery.isLoading &&
-                  !dresQuery.isError &&
-                  dresQuery.data?.map((dre) => (
-                    <SelectItem key={dre.codigo_dre} value={dre.codigo_dre}>
-                      {dre.nome_dre}
-                    </SelectItem>
-                  ))}
-              </CampoFiltroSelect>
+          <CampoFiltroSelect
+            id="filtro-dre"
+            rotulo="Filtrar por DRE"
+            placeholder="Selecione a DRE"
+            valor={valores.dre}
+            onValorChange={(valor) => atualizarCampo('dre', valor)}
+          >
+            {dresQuery.isLoading && (
+              <SelectItem value="loading" disabled>
+                Carregando...
+              </SelectItem>
             )}
-          />
+            {dresQuery.isError && (
+              <SelectItem value="error" disabled>
+                Erro ao carregar DREs
+              </SelectItem>
+            )}
+            {!dresQuery.isLoading &&
+              !dresQuery.isError &&
+              dresQuery.data?.map((dre) => (
+                <SelectItem key={dre.codigo_dre} value={dre.codigo_dre}>
+                  {dre.nome_dre}
+                </SelectItem>
+              ))}
+          </CampoFiltroSelect>
 
-          <Controller
-            name="tipoUe"
-            control={form.control}
-            render={({ field }) => (
-              <CampoFiltroSelect
-                id="filtro-tipo-ue"
-                rotulo="Filtrar por Tipo de UE"
-                placeholder="Selecione o Tipo de UE"
-                valor={field.value}
-                onValorChange={field.onChange}
-              >
-                {tiposEscolaQuery.isLoading && (
-                  <SelectItem value="loading" disabled>
-                    Carregando...
-                  </SelectItem>
-                )}
-                {tiposEscolaQuery.isError && (
-                  <SelectItem value="error" disabled>
-                    Erro ao carregar tipos de escola
-                  </SelectItem>
-                )}
-                {!tiposEscolaQuery.isLoading &&
-                  !tiposEscolaQuery.isError &&
-                  tiposEscolaQuery.data?.map((tipoUe) => (
-                    <SelectItem
-                      key={tipoUe.codigo}
-                      value={tipoUe.descricao_sigla}
-                    >
-                      {tipoUe.descricao_sigla}
-                    </SelectItem>
-                  ))}
-              </CampoFiltroSelect>
+          <CampoFiltroSelect
+            id="filtro-tipo-ue"
+            rotulo="Filtrar por Tipo de UE"
+            placeholder="Selecione o Tipo de UE"
+            valor={valores.tipoUe}
+            onValorChange={(valor) => atualizarCampo('tipoUe', valor)}
+          >
+            {tiposEscolaQuery.isLoading && (
+              <SelectItem value="loading" disabled>
+                Carregando...
+              </SelectItem>
             )}
-          />
+            {tiposEscolaQuery.isError && (
+              <SelectItem value="error" disabled>
+                Erro ao carregar tipos de escola
+              </SelectItem>
+            )}
+            {!tiposEscolaQuery.isLoading &&
+              !tiposEscolaQuery.isError &&
+              tiposEscolaQuery.data?.map((tipoUe) => (
+                <SelectItem key={tipoUe.codigo} value={tipoUe.descricao_sigla}>
+                  {tipoUe.descricao_sigla}
+                </SelectItem>
+              ))}
+          </CampoFiltroSelect>
 
-          <Controller
-            name="nomeUeOuCodigoEol"
-            control={form.control}
-            render={({ field }) => (
-              <div className="flex min-w-0 flex-col gap-1.5">
-                <Label
-                  htmlFor="filtro-nome-ue-codigo-eol"
-                  className="font-bold"
-                >
-                  Filtrar por Nome da UE ou Código EOL
-                </Label>
-                <Input
-                  {...field}
-                  id="filtro-nome-ue-codigo-eol"
-                  type="search"
-                  placeholder="Digite o Nome da UE ou Código EOL"
-                  className="h-10! rounded-sm border-input-border-muted"
-                />
-              </div>
-            )}
-          />
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <Label htmlFor="filtro-nome-ue-codigo-eol" className="font-bold">
+              Filtrar por Nome da UE ou Código EOL
+            </Label>
+            <Input
+              id="filtro-nome-ue-codigo-eol"
+              type="search"
+              placeholder="Digite o Nome da UE ou Código EOL"
+              className="h-10! rounded-sm border-input-border-muted"
+              value={valores.nomeUeOuCodigoEol}
+              onChange={(evento) =>
+                atualizarCampo('nomeUeOuCodigoEol', evento.target.value)
+              }
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Controller
-            name="edicao"
-            control={form.control}
-            render={({ field }) => (
-              <CampoFiltroSelect
-                id="filtro-nome-edicao"
-                rotulo="Filtrar por Nome da Edição"
-                placeholder={
-                  edicoesQuery.isLoading
-                    ? 'Carregando...'
-                    : 'Selecione o Nome da Edição'
-                }
-                valor={field.value}
-                onValorChange={field.onChange}
-              >
-                {edicoesQuery.isLoading && (
-                  <SelectItem value="loading" disabled>
-                    Carregando...
-                  </SelectItem>
-                )}
-                {edicoesQuery.isError && (
-                  <SelectItem value="error" disabled>
-                    Erro ao carregar edições
-                  </SelectItem>
-                )}
-                {!edicoesQuery.isLoading &&
-                  !edicoesQuery.isError &&
-                  edicoesQuery.data?.map((edicao) => (
-                    <SelectItem key={edicao.uuid} value={edicao.uuid}>
-                      {edicao.nome}
-                    </SelectItem>
-                  ))}
-              </CampoFiltroSelect>
+          <CampoFiltroSelect
+            id="filtro-nome-edicao"
+            rotulo="Filtrar por Nome da Edição"
+            placeholder={
+              edicoesQuery.isLoading
+                ? 'Carregando...'
+                : 'Selecione o Nome da Edição'
+            }
+            valor={valores.edicao}
+            onValorChange={(valor) => atualizarCampo('edicao', valor)}
+          >
+            {edicoesQuery.isLoading && (
+              <SelectItem value="loading" disabled>
+                Carregando...
+              </SelectItem>
             )}
-          />
+            {edicoesQuery.isError && (
+              <SelectItem value="error" disabled>
+                Erro ao carregar edições
+              </SelectItem>
+            )}
+            {!edicoesQuery.isLoading &&
+              !edicoesQuery.isError &&
+              edicoesQuery.data?.map((edicao) => (
+                <SelectItem key={edicao.uuid} value={edicao.uuid}>
+                  {edicao.nome}
+                </SelectItem>
+              ))}
+          </CampoFiltroSelect>
 
-          <Controller
-            name="tipoPolo"
-            control={form.control}
-            render={({ field }) => (
-              <CampoFiltroSelect
-                id="filtro-tipo-polo"
-                rotulo="Tipo de Polo"
-                placeholder="Selecione o Tipo de Polo"
-                valor={field.value}
-                onValorChange={field.onChange}
-              >
-                {OPCOES_TIPO_POLO.map((tipoPolo) => (
-                  <SelectItem key={tipoPolo.valor} value={tipoPolo.valor}>
-                    {tipoPolo.rotulo}
-                  </SelectItem>
-                ))}
-              </CampoFiltroSelect>
-            )}
-          />
+          <CampoFiltroSelect
+            id="filtro-tipo-polo"
+            rotulo="Tipo de Polo"
+            placeholder="Selecione o Tipo de Polo"
+            valor={valores.tipoPolo}
+            onValorChange={(valor) => atualizarCampo('tipoPolo', valor)}
+          >
+            {OPCOES_TIPO_POLO.map((tipoPolo) => (
+              <SelectItem key={tipoPolo.valor} value={tipoPolo.valor}>
+                {tipoPolo.rotulo}
+              </SelectItem>
+            ))}
+          </CampoFiltroSelect>
 
-          <Controller
-            name="gestao"
-            control={form.control}
-            render={({ field }) => (
-              <CampoFiltroSelect
-                id="filtro-gestao"
-                rotulo="Gestão"
-                placeholder="Selecione a Gestão"
-                valor={field.value}
-                onValorChange={field.onChange}
-              >
-                {OPCOES_GESTAO.map((gestao) => (
-                  <SelectItem key={gestao.valor} value={gestao.valor}>
-                    {gestao.rotulo}
-                  </SelectItem>
-                ))}
-              </CampoFiltroSelect>
-            )}
-          />
+          <CampoFiltroSelect
+            id="filtro-gestao"
+            rotulo="Gestão"
+            placeholder="Selecione a Gestão"
+            valor={valores.gestao}
+            onValorChange={(valor) => atualizarCampo('gestao', valor)}
+          >
+            {OPCOES_GESTAO.map((gestao) => (
+              <SelectItem key={gestao.valor} value={gestao.valor}>
+                {gestao.rotulo}
+              </SelectItem>
+            ))}
+          </CampoFiltroSelect>
         </div>
 
         <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={handleLimpar}>
+          <Button type="button" variant="outline" onClick={onLimpar}>
             Limpar Filtros
           </Button>
-          <Button type="submit">Filtrar</Button>
+          <Button type="button" onClick={onFiltrar}>
+            Filtrar
+          </Button>
         </div>
-      </form>
+      </div>
     </CollapsibleFilter>
   )
 }
