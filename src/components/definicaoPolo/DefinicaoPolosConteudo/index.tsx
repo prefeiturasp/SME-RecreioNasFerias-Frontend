@@ -4,7 +4,6 @@ import { ModalAlterarSelecao } from '@/components/definicaoPolo/ModalAlterarSele
 import { CloseIcon } from '@/components/icons'
 import { Alert, AlertAction, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
 import { usePostAlterarTipoEmMassa } from '@/hooks/usePostAlterarTipoEmMassa'
 import { usePostVincularEmMassa } from '@/hooks/usePostVincularEmMassa'
@@ -143,7 +142,7 @@ export function DefinicaoPolosConteudo() {
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-4 bg-white p-4">
       {resultadoOperacao ? (
         <Alert
           role="status"
@@ -189,16 +188,12 @@ export function DefinicaoPolosConteudo() {
         onLimpar={limparFiltros}
       />
 
-      <Card className="overflow-visible rounded-sm bg-background py-0 shadow-card ring-0">
-        <div className="flex flex-col gap-4 bg-white p-4">
-          <DefinicaoPolosListagem
-            filtros={filtrosAplicados}
-            chaveResetSelecao={chaveResetSelecao}
-            onAlterarEdicaoPolo={abrirModalAlterarEdicao}
-            onAlterarTipoPolo={abrirModalAlterarTipoPolo}
-          />
-        </div>
-      </Card>
+      <DefinicaoPolosListagem
+        filtros={filtrosAplicados}
+        chaveResetSelecao={chaveResetSelecao}
+        onAlterarEdicaoPolo={abrirModalAlterarEdicao}
+        onAlterarTipoPolo={abrirModalAlterarTipoPolo}
+      />
 
       <ModalAlterarSelecao
         aberto={modalEdicaoAberto}
@@ -229,6 +224,6 @@ export function DefinicaoPolosConteudo() {
         onFechar={fecharModalAlterarTipoPolo}
         onAlterar={confirmarAlteracaoTipoPolo}
       />
-    </>
+    </div>
   )
 }
