@@ -44,6 +44,28 @@ describe('ModalAlterarSelecao', () => {
     expect(screen.getByRole('option', { name: 'Opção B' })).toBeInTheDocument()
   })
 
+  it('usa uuid e nome diretamente nas opções retornadas pela API', async () => {
+    const usuario = userEvent.setup()
+    const onAlterar = vi.fn()
+
+    render(
+      <ModalAlterarSelecao
+        aberto
+        {...propsModalPadrao}
+        opcoes={[{ uuid: 'edicao-1', nome: 'Janeiro 2026' }]}
+        onAlterar={onAlterar}
+      />,
+    )
+
+    await usuario.selectOptions(
+      screen.getByLabelText(/selecione o valor/i),
+      'edicao-1',
+    )
+    await usuario.click(screen.getByRole('button', { name: /^alterar$/i }))
+
+    expect(onAlterar).toHaveBeenCalledWith('edicao-1')
+  })
+
   it('fecha ao pressionar Escape', async () => {
     const usuario = userEvent.setup()
     const onFechar = vi.fn()
@@ -109,9 +131,7 @@ describe('ModalAlterarSelecao', () => {
   })
 
   it('exibe texto Alterando... quando estaSalvando', () => {
-    render(
-      <ModalAlterarSelecao aberto estaSalvando {...propsModalPadrao} />,
-    )
+    render(<ModalAlterarSelecao aberto estaSalvando {...propsModalPadrao} />)
 
     expect(screen.getByRole('button', { name: /alterando/i })).toBeDisabled()
   })

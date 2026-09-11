@@ -58,13 +58,6 @@ export function DefinicaoPolosConteudo() {
   const modalTipoAberto = polosParaAlterarTipoPolo.length > 0
   const edicoesQuery = useGetEdicoesPrograma(modalEdicaoAberto)
 
-  const opcoesNomeEdicao = (edicoesQuery.data ?? [])
-    .filter((edicao) => edicao.nome.trim() !== '')
-    .map((edicao) => ({
-      valor: edicao.uuid,
-      rotulo: edicao.nome.trim(),
-    }))
-
   function aplicarFiltros(filtros: FiltrosListagemDefinicaoPolos) {
     setFiltrosAplicados(filtros)
   }
@@ -201,7 +194,7 @@ export function DefinicaoPolosConteudo() {
         rotuloCampo="Selecione o Nome da Edição"
         idCampo="modal-nome-edicao"
         textoOpcaoVazia="Selecione o Nome da Edição"
-        opcoes={opcoesNomeEdicao}
+        opcoes={edicoesQuery.data ?? []}
         estaCarregandoOpcoes={edicoesQuery.isPending}
         mensagemCarregamento="Carregando edições..."
         estaSalvando={vincularEmMassaMutation.isPending}

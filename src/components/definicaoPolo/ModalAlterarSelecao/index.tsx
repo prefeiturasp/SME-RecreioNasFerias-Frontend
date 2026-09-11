@@ -12,6 +12,10 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 
+type OpcaoAlterarSelecao =
+  | { valor: string; rotulo: string }
+  | { uuid: string; nome: string }
+
 type ModalAlterarSelecaoProps = {
   aberto: boolean
   titulo: string
@@ -19,7 +23,7 @@ type ModalAlterarSelecaoProps = {
   rotuloCampo: string
   idCampo: string
   textoOpcaoVazia: string
-  opcoes: readonly { valor: string; rotulo: string }[]
+  opcoes: readonly OpcaoAlterarSelecao[]
   estaCarregandoOpcoes?: boolean
   mensagemCarregamento?: string
   estaSalvando?: boolean
@@ -81,8 +85,11 @@ export function ModalAlterarSelecao({
             >
               <option value="">{textoOpcaoVazia}</option>
               {opcoes.map((opcao) => (
-                <option key={opcao.valor} value={opcao.valor}>
-                  {opcao.rotulo}
+                <option
+                  key={'uuid' in opcao ? opcao.uuid : opcao.valor}
+                  value={'uuid' in opcao ? opcao.uuid : opcao.valor}
+                >
+                  {'uuid' in opcao ? opcao.nome : opcao.rotulo}
                 </option>
               ))}
             </select>
@@ -102,9 +109,7 @@ export function ModalAlterarSelecao({
           </Button>
           <Button
             type="button"
-            disabled={
-              !valorSelecionado || estaSalvando || estaCarregandoOpcoes
-            }
+            disabled={!valorSelecionado || estaSalvando || estaCarregandoOpcoes}
             onClick={() => onAlterar(valorSelecionado)}
           >
             {estaSalvando ? 'Alterando...' : 'Alterar'}
