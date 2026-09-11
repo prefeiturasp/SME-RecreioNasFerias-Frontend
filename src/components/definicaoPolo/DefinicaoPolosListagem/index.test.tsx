@@ -458,17 +458,17 @@ describe('DefinicaoPolosListagem', () => {
     listarDefinicoesPoloMock.mockImplementation(
       () =>
         new Promise((resolve) => {
-          setTimeout(
-            () => resolve(criarListagemPaginada([poloDiretaApi])),
-            100,
-          )
+          setTimeout(() => resolve(criarListagemPaginada([poloDiretaApi])), 100)
         }),
     )
 
     renderDefinicaoPolosListagem()
 
+    expect(screen.getByText(/carregando polos da rede/i)).toBeInTheDocument()
     expect(
-      screen.getByText(/carregando definição de polos/i),
+      screen.getByRole('progressbar', {
+        name: /progresso do carregamento dos polos/i,
+      }),
     ).toBeInTheDocument()
 
     await waitFor(() => {

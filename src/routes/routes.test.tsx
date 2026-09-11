@@ -113,18 +113,6 @@ vi.mock('../services/definicaoPolo/listarDefinicoesPolo', () => ({
   }),
 }))
 
-vi.mock('../services/definicaoPolo/popularPolos', () => ({
-  popularPolos: vi.fn().mockResolvedValue({
-    total_consultados: 0,
-    total_novos: 0,
-    total_ja_existentes: 0,
-    unidades_novas: [],
-    executada: false,
-    motivo_ignorada: 'ja_executada_hoje',
-    ultima_execucao_em: null,
-  }),
-}))
-
 describe('RotasAplicacao', () => {
   beforeEach(() => {
     limparSessaoAutenticacao()

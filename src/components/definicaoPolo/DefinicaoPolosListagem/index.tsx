@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { iconeOlho } from '@/assets'
 import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { BarraAcoesSelecao } from '@/components/definicaoPolo/BarraAcoesSelecao'
-import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
+import { IndicadorCargaPolos } from '@/components/definicaoPolo/IndicadorCargaPolos'
 import { ChevronDownIcon } from '@/components/icons'
 import { TabelaListagem } from '@/components/TabelaListagem'
 import type { DefinicaoColuna } from '@/components/TabelaListagem/types'
@@ -152,7 +152,7 @@ export function DefinicaoPolosListagem({
   }
 
   if (listagemQuery.isPending && !listagemQuery.isPlaceholderData) {
-    return <IndicadorCarregamento mensagem="Carregando definição de polos..." />
+    return <IndicadorCargaPolos />
   }
 
   if (listagemQuery.isError) {

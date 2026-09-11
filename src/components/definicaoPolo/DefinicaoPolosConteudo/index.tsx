@@ -1,7 +1,5 @@
-import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { DefinicaoPolosListagem } from '@/components/definicaoPolo/DefinicaoPolosListagem'
 import { FiltrosDefinicaoPolosForm } from '@/components/definicaoPolo/FiltrosDefinicaoPolosForm'
-import { IndicadorCargaPolos } from '@/components/definicaoPolo/IndicadorCargaPolos'
 import { ModalAlterarSelecao } from '@/components/definicaoPolo/ModalAlterarSelecao'
 import { CloseIcon } from '@/components/icons'
 import { Modal } from '@/components/Modal'
@@ -10,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
 import { usePostAlterarTipoEmMassa } from '@/hooks/usePostAlterarTipoEmMassa'
-import { usePostPopularPolos } from '@/hooks/usePostPopularPolos'
 import { usePostVincularEmMassa } from '@/hooks/usePostVincularEmMassa'
 import {
   FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
@@ -28,7 +25,6 @@ const TEMPO_EXIBICAO_SUCESSO_MS = 3000
 
 export function DefinicaoPolosConteudo() {
   const queryClient = useQueryClient()
-  const popularizacaoMutation = usePostPopularPolos()
   const vincularEmMassaMutation = usePostVincularEmMassa()
   const alterarTipoMutation = usePostAlterarTipoEmMassa()
 
@@ -63,8 +59,6 @@ export function DefinicaoPolosConteudo() {
 
   const modalTipoAberto = polosParaAlterarTipoPolo.length > 0
   const edicoesQuery = useGetEdicoesPrograma(modalEdicaoAberto)
-  const listagemLiberada =
-    popularizacaoMutation.isSuccess || popularizacaoMutation.isError
 
   const opcoesNomeEdicao = (edicoesQuery.data ?? [])
     .filter((edicao) => edicao.nome.trim() !== '')
@@ -72,10 +66,6 @@ export function DefinicaoPolosConteudo() {
       valor: edicao.uuid,
       rotulo: edicao.nome.trim(),
     }))
-
-  useEffect(() => {
-    popularizacaoMutation.mutate()
-  }, [popularizacaoMutation.mutate])
 
   function aplicarFiltros(filtros: FiltrosListagemDefinicaoPolos) {
     setFiltrosAplicados(filtros)
@@ -169,8 +159,6 @@ export function DefinicaoPolosConteudo() {
 
   return (
     <>
-      <AlertaErroApi erro={popularizacaoMutation.error} />
-
       {mensagemSucessoVisivel ? (
         <Alert
           role="status"
@@ -201,16 +189,12 @@ export function DefinicaoPolosConteudo() {
 
       <Card className="overflow-visible rounded-sm bg-background py-0 shadow-card ring-0">
         <CardContent className="p-8 max-md:p-4">
-          {listagemLiberada ? (
-            <DefinicaoPolosListagem
-              filtros={filtrosAplicados}
-              chaveResetSelecao={chaveResetSelecao}
-              onAlterarEdicaoPolo={abrirModalAlterarEdicao}
-              onAlterarTipoPolo={abrirModalAlterarTipoPolo}
-            />
-          ) : (
-            <IndicadorCargaPolos />
-          )}
+          <DefinicaoPolosListagem
+            filtros={filtrosAplicados}
+            chaveResetSelecao={chaveResetSelecao}
+            onAlterarEdicaoPolo={abrirModalAlterarEdicao}
+            onAlterarTipoPolo={abrirModalAlterarTipoPolo}
+          />
         </CardContent>
       </Card>
 

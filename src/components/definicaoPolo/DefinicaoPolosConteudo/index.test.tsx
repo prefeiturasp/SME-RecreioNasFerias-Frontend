@@ -48,7 +48,6 @@ const {
   vincularEmMassaMock,
   alterarTipoEmMassaMock,
   listarEdicoesProgramaMock,
-  popularPolosMock,
   listarDefinicoesPoloMock,
   listarDresMock,
   listarTiposEscolaMock,
@@ -56,7 +55,6 @@ const {
   vincularEmMassaMock: vi.fn(),
   alterarTipoEmMassaMock: vi.fn(),
   listarEdicoesProgramaMock: vi.fn(),
-  popularPolosMock: vi.fn(),
   listarDefinicoesPoloMock: vi.fn(),
   listarDresMock: vi.fn(),
   listarTiposEscolaMock: vi.fn(),
@@ -70,21 +68,20 @@ vi.mock('@/services/definicaoPolo/alterarTipoEmMassa', () => ({
   alterarTipoEmMassa: alterarTipoEmMassaMock,
 }))
 
-vi.mock('@/services/definicaoPolo/popularPolos', () => ({
-  popularPolos: popularPolosMock,
-}))
+vi.mock(
+  '@/services/definicaoPolo/listarDefinicoesPolo',
+  async (importOriginal) => {
+    const actual =
+      await importOriginal<
+        typeof import('@/services/definicaoPolo/listarDefinicoesPolo')
+      >()
 
-vi.mock('@/services/definicaoPolo/listarDefinicoesPolo', async (importOriginal) => {
-  const actual =
-    await importOriginal<
-      typeof import('@/services/definicaoPolo/listarDefinicoesPolo')
-    >()
-
-  return {
-    ...actual,
-    listarDefinicoesPolo: listarDefinicoesPoloMock,
-  }
-})
+    return {
+      ...actual,
+      listarDefinicoesPolo: listarDefinicoesPoloMock,
+    }
+  },
+)
 
 vi.mock('@/services/edicaoPrograma/listarEdicoesPrograma', () => ({
   listarEdicoesPrograma: listarEdicoesProgramaMock,
@@ -138,20 +135,10 @@ describe('DefinicaoPolosConteudo', () => {
     vincularEmMassaMock.mockReset()
     alterarTipoEmMassaMock.mockReset()
     listarEdicoesProgramaMock.mockReset()
-    popularPolosMock.mockReset()
     listarDefinicoesPoloMock.mockReset()
     listarDresMock.mockReset()
     listarTiposEscolaMock.mockReset()
 
-    popularPolosMock.mockResolvedValue({
-      total_consultados: 0,
-      total_novos: 0,
-      total_ja_existentes: 0,
-      unidades_novas: [],
-      executada: false,
-      motivo_ignorada: 'ja_executada_hoje',
-      ultima_execucao_em: '2026-07-13T12:00:00+00:00',
-    })
     listarDefinicoesPoloMock.mockResolvedValue({
       count: 0,
       next: null,
@@ -191,87 +178,9 @@ describe('DefinicaoPolosConteudo', () => {
     ])
   })
 
-  it('exibe loading e não monta a listagem enquanto a rotina está em andamento', async () => {
-    let concluirCarga: (resultado: unknown) => void = () => undefined
-    popularPolosMock.mockReturnValue(
-      new Promise((resolve) => {
-        concluirCarga = resolve
-      }),
-    )
-
-    renderConteudo()
-
-    expect(
-      screen.getByText(/carregando polos da rede/i),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('progressbar', {
-        name: /progresso do carregamento dos polos/i,
-      }),
-    ).toBeInTheDocument()
-    expect(screen.getByText('Filtrar Polos')).toBeInTheDocument()
-    expect(
-      screen.queryByText(/listagem de definição de polos/i),
-    ).not.toBeInTheDocument()
-    expect(listarDefinicoesPoloMock).not.toHaveBeenCalled()
-
-    concluirCarga({
-      total_consultados: 0,
-      total_novos: 0,
-      total_ja_existentes: 0,
-      unidades_novas: [],
-      executada: false,
-      motivo_ignorada: 'ja_executada_hoje',
-      ultima_execucao_em: '2026-07-13T12:00:00+00:00',
-    })
-
-    await esperarConteudoPronto()
-    expect(screen.getByText('Filtrar Polos')).toBeInTheDocument()
-    expect(
-      screen.queryByText(/carregando polos da rede/i),
-    ).not.toBeInTheDocument()
-  })
-
-  it('libera a listagem após a rotina mesmo sem dados novos', async () => {
-    popularPolosMock.mockResolvedValue({
-      total_consultados: 0,
-      total_novos: 0,
-      total_ja_existentes: 0,
-      unidades_novas: [],
-      executada: false,
-      motivo_ignorada: 'ja_executada_hoje',
-      ultima_execucao_em: '2026-07-13T12:00:00+00:00',
-    })
-
-    renderConteudo()
-
-    await esperarConteudoPronto()
-    expect(
-      screen.queryByText(/carregando polos da rede/i),
-    ).not.toBeInTheDocument()
-    expect(screen.getByText('Filtrar Polos')).toBeInTheDocument()
-  })
-
   it('renderiza filtros e listagem', async () => {
     renderConteudo()
 
-    await esperarConteudoPronto()
-    expect(screen.getByText('Filtrar Polos')).toBeInTheDocument()
-    await waitFor(() => {
-      expect(popularPolosMock).toHaveBeenCalled()
-    })
-  })
-
-  it('exibe erro da API quando a carga de polos falha e libera a listagem', async () => {
-    popularPolosMock.mockRejectedValue({
-      response: { data: { detalhe: 'Falha ao carregar polos da rede.' } },
-    })
-
-    renderConteudo()
-
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      /falha ao carregar polos da rede/i,
-    )
     await esperarConteudoPronto()
     expect(screen.getByText('Filtrar Polos')).toBeInTheDocument()
   })
@@ -283,7 +192,9 @@ describe('DefinicaoPolosConteudo', () => {
     await esperarConteudoPronto()
 
     await usuario.click(await screen.findByLabelText(/^gestão$/i))
-    await usuario.click(await screen.findByRole('option', { name: /^parceira$/i }))
+    await usuario.click(
+      await screen.findByRole('option', { name: /^parceira$/i }),
+    )
     await usuario.click(screen.getByRole('button', { name: /^filtrar$/i }))
 
     expect(screen.getByTestId('filtros-aplicados-gestao')).toHaveTextContent(
@@ -298,7 +209,9 @@ describe('DefinicaoPolosConteudo', () => {
     await esperarConteudoPronto()
 
     await usuario.click(await screen.findByLabelText(/^gestão$/i))
-    await usuario.click(await screen.findByRole('option', { name: /^parceira$/i }))
+    await usuario.click(
+      await screen.findByRole('option', { name: /^parceira$/i }),
+    )
     await usuario.click(screen.getByRole('button', { name: /limpar filtros/i }))
 
     expect(screen.getByLabelText(/^gestão$/i)).toHaveTextContent(

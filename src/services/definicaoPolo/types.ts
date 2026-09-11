@@ -1,5 +1,3 @@
-import type { PoloDetalhado } from '../polo/types'
-
 export type DefinicaoPoloApi = {
   polo_uuid: string
   codigo_eol: string
@@ -43,16 +41,6 @@ export type ListagemDefinicoesPoloPaginada = {
   next: string | null
   previous: string | null
   results: DefinicaoPoloApi[]
-}
-
-export type ResultadoPopularPolos = {
-  total_consultados: number
-  total_novos: number
-  total_ja_existentes: number
-  unidades_novas: PoloDetalhado[]
-  executada: boolean
-  motivo_ignorada: string | null
-  ultima_execucao_em: string | null
 }
 
 export type DadosVincularEmMassa = {
