@@ -190,6 +190,11 @@ describe('DefinicaoPolosConteudo', () => {
 
     await esperarConteudoPronto()
     expect(screen.getByText('Filtrar Polos')).toBeInTheDocument()
+    expect(
+      screen
+        .getByText(/listagem de definição de polos/i)
+        .closest('div.flex.flex-col'),
+    ).toHaveClass('gap-4', 'bg-white', 'p-4')
   })
 
   it('aplica filtro de gestão Parceira ao filtrar', async () => {

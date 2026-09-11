@@ -4,7 +4,7 @@ import { ModalAlterarSelecao } from '@/components/definicaoPolo/ModalAlterarSele
 import { CloseIcon } from '@/components/icons'
 import { Alert, AlertAction, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
 import { usePostAlterarTipoEmMassa } from '@/hooks/usePostAlterarTipoEmMassa'
 import { usePostVincularEmMassa } from '@/hooks/usePostVincularEmMassa'
@@ -51,11 +51,11 @@ export function DefinicaoPolosConteudo() {
   useEffect(() => {
     if (!resultadoOperacao) return
 
-    const temporizador = globalThis.setTimeout(() => {
+    const temporizador = setTimeout(() => {
       setResultadoOperacao(null)
     }, TEMPO_EXIBICAO_SUCESSO_MS)
 
-    return () => globalThis.clearTimeout(temporizador)
+    return () => clearTimeout(temporizador)
   }, [resultadoOperacao])
 
   const modalTipoAberto = polosParaAlterarTipoPolo.length > 0
@@ -184,14 +184,14 @@ export function DefinicaoPolosConteudo() {
       />
 
       <Card className="overflow-visible rounded-sm bg-background py-0 shadow-card ring-0">
-        <CardContent className="p-8 max-md:p-4">
+        <div className="flex flex-col gap-4 bg-white p-4">
           <DefinicaoPolosListagem
             filtros={filtrosAplicados}
             chaveResetSelecao={chaveResetSelecao}
             onAlterarEdicaoPolo={abrirModalAlterarEdicao}
             onAlterarTipoPolo={abrirModalAlterarTipoPolo}
           />
-        </CardContent>
+        </div>
       </Card>
 
       <ModalAlterarSelecao
