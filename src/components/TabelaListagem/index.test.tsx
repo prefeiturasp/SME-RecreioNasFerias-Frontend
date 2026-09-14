@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { TabelaListagem, type DefinicaoColuna } from './index'
+import { TabelaListagem } from './index'
+import type { DefinicaoColuna } from './types'
 
 type ItemExemplo = {
   id: string
@@ -49,7 +50,7 @@ describe('TabelaListagem', () => {
   it('exibe mensagem de listagem vazia', () => {
     render(<TabelaListagem itens={[]} {...propsTabelaPadrao} />)
 
-    expect(screen.getByRole('status')).toHaveTextContent(/sem dados/i)
+    expect(screen.getByText(/sem dados/i)).toBeInTheDocument()
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 
@@ -234,5 +235,173 @@ describe('TabelaListagem', () => {
     await usuario.click(screen.getByRole('button', { name: /ordenar por nome/i }))
 
     expect(onMudarPagina).toHaveBeenCalledWith(1)
+  })
+
+  it('exibe título no estado vazio e com dados', () => {
+    const { rerender } = render(
+      <TabelaListagem
+        itens={[]}
+        {...propsTabelaPadrao}
+        titulo="Resultados da pesquisa"
+      />,
+    )
+
+    expect(screen.getByText('Resultados da pesquisa')).toBeInTheDocument()
+
+    rerender(
+      <TabelaListagem
+        itens={[itemExemplo]}
+        {...propsTabelaPadrao}
+        titulo="Resultados da pesquisa"
+      />,
+    )
+
+    expect(screen.getByText('Resultados da pesquisa')).toBeInTheDocument()
+    expect(screen.getByRole('table')).toBeInTheDocument()
+  })
+
+  it('não exibe paginação quando totalPaginas é zero', () => {
+    render(<TabelaListagem itens={[itemExemplo]} {...propsTabelaPadrao} totalPaginas={0} />)
+
+    expect(
+      screen.queryByRole('navigation', { name: /paginação da listagem/i }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('no modo servidor renderiza os itens recebidos sem fatiar', () => {
+    const itensPaginaDois: ItemExemplo[] = [
+      { id: 'pagina-2', nome: 'Item da página 2', quantidade: 99 },
+    ]
+
+    render(
+      <TabelaListagem
+        itens={itensPaginaDois}
+        {...propsTabelaPadrao}
+        modoPaginacao="servidor"
+        paginaAtual={2}
+        totalPaginas={2}
+      />,
+    )
+
+    expect(screen.getByText('Item da página 2')).toBeInTheDocument()
+  })
+
+  it('permite selecionar itens individualmente', async () => {
+    const usuario = userEvent.setup()
+    const onMudarSelecao = vi.fn()
+    const itens: ItemExemplo[] = [
+      { id: '1', nome: 'Janeiro 2026', quantidade: 1 },
+      { id: '2', nome: 'Fevereiro 2026', quantidade: 2 },
+    ]
+
+    render(
+      <TabelaListagem
+        itens={itens}
+        {...propsTabelaPadrao}
+        selecao={{
+          idsSelecionados: new Set(),
+          onMudarSelecao,
+          rotuloSelecionarItem: (item) => `Selecionar ${item.nome}`,
+        }}
+      />,
+    )
+
+    await usuario.click(
+      screen.getByRole('checkbox', { name: /selecionar janeiro 2026/i }),
+    )
+
+    expect(onMudarSelecao).toHaveBeenCalledWith(new Set(['1']))
+  })
+
+  it('permite selecionar todos os itens da página', async () => {
+    const usuario = userEvent.setup()
+    const onMudarSelecao = vi.fn()
+    const itens: ItemExemplo[] = [
+      { id: '1', nome: 'Janeiro 2026', quantidade: 1 },
+      { id: '2', nome: 'Fevereiro 2026', quantidade: 2 },
+    ]
+
+    render(
+      <TabelaListagem
+        itens={itens}
+        {...propsTabelaPadrao}
+        selecao={{
+          idsSelecionados: new Set(),
+          onMudarSelecao,
+        }}
+      />,
+    )
+
+    await usuario.click(
+      screen.getByRole('checkbox', {
+        name: /selecionar todos os itens da página/i,
+      }),
+    )
+
+    expect(onMudarSelecao).toHaveBeenCalledWith(new Set(['1', '2']))
+  })
+
+  it('exibe estado indeterminado ao selecionar parte dos itens', () => {
+    render(
+      <TabelaListagem
+        itens={[
+          { id: '1', nome: 'Janeiro 2026', quantidade: 1 },
+          { id: '2', nome: 'Fevereiro 2026', quantidade: 2 },
+        ]}
+        {...propsTabelaPadrao}
+        selecao={{
+          idsSelecionados: new Set(['1']),
+          onMudarSelecao: vi.fn(),
+        }}
+      />,
+    )
+
+    expect(
+      screen.getByRole('checkbox', {
+        name: /selecionar todos os itens da página/i,
+      }),
+    ).toHaveAttribute('aria-checked', 'mixed')
+  })
+
+  it('no modo servidor não volta para a primeira página ao ordenar', async () => {
+    const usuario = userEvent.setup()
+    const onMudarPagina = vi.fn()
+    const itens: ItemExemplo[] = [
+      { id: '1', nome: 'Março 2026', quantidade: 1 },
+      { id: '2', nome: 'Janeiro 2026', quantidade: 2 },
+    ]
+
+    render(
+      <TabelaListagem
+        itens={itens}
+        {...propsTabelaPadrao}
+        modoPaginacao="servidor"
+        paginaAtual={2}
+        totalPaginas={2}
+        onMudarPagina={onMudarPagina}
+      />,
+    )
+
+    await usuario.click(screen.getByRole('button', { name: /ordenar por nome/i }))
+
+    expect(onMudarPagina).not.toHaveBeenCalled()
+  })
+
+  it('renderiza barra de seleção quando há itens selecionados na página', () => {
+    render(
+      <TabelaListagem
+        itens={[itemExemplo]}
+        {...propsTabelaPadrao}
+        selecao={{
+          idsSelecionados: new Set(['1']),
+          onMudarSelecao: vi.fn(),
+        }}
+        renderizarBarraSelecao={({ idsSelecionadosNaPagina }) => (
+          <p>{idsSelecionadosNaPagina.length} selecionados</p>
+        )}
+      />,
+    )
+
+    expect(screen.getByText('1 selecionados')).toBeInTheDocument()
   })
 })

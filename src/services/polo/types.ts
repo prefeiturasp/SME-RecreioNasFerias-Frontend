@@ -37,6 +37,17 @@ export type PoloDetalhado = {
   atualizado_em: string
 }
 
+export type PoloListagemItem = Omit<PoloDetalhado, 'gestao'> & {
+  gestao: GestaoPolo | 'direta'
+}
+
+export type ListagemPolosPaginada = {
+  count: number
+  next: string | null
+  previous: string | null
+  results: PoloListagemItem[]
+}
+
 export type DadosCadastroPolo = {
   codigoEol: string
   nomePolo: string

@@ -3,14 +3,12 @@ import { Link } from 'react-router-dom'
 import { iconeLapisEditar } from '@/assets'
 import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
-import {
-  TabelaListagem,
-  type DefinicaoColuna,
-} from '@/components/TabelaListagem'
+import { TabelaListagem } from '@/components/TabelaListagem'
+import type { DefinicaoColuna } from '@/components/TabelaListagem/types'
 import { Button } from '@/components/ui/button'
 import { OPCOES_ITENS_POR_PAGINA } from '@/constants/paginacao'
 import { useGetPolos } from '@/hooks/useGetPolos'
-import type { PoloDetalhado } from '@/services/polo/types'
+import type { PoloListagemItem } from '@/services/polo/types'
 import { Filtros } from './Filtros'
 import {
   FILTROS_POLO_INICIAIS,
@@ -18,6 +16,8 @@ import {
 } from '@/constants/filtroPolos'
 import { CollapsibleFilter } from '@/components/CollapsibleFilter'
 import { IconeFiltro } from '@/components/icons'
+
+const GESTAO_PARCEIRA = 'parceira'
 
 const COLUNAS = [
   {
@@ -56,7 +56,7 @@ const COLUNAS = [
     valorOrdenacao: (polo) => polo.status,
     renderizar: (polo) => polo.status,
   },
-] as const satisfies readonly DefinicaoColuna<PoloDetalhado>[]
+] as const satisfies readonly DefinicaoColuna<PoloListagemItem>[]
 
 function existemFiltrosAplicados(filtros: FiltrosPolo) {
   return Boolean(filtros.busca || filtros.dre_codigo_eol || filtros.tipo_ue)
@@ -73,7 +73,7 @@ export function PoloListagem() {
   )
 
   const {
-    data: polos,
+    data: listagemPolos,
     isPending,
     isError,
     error,
@@ -81,6 +81,9 @@ export function PoloListagem() {
     filtrosAplicados.busca,
     filtrosAplicados.dre_codigo_eol,
     filtrosAplicados.tipo_ue,
+    paginaAtual,
+    itensPorPagina,
+    GESTAO_PARCEIRA,
   )
 
   function mudarItensPorPagina(novoTamanho: number) {
@@ -99,10 +102,9 @@ export function PoloListagem() {
     setPaginaAtual(1)
   }
 
-  const polosCarregados = polos ?? []
-  const totalPaginas = Math.ceil(polosCarregados.length / itensPorPagina)
-  const paginaAjustada =
-    totalPaginas > 0 ? Math.min(paginaAtual, totalPaginas) : 1
+  const polosCarregados = listagemPolos?.results ?? []
+  const totalRegistros = listagemPolos?.count ?? 0
+  const totalPaginas = Math.ceil(totalRegistros / itensPorPagina)
 
   return (
     <div className="flex flex-col gap-4 bg-white p-4">
@@ -124,7 +126,8 @@ export function PoloListagem() {
           colunas={COLUNAS}
           obterId={(polo) => polo.uuid}
           colunaOrdenacaoInicial="nome_polo"
-          paginaAtual={paginaAjustada}
+          modoPaginacao="servidor"
+          paginaAtual={paginaAtual}
           totalPaginas={totalPaginas}
           itensPorPagina={itensPorPagina}
           onMudarPagina={setPaginaAtual}

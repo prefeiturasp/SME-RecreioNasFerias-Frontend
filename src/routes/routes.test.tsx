@@ -27,7 +27,12 @@ vi.mock('../components/MenuLateral', () => ({
 }))
 
 vi.mock('../services/polo/listarPolos', () => ({
-  listarPolos: vi.fn().mockResolvedValue([]),
+  listarPolos: vi.fn().mockResolvedValue({
+    count: 0,
+    next: null,
+    previous: null,
+    results: [],
+  }),
 }))
 
 vi.mock('../services/dre/listarDres', () => ({
@@ -104,29 +109,12 @@ function renderRotas(initialEntry: string) {
   )
 }
 
-vi.mock('../services/definicaoPolo/api', () => ({
+vi.mock('../services/definicaoPolo/listarDefinicoesPolo', () => ({
   listarDefinicoesPolo: vi.fn().mockResolvedValue({
-    polos: [],
-    pagina: 1,
-    tamanhoPagina: 10,
-    total: 0,
-    totalPaginas: 0,
-  }),
-  sincronizarUnidadesDiretas: vi.fn().mockResolvedValue({
-    totalConsultados: 0,
-    totalNovos: 0,
-    totalJaExistentes: 0,
-    executada: false,
-    motivoIgnorada: 'ja_executada_hoje',
-    ultimaExecucaoEm: null,
-  }),
-  atualizarDefinicoesPoloEmLote: vi.fn(),
-  listarOpcoesFiltroDefinicaoPolos: vi.fn().mockResolvedValue({
-    dres: [],
-    tiposUe: [],
-    gestoes: [],
-    nomesEdicao: [],
-    tiposPolo: [],
+    count: 0,
+    next: null,
+    previous: null,
+    results: [],
   }),
 }))
 
