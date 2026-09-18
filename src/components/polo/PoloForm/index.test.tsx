@@ -12,12 +12,16 @@ const {
   atualizarPoloMock,
   listarDresMock,
   listarTiposEscolaMock,
+  toastMock,
+  dismissToastMock,
 } = vi.hoisted(() => ({
   cadastrarPoloMock: vi.fn(),
   obterPoloMock: vi.fn(),
   atualizarPoloMock: vi.fn(),
   listarDresMock: vi.fn(),
   listarTiposEscolaMock: vi.fn(),
+  toastMock: vi.fn(),
+  dismissToastMock: vi.fn(),
 }))
 
 vi.mock('@/services/polo/cadastrarPolo', async (importOriginal) => {
@@ -71,6 +75,13 @@ vi.mock('@/services/tipoEscola/listarTiposEscola', async (importOriginal) => {
     listarTiposEscola: listarTiposEscolaMock,
   }
 })
+
+vi.mock('@/hooks/useToast', () => ({
+  useToast: () => ({
+    showToast: toastMock,
+    dismissToast: dismissToastMock,
+  }),
+}))
 
 const poloCarregado: PoloDetalhado = {
   uuid: '11111111-1111-1111-1111-111111111111',
@@ -188,6 +199,8 @@ describe('PoloForm', { timeout: 15000 }, () => {
     cadastrarPoloMock.mockReset()
     obterPoloMock.mockReset()
     atualizarPoloMock.mockReset()
+    toastMock.mockReset()
+    dismissToastMock.mockReset()
     listarDresMock.mockResolvedValue([
       {
         codigo_dre: '108100',
@@ -226,6 +239,24 @@ describe('PoloForm', { timeout: 15000 }, () => {
     expect(screen.queryByLabelText(/^status$/i)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Salvar' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument()
+  })
+
+  it('exibe em toast o erro ao carregar as opções do formulário', async () => {
+    listarDresMock.mockRejectedValue({
+      response: { data: { detalhe: 'Não foi possível carregar as DREs.' } },
+    })
+
+    renderPoloForm()
+
+    await waitFor(() => {
+      expect(toastMock).toHaveBeenCalledWith({
+        id: 'erro-opcoes-cadastro-polo-parceiro',
+        variant: 'destructive',
+        title: 'Erro ao carregar o formulário',
+        description: 'Não foi possível carregar as DREs.',
+      })
+    })
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
   it('exibe erros de validação quando os campos estão vazios', async () => {
@@ -282,7 +313,7 @@ describe('PoloForm', { timeout: 15000 }, () => {
     expect(screen.getByText('Polo cadastrado')).toBeInTheDocument()
   })
 
-  it('exibe mensagem de erro quando o cadastro falha', async () => {
+  it('exibe toast de erro quando o cadastro falha', async () => {
     const usuario = criarUsuario()
     cadastrarPoloMock.mockRejectedValue({
       response: {
@@ -295,13 +326,19 @@ describe('PoloForm', { timeout: 15000 }, () => {
     await preencherFormularioValido(usuario)
     await usuario.click(screen.getByRole('button', { name: 'Salvar' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Já existe polo parceiro com o nome cadastrado.',
-    )
+    await waitFor(() => {
+      expect(toastMock).toHaveBeenCalledWith({
+        id: 'erro-cadastro-polo-parceiro',
+        variant: 'destructive',
+        title: 'Erro ao cadastrar polo parceiro',
+        description: 'Já existe polo parceiro com o nome cadastrado.',
+      })
+    })
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(screen.queryByText('Listagem de polos')).not.toBeInTheDocument()
   })
 
-  it('remove o alerta da API quando o usuário altera um campo', async () => {
+  it('fecha o toast da API quando o usuário altera um campo', async () => {
     const usuario = criarUsuario()
     cadastrarPoloMock.mockRejectedValue({
       response: {
@@ -314,14 +351,16 @@ describe('PoloForm', { timeout: 15000 }, () => {
     await preencherFormularioValido(usuario)
     await usuario.click(screen.getByRole('button', { name: 'Salvar' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Já existe polo parceiro com o nome cadastrado.',
-    )
+    await waitFor(() => {
+      expect(toastMock).toHaveBeenCalled()
+    })
 
     await usuario.type(screen.getByLabelText(/nome da osc/i), ' atualizada')
 
     await waitFor(() => {
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      expect(dismissToastMock).toHaveBeenCalledWith(
+        'erro-cadastro-polo-parceiro',
+      )
     })
   })
 })
@@ -331,6 +370,8 @@ describe('PoloForm em edição', { timeout: 15000 }, () => {
     cadastrarPoloMock.mockReset()
     obterPoloMock.mockReset()
     atualizarPoloMock.mockReset()
+    toastMock.mockReset()
+    dismissToastMock.mockReset()
     listarDresMock.mockResolvedValue([
       {
         codigo_dre: '108100',

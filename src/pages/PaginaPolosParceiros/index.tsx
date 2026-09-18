@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import IconeSetaVoltar from '../../assets/icone-seta-voltar.png'
 import { Cabecalho } from '../../components/Cabecalho'
 import { MapaVisual } from '../../components/MapaVisual'
 import { MenuLateral } from '../../components/MenuLateral'
-import { MensagemSucessoAoCadastrarPoloParceiro } from './MensagemSucessoAoCadastrarPoloParceiro'
 import type { EstadoNavegacaoPolosParceiros } from './types'
 import {
   AreaConteudo,
@@ -17,6 +16,9 @@ import {
   SecaoPrincipal,
 } from './style'
 import PoloListagem from '@/components/polo/PoloListagem'
+import { useToast } from '@/hooks/useToast'
+
+const TOAST_SUCESSO_CADASTRO_ID = 'polo-parceiro-cadastrado'
 
 const NIVEIS_MAPA_VISUAL = [
   { rotulo: 'Início', caminho: '/inicio' },
@@ -27,21 +29,20 @@ const NIVEIS_MAPA_VISUAL = [
 export default function PaginaPolosParceiros() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { showToast } = useToast()
   const estadoNavegacao = location.state as EstadoNavegacaoPolosParceiros | null
-
-  const [mensagemSucessoVisivel, setMensagemSucessoVisivel] = useState(
-    Boolean(estadoNavegacao?.poloCadastrado),
-  )
-
-  const fecharMensagemSucesso = useCallback(() => {
-    setMensagemSucessoVisivel(false)
-  }, [])
 
   useEffect(() => {
     if (!estadoNavegacao?.poloCadastrado) return
 
+    showToast({
+      id: TOAST_SUCESSO_CADASTRO_ID,
+      variant: 'success',
+      description: 'Polo Parceiro cadastrado com sucesso!',
+      duration: 3000,
+    })
     navigate('/polos-parceiros', { replace: true })
-  }, [estadoNavegacao?.poloCadastrado, navigate])
+  }, [estadoNavegacao?.poloCadastrado, navigate, showToast])
 
   return (
     <ContainerPaginaPolosParceiros>
@@ -52,11 +53,6 @@ export default function PaginaPolosParceiros() {
 
         <AreaConteudo>
           <MapaVisual niveis={[...NIVEIS_MAPA_VISUAL]} />
-
-          <MensagemSucessoAoCadastrarPoloParceiro
-            visivel={mensagemSucessoVisivel}
-            onFechar={fecharMensagemSucesso}
-          />
 
           <section>
             <CabecalhoAreaInternaConteudo>

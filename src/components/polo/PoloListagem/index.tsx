@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import type { AxiosError } from 'axios'
 import { Link } from 'react-router-dom'
 import { iconeLapisEditar } from '@/assets'
-import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 import { TabelaListagem } from '@/components/TabelaListagem'
 import type { DefinicaoColuna } from '@/components/TabelaListagem/types'
@@ -16,8 +16,11 @@ import {
 } from '@/constants/filtroPolos'
 import { CollapsibleFilter } from '@/components/CollapsibleFilter'
 import { IconeFiltro } from '@/components/icons'
+import { useToast } from '@/hooks/useToast'
 
 const GESTAO_PARCEIRA = 'parceira'
+const TOAST_ERRO_LISTAGEM_ID = 'erro-listagem-polos-parceiros'
+type ErroApi = AxiosError<{ detalhe: string }>
 
 const COLUNAS = [
   {
@@ -63,6 +66,7 @@ function existemFiltrosAplicados(filtros: FiltrosPolo) {
 }
 
 export function PoloListagem() {
+  const { showToast } = useToast()
   const [filtros, setFiltros] = useState<FiltrosPolo>(FILTROS_POLO_INICIAIS)
   const [filtrosAplicados, setFiltrosAplicados] = useState<FiltrosPolo>(
     FILTROS_POLO_INICIAIS,
@@ -106,6 +110,17 @@ export function PoloListagem() {
   const totalRegistros = listagemPolos?.count ?? 0
   const totalPaginas = Math.ceil(totalRegistros / itensPorPagina)
 
+  useEffect(() => {
+    if (!isError) return
+
+    showToast({
+      id: TOAST_ERRO_LISTAGEM_ID,
+      variant: 'destructive',
+      title: 'Erro ao carregar polos parceiros',
+      description: (error as ErroApi).response?.data.detalhe,
+    })
+  }, [error, isError, showToast])
+
   return (
     <div className="flex flex-col gap-4 bg-white p-4">
       <CollapsibleFilter icon={<IconeFiltro />} title="Filtrar Polos">
@@ -118,7 +133,6 @@ export function PoloListagem() {
       </CollapsibleFilter>
 
       {isPending && <IndicadorCarregamento mensagem="Carregando polos..." />}
-      {isError && <AlertaErroApi erro={error} />}
 
       {!isPending && !isError && (
         <TabelaListagem

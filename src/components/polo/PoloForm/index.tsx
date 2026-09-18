@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import type { AxiosError } from 'axios'
 import { useEffect, useRef, useState, type SubmitEvent } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
@@ -29,6 +30,7 @@ import { useGetPolo } from '@/hooks/useGetPolo'
 import { useGetTiposEscola } from '@/hooks/useGetTiposEscola'
 import { usePostPolo } from '@/hooks/usePostPolo'
 import { usePutPolo } from '@/hooks/usePutPolo'
+import { useToast } from '@/hooks/useToast'
 import {
   aplicarMascaraCep,
   aplicarMascaraTelefone,
@@ -36,6 +38,9 @@ import {
 
 const TIPO_POLO_PADRAO = 'pendente' as const
 const GESTAO_POLO_PADRAO = 'parceira' as const
+const TOAST_ERRO_CADASTRO_ID = 'erro-cadastro-polo-parceiro'
+const TOAST_ERRO_OPCOES_ID = 'erro-opcoes-cadastro-polo-parceiro'
+type ErroApi = AxiosError<{ detalhe: string }>
 
 type PoloFormProps = {
   poloId?: string
@@ -43,6 +48,7 @@ type PoloFormProps = {
 
 export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
   const navigate = useNavigate()
+  const { dismissToast, showToast } = useToast()
   const [confirmacaoAberta, setConfirmacaoAberta] = useState(false)
   const dadosEdicaoRef = useRef<FormValues | null>(null)
   const dresQuery = useGetDres()
@@ -112,6 +118,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
 
   useEffect(() => {
     if (cadastroMutation.isError) {
+      dismissToast(TOAST_ERRO_CADASTRO_ID)
       cadastroMutation.reset()
     }
     if (atualizacaoMutation.isError) {
@@ -154,12 +161,34 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
   const estaCarregandoOpcoes = dresQuery.isPending || tiposEscolaQuery.isPending
   const erroOpcoes = dresQuery.error ?? tiposEscolaQuery.error
 
+  useEffect(() => {
+    if (poloId || !erroOpcoes) return
+
+    showToast({
+      id: TOAST_ERRO_OPCOES_ID,
+      variant: 'destructive',
+      title: 'Erro ao carregar o formulário',
+      description: (erroOpcoes as ErroApi).response?.data.detalhe,
+    })
+  }, [erroOpcoes, poloId, showToast])
+
+  useEffect(() => {
+    if (poloId || !cadastroMutation.error) return
+
+    showToast({
+      id: TOAST_ERRO_CADASTRO_ID,
+      variant: 'destructive',
+      title: 'Erro ao cadastrar polo parceiro',
+      description: (cadastroMutation.error as ErroApi).response?.data.detalhe,
+    })
+  }, [cadastroMutation.error, poloId, showToast])
+
   if (!poloId && estaCarregandoOpcoes) {
     return <IndicadorCarregamento mensagem="Carregando formulário..." />
   }
 
   if (!poloId && erroOpcoes) {
-    return <AlertaErroApi erro={erroOpcoes} />
+    return null
   }
 
   if (poloId && (poloQuery.isPending || estaCarregandoOpcoes)) {
@@ -183,9 +212,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
         className="rounded-sm bg-background p-8 shadow-card max-md:p-4"
       >
         <FieldGroup>
-          <AlertaErroApi
-            erro={cadastroMutation.error ?? atualizacaoMutation.error}
-          />
+          {poloId ? <AlertaErroApi erro={atualizacaoMutation.error} /> : null}
 
           <section
             aria-labelledby="secao-informacoes-gerais"

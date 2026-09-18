@@ -5,12 +5,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PoloDetalhado } from '@/services/polo/types'
 import { PoloListagem } from './index'
 
-const { useGetPolosMock } = vi.hoisted(() => ({
+const { useGetPolosMock, toastMock } = vi.hoisted(() => ({
   useGetPolosMock: vi.fn(),
+  toastMock: vi.fn(),
 }))
 
 vi.mock('@/hooks/useGetPolos', () => ({
   useGetPolos: useGetPolosMock,
+}))
+
+vi.mock('@/hooks/useToast', () => ({
+  useToast: () => ({
+    showToast: toastMock,
+  }),
 }))
 
 vi.mock('@/hooks/useGetDres', () => ({
@@ -99,6 +106,7 @@ function renderListagem() {
 describe('PoloListagem', () => {
   beforeEach(() => {
     useGetPolosMock.mockReset()
+    toastMock.mockReset()
     useGetPolosMock.mockReturnValue({
       data: criarListagemPaginada([polo]),
       isPending: false,
@@ -118,7 +126,7 @@ describe('PoloListagem', () => {
     expect(screen.getByText('Carregando polos...')).toBeInTheDocument()
   })
 
-  it('exibe o erro da listagem', () => {
+  it('exibe o erro da listagem em um toast', async () => {
     useGetPolosMock.mockReturnValue({
       data: undefined,
       isPending: false,
@@ -128,9 +136,15 @@ describe('PoloListagem', () => {
       },
     })
     renderListagem()
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      'Falha ao carregar polos.',
-    )
+    await waitFor(() => {
+      expect(toastMock).toHaveBeenCalledWith({
+        id: 'erro-listagem-polos-parceiros',
+        variant: 'destructive',
+        title: 'Erro ao carregar polos parceiros',
+        description: 'Falha ao carregar polos.',
+      })
+    })
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
   it('renderiza a tabela e o link para edição', async () => {
