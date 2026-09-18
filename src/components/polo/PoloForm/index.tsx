@@ -1,6 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { AxiosError } from 'axios'
-import { useEffect, useRef, useState, type SubmitEvent } from 'react'
+import { SearchIcon } from 'lucide-react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type SubmitEvent,
+} from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import type { FormValues } from './schema'
@@ -24,22 +31,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
-import { useGetDres } from '@/hooks/useGetDres'
+import { useGetDadosDaUnidade } from '@/hooks/useGetDadosDaUnidade'
 import { useGetPolo } from '@/hooks/useGetPolo'
-import { useGetTiposEscola } from '@/hooks/useGetTiposEscola'
 import { usePostPolo } from '@/hooks/usePostPolo'
 import { usePutPolo } from '@/hooks/usePutPolo'
 import { useToast } from '@/hooks/useToast'
-import {
-  aplicarMascaraCep,
-  aplicarMascaraTelefone,
-} from '@/utils/mascarasEntrada'
+import { aplicarMascaraCep } from '@/utils/mascarasEntrada'
 
 const TIPO_POLO_PADRAO = 'pendente' as const
 const GESTAO_POLO_PADRAO = 'parceira' as const
 const TOAST_ERRO_CADASTRO_ID = 'erro-cadastro-polo-parceiro'
-const TOAST_ERRO_OPCOES_ID = 'erro-opcoes-cadastro-polo-parceiro'
+const TOAST_EOL_NAO_ENCONTRADO_ID = 'eol-nao-encontrado'
+const MENSAGEM_EOL_NAO_ENCONTRADO =
+  'EOL não encontrado. Favor entrar em contato com a DRE'
+const CLASSE_CAMPO_SOMENTE_LEITURA =
+  'h-10 cursor-not-allowed rounded-sm border-input-border-muted bg-input-disabled-bg text-placeholder'
+const CAMPOS_DA_UNIDADE_VAZIOS = {
+  nomePolo: '',
+  dreNome: '',
+  dreCodigoEol: '',
+  tipoUe: '',
+  cep: '',
+  tipoLogradouro: '',
+  logradouro: '',
+  bairro: '',
+  numero: '',
+  complemento: '',
+  email: '',
+  telefone: '',
+}
 type ErroApi = AxiosError<{ detalhe: string }>
 
 type PoloFormProps = {
@@ -50,11 +72,11 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
   const navigate = useNavigate()
   const { dismissToast, showToast } = useToast()
   const [confirmacaoAberta, setConfirmacaoAberta] = useState(false)
+  const [codigoEolSincronizado, setCodigoEolSincronizado] = useState<
+    string | null
+  >(null)
+  const [emailRetornado, setEmailRetornado] = useState('')
   const dadosEdicaoRef = useRef<FormValues | null>(null)
-  const dresQuery = useGetDres()
-  const tiposEscolaQuery = useGetTiposEscola()
-  const opcoesDre = dresQuery.data ?? []
-  const opcoesTipoUe = tiposEscolaQuery.data ?? []
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -83,12 +105,15 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
   })
 
   const poloQuery = useGetPolo(poloId)
+  const consultaUnidade = useGetDadosDaUnidade()
   const cadastroMutation = usePostPolo()
   const atualizacaoMutation = usePutPolo(poloId)
 
   useEffect(() => {
     if (!poloQuery.data) return
 
+    setCodigoEolSincronizado(poloQuery.data.codigo_eol)
+    setEmailRetornado(poloQuery.data.email)
     form.reset({
       tipo: poloQuery.data.tipo,
       gestao: poloQuery.data.gestao,
@@ -107,13 +132,16 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
       complemento: poloQuery.data.complemento,
       nomeGestor: poloQuery.data.nome_gestor,
       email: poloQuery.data.email,
-      telefone: aplicarMascaraTelefone(poloQuery.data.telefone),
+      telefone: poloQuery.data.telefone,
       status: poloQuery.data.status,
       observacoesGerais: poloQuery.data.observacoes_gerais,
     })
   }, [poloQuery.data, form])
 
   const salvando = cadastroMutation.isPending || atualizacaoMutation.isPending
+  const consultandoUnidade = consultaUnidade.isPending
+  const emailEditavel =
+    codigoEolSincronizado !== null && emailRetornado.trim().length === 0
   const valoresFormulario = useWatch({ control: form.control })
 
   useEffect(() => {
@@ -126,6 +154,95 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- roda a cada alteração de qualquer campo, para limpar o erro de mutation anterior
   }, [valoresFormulario])
+
+  useEffect(() => {
+    if (poloId || !cadastroMutation.error) return
+
+    showToast({
+      id: TOAST_ERRO_CADASTRO_ID,
+      variant: 'destructive',
+      title: 'Erro ao cadastrar polo parceiro',
+      description: (cadastroMutation.error as ErroApi).response?.data.detalhe,
+    })
+  }, [cadastroMutation.error, poloId, showToast])
+
+  function limparCamposDaUnidade() {
+    form.reset({
+      ...form.getValues(),
+      ...CAMPOS_DA_UNIDADE_VAZIOS,
+    })
+    setCodigoEolSincronizado(null)
+    setEmailRetornado('')
+    consultaUnidade.reset()
+  }
+
+  function consultarUnidade() {
+    const codigoEol = form.getValues('codigoEol').trim()
+
+    if (codigoEol.length < 6 || codigoEol.length > 7) {
+      void form.trigger('codigoEol')
+      return
+    }
+
+    dismissToast(TOAST_EOL_NAO_ENCONTRADO_ID)
+    consultaUnidade.mutate(codigoEol, {
+      onSuccess: (unidade) => {
+        form.reset({
+          ...form.getValues(),
+          nomePolo: unidade.nome,
+          dreNome: unidade.nome_dre,
+          dreCodigoEol: unidade.codigo_dre,
+          tipoUe: unidade.sigla_tipo_escola,
+          cep: unidade.cep,
+          tipoLogradouro: unidade.tipo_logradouro,
+          logradouro: unidade.logradouro,
+          bairro: unidade.bairro,
+          numero: unidade.numero,
+          complemento: unidade.complemento,
+          email: unidade.email,
+          telefone: unidade.telefone,
+        })
+        setCodigoEolSincronizado(unidade.codigo_eol)
+        setEmailRetornado(unidade.email)
+      },
+      onError: () => {
+        form.reset({
+          ...form.getValues(),
+          ...CAMPOS_DA_UNIDADE_VAZIOS,
+        })
+        setCodigoEolSincronizado(null)
+        setEmailRetornado('')
+        showToast({
+          id: TOAST_EOL_NAO_ENCONTRADO_ID,
+          variant: 'destructive',
+          description: MENSAGEM_EOL_NAO_ENCONTRADO,
+        })
+      },
+    })
+  }
+
+  function handleCodigoEolChange(valor: string) {
+    if (
+      codigoEolSincronizado !== null &&
+      valor.trim() !== codigoEolSincronizado
+    ) {
+      limparCamposDaUnidade()
+      dismissToast(TOAST_EOL_NAO_ENCONTRADO_ID)
+      return
+    }
+
+    if (consultaUnidade.isError) {
+      consultaUnidade.reset()
+      dismissToast(TOAST_EOL_NAO_ENCONTRADO_ID)
+    }
+  }
+
+  function handleCodigoEolKeyDown(evento: KeyboardEvent<HTMLInputElement>) {
+    if (evento.key !== 'Enter') return
+
+    evento.preventDefault()
+    consultarUnidade()
+  }
 
   function onSubmit(data: FormValues) {
     if (poloId) {
@@ -158,49 +275,12 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
     })
   }
 
-  const estaCarregandoOpcoes = dresQuery.isPending || tiposEscolaQuery.isPending
-  const erroOpcoes = dresQuery.error ?? tiposEscolaQuery.error
-
-  useEffect(() => {
-    if (poloId || !erroOpcoes) return
-
-    showToast({
-      id: TOAST_ERRO_OPCOES_ID,
-      variant: 'destructive',
-      title: 'Erro ao carregar o formulário',
-      description: (erroOpcoes as ErroApi).response?.data.detalhe,
-    })
-  }, [erroOpcoes, poloId, showToast])
-
-  useEffect(() => {
-    if (poloId || !cadastroMutation.error) return
-
-    showToast({
-      id: TOAST_ERRO_CADASTRO_ID,
-      variant: 'destructive',
-      title: 'Erro ao cadastrar polo parceiro',
-      description: (cadastroMutation.error as ErroApi).response?.data.detalhe,
-    })
-  }, [cadastroMutation.error, poloId, showToast])
-
-  if (!poloId && estaCarregandoOpcoes) {
-    return <IndicadorCarregamento mensagem="Carregando formulário..." />
-  }
-
-  if (!poloId && erroOpcoes) {
-    return null
-  }
-
-  if (poloId && (poloQuery.isPending || estaCarregandoOpcoes)) {
+  if (poloId && poloQuery.isPending) {
     return <IndicadorCarregamento mensagem="Carregando polo parceiro..." />
   }
 
   if (poloId && !poloQuery.data) {
     return <AlertaErroApi erro={poloQuery.error} />
-  }
-
-  if (poloId && erroOpcoes) {
-    return <AlertaErroApi erro={erroOpcoes} />
   }
 
   return (
@@ -240,7 +320,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                       id="tipo"
                       readOnly
                       aria-readonly="true"
-                      className="h-10 cursor-not-allowed rounded-sm border-input-border-muted bg-input-disabled-bg text-placeholder"
+                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
                     />
                   </Field>
                 )}
@@ -289,13 +369,38 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                     <FieldLabel htmlFor="codigoEol" className="font-bold">
                       Código EOL
                     </FieldLabel>
-                    <Input
-                      {...field}
-                      id="codigoEol"
-                      placeholder="Digite o código EOL"
-                      aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        {...field}
+                        id="codigoEol"
+                        placeholder="Digite o código EOL"
+                        aria-invalid={fieldState.invalid}
+                        className="h-10 rounded-sm border-input-border-muted"
+                        onChange={(evento) => {
+                          field.onChange(evento)
+                          handleCodigoEolChange(evento.target.value)
+                        }}
+                        onKeyDown={handleCodigoEolKeyDown}
+                      />
+                      <Button
+                        type="button"
+                        size="icon"
+                        aria-label={
+                          consultandoUnidade
+                            ? 'Consultando código EOL'
+                            : 'Consultar código EOL'
+                        }
+                        className="h-10 w-10 shrink-0 rounded-sm p-1.5!"
+                        disabled={consultandoUnidade}
+                        onClick={consultarUnidade}
+                      >
+                        {consultandoUnidade ? (
+                          <Spinner />
+                        ) : (
+                          <SearchIcon className="size-5" aria-hidden="true" />
+                        )}
+                      </Button>
+                    </div>
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
                     )}
@@ -334,9 +439,11 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                     <Input
                       {...field}
                       id="nomePolo"
-                      placeholder="Digite o nome do polo"
+                      readOnly
+                      aria-readonly="true"
+                      placeholder="Nome preenchido pelo código EOL"
                       aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
+                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
                     />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -348,48 +455,22 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
 
             <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
               <Controller
-                name="dreCodigoEol"
+                name="dreNome"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel htmlFor="dre" className="font-bold">
                       DRE
                     </FieldLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={(valor) => {
-                        if (!valor) return
-                        field.onChange(valor)
-                        const dreSelecionada = opcoesDre.find(
-                          (dre) => dre.codigo_dre === valor,
-                        )
-                        form.setValue(
-                          'dreNome',
-                          dreSelecionada?.nome_dre ?? '',
-                          {
-                            shouldValidate: true,
-                          },
-                        )
-                      }}
-                    >
-                      <SelectTrigger
-                        id="dre"
-                        aria-invalid={fieldState.invalid}
-                        className="h-10 w-full min-w-0 rounded-sm border-input-border-muted data-[size=default]:h-10"
-                      >
-                        <SelectValue placeholder="Selecione a DRE" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {opcoesDre.map((dre) => (
-                          <SelectItem
-                            key={dre.codigo_dre}
-                            value={dre.codigo_dre}
-                          >
-                            {dre.nome_dre}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      {...field}
+                      id="dre"
+                      readOnly
+                      aria-readonly="true"
+                      placeholder="DRE preenchida pelo código EOL"
+                      aria-invalid={fieldState.invalid}
+                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
+                    />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
                     )}
@@ -404,30 +485,15 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                     <FieldLabel htmlFor="tipoUe" className="font-bold">
                       Tipo de UE
                     </FieldLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={(valor) => {
-                        if (valor) field.onChange(valor)
-                      }}
-                    >
-                      <SelectTrigger
-                        id="tipoUe"
-                        aria-invalid={fieldState.invalid}
-                        className="h-10 w-full min-w-0 rounded-sm border-input-border-muted data-[size=default]:h-10"
-                      >
-                        <SelectValue placeholder="Selecione o tipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {opcoesTipoUe.map((tipoUe) => (
-                          <SelectItem
-                            key={tipoUe.codigo}
-                            value={tipoUe.descricao_sigla}
-                          >
-                            {tipoUe.descricao_sigla}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      {...field}
+                      id="tipoUe"
+                      readOnly
+                      aria-readonly="true"
+                      placeholder="Tipo preenchido pelo código EOL"
+                      aria-invalid={fieldState.invalid}
+                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
+                    />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
                     )}
@@ -479,14 +545,13 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                     <Input
                       {...field}
                       id="cep"
+                      readOnly
+                      aria-readonly="true"
                       inputMode="numeric"
                       autoComplete="postal-code"
                       placeholder="00000-000"
                       aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
-                      onChange={(evento) =>
-                        field.onChange(aplicarMascaraCep(evento.target.value))
-                      }
+                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
                     />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -505,9 +570,11 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                     <Input
                       {...field}
                       id="tipoLogradouro"
+                      readOnly
+                      aria-readonly="true"
                       placeholder="Ex.: Rua, Avenida"
                       aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
+                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
                     />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -527,9 +594,11 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                   <Input
                     {...field}
                     id="logradouro"
+                    readOnly
+                    aria-readonly="true"
                     placeholder="Digite o logradouro"
                     aria-invalid={fieldState.invalid}
-                    className="h-10 rounded-sm border-input-border-muted"
+                    className={CLASSE_CAMPO_SOMENTE_LEITURA}
                   />
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
@@ -549,9 +618,11 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                     <Input
                       {...field}
                       id="bairro"
+                      readOnly
+                      aria-readonly="true"
                       placeholder="Digite o bairro"
                       aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
+                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
                     />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -570,9 +641,11 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                     <Input
                       {...field}
                       id="numero"
+                      readOnly
+                      aria-readonly="true"
                       placeholder="Digite o número"
                       aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
+                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
                     />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -591,8 +664,10 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                     <Input
                       {...field}
                       id="complemento"
+                      readOnly
+                      aria-readonly="true"
                       placeholder="Digite o complemento"
-                      className="h-10 rounded-sm border-input-border-muted"
+                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
                     />
                   </Field>
                 )}
@@ -638,9 +713,15 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                       {...field}
                       id="email"
                       type="email"
+                      readOnly={!emailEditavel}
+                      aria-readonly={emailEditavel ? undefined : 'true'}
                       placeholder="Digite o e-mail oficial do polo"
                       aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
+                      className={
+                        emailEditavel
+                          ? 'h-10 rounded-sm border-input-border-muted'
+                          : CLASSE_CAMPO_SOMENTE_LEITURA
+                      }
                     />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -659,16 +740,13 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                     <Input
                       {...field}
                       id="telefone"
+                      readOnly
+                      aria-readonly="true"
                       inputMode="tel"
                       autoComplete="tel"
                       placeholder="(00) 00000-0000"
                       aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
-                      onChange={(evento) =>
-                        field.onChange(
-                          aplicarMascaraTelefone(evento.target.value),
-                        )
-                      }
+                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
                     />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -717,7 +795,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
             <Button
               type="submit"
               className="h-9.5 rounded-sm bg-brand-dark px-4 font-bold text-background hover:bg-brand-dark-hover disabled:bg-button-primary-disabled-bg disabled:opacity-100"
-              disabled={salvando}
+              disabled={salvando || consultaUnidade.isError}
             >
               {salvando ? 'Salvando...' : 'Salvar'}
             </Button>

@@ -33,17 +33,21 @@ const formSchema = z.object({
   complemento: z.string(),
   nomeGestor: z.string().trim().min(1, 'Nome do gestor é obrigatório'),
   email: z
-    .email({
-      error: 'Digite um e-mail válido para o gestor.',
-    })
+    .string()
     .trim()
-    .toLowerCase(),
+    .toLowerCase()
+    .pipe(
+      z.union([
+        z.literal(''),
+        z.email({ error: 'Digite um e-mail válido para o gestor.' }),
+      ]),
+    ),
   telefone: z
     .string()
     .trim()
     .min(1, 'Telefone do polo é obrigatório')
     .regex(
-      /^(?:\d{10}|\d{11}|\(\d{2}\) \d{4,5}-\d{4})$/,
+      /^(?:\d{8,11}|\(\d{2}\) \d{4,5}-\d{4})$/,
       'Informe um telefone válido para o polo.',
     ),
   status: z.enum(['ativo', 'inativo'], {

@@ -1,18 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { obterDadosDaUnidade } from '@/services/polo/obterDadosDaUnidade'
 
-export function useGetDadosDaUnidade(codigoEol: string | undefined) {
-  return useQuery({
-    queryKey: ['dadosDaUnidade', codigoEol],
-    queryFn: () => {
-      if (!codigoEol) {
-        throw new Error('Código EOL não informado.')
-      }
-
-      return obterDadosDaUnidade(codigoEol)
-    },
-    enabled: Boolean(codigoEol),
-  })
+export function useGetDadosDaUnidade() {
+  return useMutation({ mutationFn: obterDadosDaUnidade })
 }
 
 export default useGetDadosDaUnidade

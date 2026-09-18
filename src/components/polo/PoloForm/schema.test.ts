@@ -71,6 +71,24 @@ describe('PoloForm schema', () => {
     ).toContain('Digite um e-mail válido para o gestor.')
   })
 
+  it('aceita e-mail vazio', () => {
+    expect(
+      formSchema.safeParse({
+        ...dadosValidos,
+        email: '',
+      }).success,
+    ).toBe(true)
+  })
+
+  it('aceita telefone com 8 dígitos retornado pela unidade', () => {
+    expect(
+      formSchema.safeParse({
+        ...dadosValidos,
+        telefone: '59742587',
+      }).success,
+    ).toBe(true)
+  })
+
   it('rejeita CEP incompleto', () => {
     expect(
       mensagensDeErro({
