@@ -40,6 +40,7 @@ import { usePutPolo } from '@/hooks/usePutPolo'
 import { useToast } from '@/hooks/useToast'
 import { aplicarMascaraCep } from '@/utils/mascarasEntrada'
 
+const ROTA_POLOS_PARCEIROS = '/polos-parceiros'
 const TIPO_POLO_PADRAO = 'pendente' as const
 const GESTAO_POLO_PADRAO = 'parceira' as const
 const TOAST_ERRO_CADASTRO_ID = 'erro-cadastro-polo-parceiro'
@@ -166,75 +167,72 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
     })
   }, [cadastroMutation.error, poloId, showToast])
 
-  function limparCamposDaUnidade() {
+  function resetarCamposDaUnidade() {
     form.reset({
       ...form.getValues(),
       ...CAMPOS_DA_UNIDADE_VAZIOS,
     })
     setCodigoEolSincronizado(null)
     setEmailRetornado('')
+  }
+
+  function limparCamposDaUnidade() {
+    resetarCamposDaUnidade()
     consultaUnidade.reset()
   }
 
   function consultarUnidade() {
     const codigoEol = form.getValues('codigoEol').trim()
 
-    if (codigoEol.length < 6 || codigoEol.length > 7) {
-      void form.trigger('codigoEol')
-      return
-    }
+    void form.trigger('codigoEol').then((valido) => {
+      if (!valido) return
 
-    dismissToast(TOAST_EOL_NAO_ENCONTRADO_ID)
-    consultaUnidade.mutate(codigoEol, {
-      onSuccess: (unidade) => {
-        form.reset({
-          ...form.getValues(),
-          nomePolo: unidade.nome,
-          dreNome: unidade.nome_dre,
-          dreCodigoEol: unidade.codigo_dre,
-          tipoUe: unidade.sigla_tipo_escola,
-          cep: unidade.cep,
-          tipoLogradouro: unidade.tipo_logradouro,
-          logradouro: unidade.logradouro,
-          bairro: unidade.bairro,
-          numero: unidade.numero,
-          complemento: unidade.complemento,
-          email: unidade.email,
-          telefone: unidade.telefone,
-        })
-        setCodigoEolSincronizado(unidade.codigo_eol)
-        setEmailRetornado(unidade.email)
-      },
-      onError: () => {
-        form.reset({
-          ...form.getValues(),
-          ...CAMPOS_DA_UNIDADE_VAZIOS,
-        })
-        setCodigoEolSincronizado(null)
-        setEmailRetornado('')
-        showToast({
-          id: TOAST_EOL_NAO_ENCONTRADO_ID,
-          variant: 'destructive',
-          description: MENSAGEM_EOL_NAO_ENCONTRADO,
-        })
-      },
+      dismissToast(TOAST_EOL_NAO_ENCONTRADO_ID)
+      consultaUnidade.mutate(codigoEol, {
+        onSuccess: (unidade) => {
+          form.reset({
+            ...form.getValues(),
+            nomePolo: unidade.nome,
+            dreNome: unidade.nome_dre,
+            dreCodigoEol: unidade.codigo_dre,
+            tipoUe: unidade.sigla_tipo_escola,
+            cep: unidade.cep,
+            tipoLogradouro: unidade.tipo_logradouro,
+            logradouro: unidade.logradouro,
+            bairro: unidade.bairro,
+            numero: unidade.numero,
+            complemento: unidade.complemento,
+            email: unidade.email,
+            telefone: unidade.telefone,
+          })
+          setCodigoEolSincronizado(unidade.codigo_eol)
+          setEmailRetornado(unidade.email)
+        },
+        onError: () => {
+          resetarCamposDaUnidade()
+          showToast({
+            id: TOAST_EOL_NAO_ENCONTRADO_ID,
+            variant: 'destructive',
+            description: MENSAGEM_EOL_NAO_ENCONTRADO,
+          })
+        },
+      })
     })
   }
 
   function handleCodigoEolChange(valor: string) {
-    if (
-      codigoEolSincronizado !== null &&
-      valor.trim() !== codigoEolSincronizado
-    ) {
+    const codigoAlteradoAposConsulta =
+      codigoEolSincronizado !== null && valor.trim() !== codigoEolSincronizado
+
+    if (codigoAlteradoAposConsulta) {
       limparCamposDaUnidade()
-      dismissToast(TOAST_EOL_NAO_ENCONTRADO_ID)
+    } else if (consultaUnidade.isError) {
+      consultaUnidade.reset()
+    } else {
       return
     }
 
-    if (consultaUnidade.isError) {
-      consultaUnidade.reset()
-      dismissToast(TOAST_EOL_NAO_ENCONTRADO_ID)
-    }
+    dismissToast(TOAST_EOL_NAO_ENCONTRADO_ID)
   }
 
   function handleCodigoEolKeyDown(evento: KeyboardEvent<HTMLInputElement>) {
@@ -253,7 +251,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
 
     cadastroMutation.mutate(data, {
       onSuccess: () => {
-        navigate('/polos-parceiros', { state: { poloCadastrado: true } })
+        navigate(ROTA_POLOS_PARCEIROS, { state: { poloCadastrado: true } })
       },
     })
   }
@@ -270,7 +268,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
     setConfirmacaoAberta(false)
     atualizacaoMutation.mutate(dados, {
       onSuccess: () => {
-        navigate('/polos-parceiros', { state: { poloAtualizado: true } })
+        navigate(ROTA_POLOS_PARCEIROS, { state: { poloAtualizado: true } })
       },
     })
   }
@@ -788,7 +786,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
               type="button"
               variant="outline"
               className="h-9.5 rounded-sm border-brand-dark px-4 font-bold text-brand-dark hover:bg-accent hover:text-brand-dark"
-              onClick={() => navigate('/polos-parceiros')}
+              onClick={() => navigate(ROTA_POLOS_PARCEIROS)}
             >
               Cancelar
             </Button>
