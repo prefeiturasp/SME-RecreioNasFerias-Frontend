@@ -159,12 +159,16 @@ async function preencherFormularioValido(
 
 function ListagemPolosStub() {
   const location = useLocation()
-  const estado = location.state as { poloCadastrado?: boolean } | null
+  const estado = location.state as {
+    poloCadastrado?: boolean
+    poloAtualizado?: boolean
+  } | null
 
   return (
     <div>
       <p>Listagem de polos</p>
       {estado?.poloCadastrado ? <p>Polo cadastrado</p> : null}
+      {estado?.poloAtualizado ? <p>Polo atualizado</p> : null}
     </div>
   )
 }
@@ -574,6 +578,7 @@ describe('PoloForm em edição', { timeout: 15000 }, () => {
 
     expect(cadastrarPoloMock).not.toHaveBeenCalled()
     expect(await screen.findByText('Listagem de polos')).toBeInTheDocument()
+    expect(screen.getByText('Polo atualizado')).toBeInTheDocument()
   })
 
   it('não chama PUT quando a confirmação é cancelada', async () => {

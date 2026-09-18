@@ -292,4 +292,37 @@ describe('PaginaPolosParceiros', () => {
       replace: true,
     })
   })
+
+  it('exibe toast de sucesso ao retornar da edição e limpa o estado', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter
+          initialEntries={[
+            {
+              pathname: '/polos-parceiros',
+              state: { poloAtualizado: true },
+            },
+          ]}
+        >
+          <PaginaPolosParceiros />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    await waitFor(() => {
+      expect(toastMock).toHaveBeenCalledWith({
+        id: 'polo-parceiro-atualizado',
+        variant: 'success',
+        description: 'Polo Parceiro atualizado com sucesso!',
+        duration: 3000,
+      })
+    })
+    expect(navegarMock).toHaveBeenCalledWith('/polos-parceiros', {
+      replace: true,
+    })
+  })
 })

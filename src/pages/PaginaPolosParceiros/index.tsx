@@ -19,6 +19,25 @@ import PoloListagem from '@/components/polo/PoloListagem'
 import { useToast } from '@/hooks/useToast'
 
 const TOAST_SUCESSO_CADASTRO_ID = 'polo-parceiro-cadastrado'
+const TOAST_SUCESSO_EDICAO_ID = 'polo-parceiro-atualizado'
+
+function obterToastSucesso(estado: EstadoNavegacaoPolosParceiros | null) {
+  if (estado?.poloCadastrado) {
+    return {
+      id: TOAST_SUCESSO_CADASTRO_ID,
+      description: 'Polo Parceiro cadastrado com sucesso!',
+    }
+  }
+
+  if (estado?.poloAtualizado) {
+    return {
+      id: TOAST_SUCESSO_EDICAO_ID,
+      description: 'Polo Parceiro atualizado com sucesso!',
+    }
+  }
+
+  return null
+}
 
 const NIVEIS_MAPA_VISUAL = [
   { rotulo: 'Início', caminho: '/inicio' },
@@ -33,16 +52,16 @@ export default function PaginaPolosParceiros() {
   const estadoNavegacao = location.state as EstadoNavegacaoPolosParceiros | null
 
   useEffect(() => {
-    if (!estadoNavegacao?.poloCadastrado) return
+    const toastSucesso = obterToastSucesso(estadoNavegacao)
+    if (!toastSucesso) return
 
     showToast({
-      id: TOAST_SUCESSO_CADASTRO_ID,
+      ...toastSucesso,
       variant: 'success',
-      description: 'Polo Parceiro cadastrado com sucesso!',
       duration: 3000,
     })
     navigate('/polos-parceiros', { replace: true })
-  }, [estadoNavegacao?.poloCadastrado, navigate, showToast])
+  }, [estadoNavegacao, navigate, showToast])
 
   return (
     <ContainerPaginaPolosParceiros>

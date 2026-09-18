@@ -270,7 +270,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
     setConfirmacaoAberta(false)
     atualizacaoMutation.mutate(dados, {
       onSuccess: () => {
-        navigate('/polos-parceiros')
+        navigate('/polos-parceiros', { state: { poloAtualizado: true } })
       },
     })
   }
