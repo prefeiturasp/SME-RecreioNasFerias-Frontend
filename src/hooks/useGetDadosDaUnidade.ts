@@ -7,7 +7,7 @@ export function useGetDadosDaUnidade() {
       const unidade = await obterDadosDaUnidade(codigoEol)
 
       if (!unidade.codigo_eol.trim()) {
-        throw new Error()
+        throw new Error('EOL não encontrado. Favor entrar em contato com a DRE')
       }
 
       return unidade

@@ -53,7 +53,7 @@ export function FormFieldEol<
   onChange,
   isLoading = false,
   labelClassName = 'font-bold',
-}: FormFieldEolProps<TFieldValues, TName>): React.JSX.Element {
+}: Readonly<FormFieldEolProps<TFieldValues, TName>>): React.JSX.Element {
   const handleKeyDown = (evento: KeyboardEvent<HTMLInputElement>) => {
     if (evento.key !== 'Enter') return
 
