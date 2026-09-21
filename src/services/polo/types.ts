@@ -48,6 +48,25 @@ export type ListagemPolosPaginada = {
   results: PoloListagemItem[]
 }
 
+export type DadosDaUnidade = {
+  nome: string
+  codigo_eol: string
+  sigla_tipo_escola: string
+  nome_dre: string
+  sigla_dre: string
+  codigo_dre: string
+  email: string
+  telefone: string
+  cep: string
+  tipo_logradouro: string
+  logradouro: string
+  bairro: string
+  numero: string
+  complemento: string
+  municipio: string
+  uf: string
+}
+
 export type DadosCadastroPolo = {
   codigoEol: string
   nomePolo: string

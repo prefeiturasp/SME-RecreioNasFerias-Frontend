@@ -1,41 +1,47 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useRef, useState, type SubmitEvent } from 'react'
-import { Controller, useForm, useWatch } from 'react-hook-form'
+import type { AxiosError } from 'axios'
+import { useEffect, useState, type SubmitEvent } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import type { FormValues } from './schema'
 import formSchema from './schema'
 
 import { AlertaErroApi } from '@/components/AlertaErroApi'
+import { FormField } from '@/components/ui/form-field'
+import { FormFieldEol } from '@/components/ui/form-field-eol'
 import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 import { Modal } from '@/components/Modal'
 import { Button } from '@/components/ui/button'
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { useGetDres } from '@/hooks/useGetDres'
+import { FieldGroup } from '@/components/ui/field'
+import { useGetDadosDaUnidade } from '@/hooks/useGetDadosDaUnidade'
 import { useGetPolo } from '@/hooks/useGetPolo'
-import { useGetTiposEscola } from '@/hooks/useGetTiposEscola'
 import { usePostPolo } from '@/hooks/usePostPolo'
 import { usePutPolo } from '@/hooks/usePutPolo'
-import {
-  aplicarMascaraCep,
-  aplicarMascaraTelefone,
-} from '@/utils/mascarasEntrada'
+import { useToast } from '@/hooks/useToast'
+import { aplicarMascaraCep } from '@/utils/mascarasEntrada'
 
+const ROTA_POLOS_PARCEIROS = '/polos-parceiros'
 const TIPO_POLO_PADRAO = 'pendente' as const
 const GESTAO_POLO_PADRAO = 'parceira' as const
+const TOAST_ERRO_CADASTRO_ID = 'erro-cadastro-polo-parceiro'
+const TOAST_EOL_NAO_ENCONTRADO_ID = 'eol-nao-encontrado'
+const MENSAGEM_EOL_NAO_ENCONTRADO =
+  'EOL não encontrado. Favor entrar em contato com a DRE'
+const CAMPOS_DA_UNIDADE_VAZIOS = {
+  nomePolo: '',
+  dreNome: '',
+  dreCodigoEol: '',
+  tipoUe: '',
+  cep: '',
+  tipoLogradouro: '',
+  logradouro: '',
+  bairro: '',
+  numero: '',
+  complemento: '',
+  email: '',
+  telefone: '',
+}
+type ErroApi = AxiosError<{ detalhe: string }>
 
 type PoloFormProps = {
   poloId?: string
@@ -43,12 +49,15 @@ type PoloFormProps = {
 
 export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
   const navigate = useNavigate()
+  const { dismissToast, showToast } = useToast()
   const [confirmacaoAberta, setConfirmacaoAberta] = useState(false)
-  const dadosEdicaoRef = useRef<FormValues | null>(null)
-  const dresQuery = useGetDres()
-  const tiposEscolaQuery = useGetTiposEscola()
-  const opcoesDre = dresQuery.data ?? []
-  const opcoesTipoUe = tiposEscolaQuery.data ?? []
+  const [codigoEolSincronizado, setCodigoEolSincronizado] = useState<
+    string | null
+  >(null)
+  const [emailRetornado, setEmailRetornado] = useState('')
+  const [telefoneRetornado, setTelefoneRetornado] = useState('')
+  const [dadosEdicaoPendente, setDadosEdicaoPendente] =
+    useState<FormValues | null>(null)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -77,12 +86,16 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
   })
 
   const poloQuery = useGetPolo(poloId)
+  const consultaUnidade = useGetDadosDaUnidade()
   const cadastroMutation = usePostPolo()
   const atualizacaoMutation = usePutPolo(poloId)
 
   useEffect(() => {
     if (!poloQuery.data) return
 
+    setCodigoEolSincronizado(poloQuery.data.codigo_eol)
+    setEmailRetornado(poloQuery.data.email)
+    setTelefoneRetornado(poloQuery.data.telefone)
     form.reset({
       tipo: poloQuery.data.tipo,
       gestao: poloQuery.data.gestao,
@@ -101,17 +114,23 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
       complemento: poloQuery.data.complemento,
       nomeGestor: poloQuery.data.nome_gestor,
       email: poloQuery.data.email,
-      telefone: aplicarMascaraTelefone(poloQuery.data.telefone),
+      telefone: poloQuery.data.telefone,
       status: poloQuery.data.status,
       observacoesGerais: poloQuery.data.observacoes_gerais,
     })
   }, [poloQuery.data, form])
 
   const salvando = cadastroMutation.isPending || atualizacaoMutation.isPending
+  const consultandoUnidade = consultaUnidade.isPending
+  const emailEditavel =
+    codigoEolSincronizado !== null && emailRetornado.trim().length === 0
+  const telefoneEditavel =
+    codigoEolSincronizado !== null && telefoneRetornado.trim().length === 0
   const valoresFormulario = useWatch({ control: form.control })
 
   useEffect(() => {
     if (cadastroMutation.isError) {
+      dismissToast(TOAST_ERRO_CADASTRO_ID)
       cadastroMutation.reset()
     }
     if (atualizacaoMutation.isError) {
@@ -120,58 +139,123 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- roda a cada alteração de qualquer campo, para limpar o erro de mutation anterior
   }, [valoresFormulario])
 
+  useEffect(() => {
+    if (poloId || !cadastroMutation.error) return
+
+    showToast({
+      id: TOAST_ERRO_CADASTRO_ID,
+      variant: 'destructive',
+      title: 'Erro ao cadastrar polo parceiro',
+      description: (cadastroMutation.error as ErroApi).response?.data.detalhe,
+    })
+  }, [cadastroMutation.error, poloId, showToast])
+
+  function resetarCamposDaUnidade() {
+    form.reset({
+      ...form.getValues(),
+      ...CAMPOS_DA_UNIDADE_VAZIOS,
+    })
+    setCodigoEolSincronizado(null)
+    setEmailRetornado('')
+    setTelefoneRetornado('')
+  }
+
+  function limparCamposDaUnidade() {
+    resetarCamposDaUnidade()
+    consultaUnidade.reset()
+  }
+
+  function consultarUnidade() {
+    const codigoEol = form.getValues('codigoEol').trim()
+
+    void form.trigger('codigoEol').then((valido) => {
+      if (!valido) return
+
+      dismissToast(TOAST_EOL_NAO_ENCONTRADO_ID)
+      consultaUnidade.mutate(codigoEol, {
+        onSuccess: (unidade) => {
+          form.reset({
+            ...form.getValues(),
+            nomePolo: unidade.nome,
+            dreNome: unidade.nome_dre,
+            dreCodigoEol: unidade.codigo_dre,
+            tipoUe: unidade.sigla_tipo_escola,
+            cep: unidade.cep,
+            tipoLogradouro: unidade.tipo_logradouro,
+            logradouro: unidade.logradouro,
+            bairro: unidade.bairro,
+            numero: unidade.numero,
+            complemento: unidade.complemento,
+            email: unidade.email,
+            telefone: unidade.telefone,
+          })
+          setCodigoEolSincronizado(unidade.codigo_eol)
+          setEmailRetornado(unidade.email)
+          setTelefoneRetornado(unidade.telefone)
+        },
+        onError: () => {
+          resetarCamposDaUnidade()
+          showToast({
+            id: TOAST_EOL_NAO_ENCONTRADO_ID,
+            variant: 'destructive',
+            description: MENSAGEM_EOL_NAO_ENCONTRADO,
+          })
+        },
+      })
+    })
+  }
+
+  function handleCodigoEolChange(valor: string) {
+    const codigoAlteradoAposConsulta =
+      codigoEolSincronizado !== null && valor.trim() !== codigoEolSincronizado
+
+    if (codigoAlteradoAposConsulta) {
+      limparCamposDaUnidade()
+    } else if (consultaUnidade.isError) {
+      consultaUnidade.reset()
+    } else {
+      return
+    }
+
+    dismissToast(TOAST_EOL_NAO_ENCONTRADO_ID)
+  }
+
   function onSubmit(data: FormValues) {
     if (poloId) {
-      dadosEdicaoRef.current = data
+      setDadosEdicaoPendente(data)
       setConfirmacaoAberta(true)
       return
     }
 
     cadastroMutation.mutate(data, {
       onSuccess: () => {
-        navigate('/polos-parceiros', { state: { poloCadastrado: true } })
+        navigate(ROTA_POLOS_PARCEIROS, { state: { poloCadastrado: true } })
       },
     })
   }
 
-  // adia a leitura do ref para o momento do submit, evitando acesso durante o render
   function handleFormSubmit(event: SubmitEvent<HTMLFormElement>) {
     form.handleSubmit(onSubmit)(event)
   }
 
   function confirmarEdicao() {
-    const dados = dadosEdicaoRef.current
-    if (!dados) return
+    if (!dadosEdicaoPendente) return
 
     setConfirmacaoAberta(false)
-    atualizacaoMutation.mutate(dados, {
+    atualizacaoMutation.mutate(dadosEdicaoPendente, {
       onSuccess: () => {
-        navigate('/polos-parceiros')
+        setDadosEdicaoPendente(null)
+        navigate(ROTA_POLOS_PARCEIROS, { state: { poloAtualizado: true } })
       },
     })
   }
 
-  const estaCarregandoOpcoes = dresQuery.isPending || tiposEscolaQuery.isPending
-  const erroOpcoes = dresQuery.error ?? tiposEscolaQuery.error
-
-  if (!poloId && estaCarregandoOpcoes) {
-    return <IndicadorCarregamento mensagem="Carregando formulário..." />
-  }
-
-  if (!poloId && erroOpcoes) {
-    return <AlertaErroApi erro={erroOpcoes} />
-  }
-
-  if (poloId && (poloQuery.isPending || estaCarregandoOpcoes)) {
+  if (poloId && poloQuery.isPending) {
     return <IndicadorCarregamento mensagem="Carregando polo parceiro..." />
   }
 
   if (poloId && !poloQuery.data) {
     return <AlertaErroApi erro={poloQuery.error} />
-  }
-
-  if (poloId && erroOpcoes) {
-    return <AlertaErroApi erro={erroOpcoes} />
   }
 
   return (
@@ -183,9 +267,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
         className="rounded-sm bg-background p-8 shadow-card max-md:p-4"
       >
         <FieldGroup>
-          <AlertaErroApi
-            erro={cadastroMutation.error ?? atualizacaoMutation.error}
-          />
+          {poloId ? <AlertaErroApi erro={atualizacaoMutation.error} /> : null}
 
           <section
             aria-labelledby="secao-informacoes-gerais"
@@ -200,238 +282,75 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                 poloId ? 'grid gap-x-4 gap-y-5.5 lg:grid-cols-2' : undefined
               }
             >
-              <Controller
-                name="tipo"
+              <FormField
                 control={form.control}
-                render={({ field }) => (
-                  <Field>
-                    <FieldLabel htmlFor="tipo" className="font-bold">
-                      Tipo
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="tipo"
-                      readOnly
-                      aria-readonly="true"
-                      className="h-10 cursor-not-allowed rounded-sm border-input-border-muted bg-input-disabled-bg text-placeholder"
-                    />
-                  </Field>
-                )}
+                name="tipo"
+                label="Tipo"
+                readOnly
               />
 
               {poloId ? (
-                <Controller
-                  name="status"
+                <FormField
                   control={form.control}
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="status" className="font-bold">
-                        Status
-                      </FieldLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger
-                          id="status"
-                          aria-invalid={fieldState.invalid}
-                          className="h-10 w-full min-w-0 rounded-sm border-input-border-muted data-[size=default]:h-10"
-                        >
-                          <SelectValue placeholder="Selecione o status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="ativo">Ativo</SelectItem>
-                          <SelectItem value="inativo">Inativo</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {fieldState.invalid && (
-                        <FieldError errors={[fieldState.error]} />
-                      )}
-                    </Field>
-                  )}
+                  name="status"
+                  label="Status"
+                  type="select"
+                  options={[
+                    { value: 'ativo', label: 'Ativo' },
+                    { value: 'inativo', label: 'Inativo' },
+                  ]}
+                  placeholder="Selecione o status"
                 />
               ) : null}
             </div>
 
             <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
-              <Controller
+              <FormFieldEol
+                control={form.control}
                 name="codigoEol"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="codigoEol" className="font-bold">
-                      Código EOL
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="codigoEol"
-                      placeholder="Digite o código EOL"
-                      aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                label="Código EOL"
+                placeholder="Digite o código EOL"
+                onSearch={consultarUnidade}
+                onChange={handleCodigoEolChange}
+                isLoading={consultandoUnidade}
+                readOnly={Boolean(poloId)}
               />
-              <Controller
+              <FormField
+                control={form.control}
                 name="nomeOsc"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="nomeOsc" className="font-bold">
-                      Nome da OSC
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="nomeOsc"
-                      placeholder="Digite o nome da OSC"
-                      aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                label="Nome da OSC"
+                placeholder="Digite o nome da OSC"
               />
-              <Controller
-                name="nomePolo"
+              <FormField
                 control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="nomePolo" className="font-bold">
-                      Nome do Polo
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="nomePolo"
-                      placeholder="Digite o nome do polo"
-                      aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                name="nomePolo"
+                label="Nome do Polo"
+                placeholder="Nome preenchido pelo código EOL"
+                readOnly
               />
             </div>
 
             <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
-              <Controller
-                name="dreCodigoEol"
+              <FormField
                 control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="dre" className="font-bold">
-                      DRE
-                    </FieldLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={(valor) => {
-                        if (!valor) return
-                        field.onChange(valor)
-                        const dreSelecionada = opcoesDre.find(
-                          (dre) => dre.codigo_dre === valor,
-                        )
-                        form.setValue(
-                          'dreNome',
-                          dreSelecionada?.nome_dre ?? '',
-                          {
-                            shouldValidate: true,
-                          },
-                        )
-                      }}
-                    >
-                      <SelectTrigger
-                        id="dre"
-                        aria-invalid={fieldState.invalid}
-                        className="h-10 w-full min-w-0 rounded-sm border-input-border-muted data-[size=default]:h-10"
-                      >
-                        <SelectValue placeholder="Selecione a DRE" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {opcoesDre.map((dre) => (
-                          <SelectItem
-                            key={dre.codigo_dre}
-                            value={dre.codigo_dre}
-                          >
-                            {dre.nome_dre}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                name="dreNome"
+                label="DRE"
+                placeholder="DRE preenchida pelo código EOL"
+                readOnly
               />
-              <Controller
+              <FormField
+                control={form.control}
                 name="tipoUe"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="tipoUe" className="font-bold">
-                      Tipo de UE
-                    </FieldLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={(valor) => {
-                        if (valor) field.onChange(valor)
-                      }}
-                    >
-                      <SelectTrigger
-                        id="tipoUe"
-                        aria-invalid={fieldState.invalid}
-                        className="h-10 w-full min-w-0 rounded-sm border-input-border-muted data-[size=default]:h-10"
-                      >
-                        <SelectValue placeholder="Selecione o tipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {opcoesTipoUe.map((tipoUe) => (
-                          <SelectItem
-                            key={tipoUe.codigo}
-                            value={tipoUe.descricao_sigla}
-                          >
-                            {tipoUe.descricao_sigla}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                label="Tipo de UE"
+                placeholder="Tipo preenchido pelo código EOL"
+                readOnly
               />
-              <Controller
-                name="quantidadeMaximaAlunos"
+              <FormField
                 control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel
-                      htmlFor="quantidadeMaximaAlunos"
-                      className="font-bold"
-                    >
-                      Quantidade máxima de alunos
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="quantidadeMaximaAlunos"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="Digite a quantidade"
-                      aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                name="quantidadeMaximaAlunos"
+                label="Quantidade máxima de alunos"
+                type="number"
+                placeholder="Digite a quantidade"
               />
             </div>
           </section>
@@ -441,134 +360,51 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
               Endereço
             </h4>
             <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
-              <Controller
+              <FormField
+                control={form.control}
                 name="cep"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="cep" className="font-bold">
-                      CEP
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="cep"
-                      inputMode="numeric"
-                      autoComplete="postal-code"
-                      placeholder="00000-000"
-                      aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
-                      onChange={(evento) =>
-                        field.onChange(aplicarMascaraCep(evento.target.value))
-                      }
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                label="CEP"
+                placeholder="00000-000"
+                inputMode="numeric"
+                autoComplete="postal-code"
+                readOnly
               />
-              <Controller
-                name="tipoLogradouro"
+              <FormField
                 control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="tipoLogradouro" className="font-bold">
-                      Tipo de logradouro
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="tipoLogradouro"
-                      placeholder="Ex.: Rua, Avenida"
-                      aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                name="tipoLogradouro"
+                label="Tipo de logradouro"
+                placeholder="Ex.: Rua, Avenida"
+                readOnly
               />
             </div>
-            <Controller
-              name="logradouro"
+            <FormField
               control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="logradouro" className="font-bold">
-                    Logradouro
-                  </FieldLabel>
-                  <Input
-                    {...field}
-                    id="logradouro"
-                    placeholder="Digite o logradouro"
-                    aria-invalid={fieldState.invalid}
-                    className="h-10 rounded-sm border-input-border-muted"
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
+              name="logradouro"
+              label="Logradouro"
+              placeholder="Digite o logradouro"
+              readOnly
             />
             <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
-              <Controller
+              <FormField
+                control={form.control}
                 name="bairro"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="bairro" className="font-bold">
-                      Bairro
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="bairro"
-                      placeholder="Digite o bairro"
-                      aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                label="Bairro"
+                placeholder="Digite o bairro"
+                readOnly
               />
-              <Controller
+              <FormField
+                control={form.control}
                 name="numero"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="numero" className="font-bold">
-                      Número
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="numero"
-                      placeholder="Digite o número"
-                      aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                label="Número"
+                placeholder="Digite o número"
+                readOnly
               />
-              <Controller
-                name="complemento"
+              <FormField
                 control={form.control}
-                render={({ field }) => (
-                  <Field>
-                    <FieldLabel htmlFor="complemento" className="font-bold">
-                      Complemento
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="complemento"
-                      placeholder="Digite o complemento"
-                      className="h-10 rounded-sm border-input-border-muted"
-                    />
-                  </Field>
-                )}
+                name="complemento"
+                label="Complemento"
+                placeholder="Digite o complemento"
+                readOnly
               />
             </div>
           </section>
@@ -578,76 +414,28 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
               Informações de contato
             </h4>
             <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
-              <Controller
+              <FormField
+                control={form.control}
                 name="nomeGestor"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="nomeGestor" className="font-bold">
-                      Nome do gestor
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="nomeGestor"
-                      placeholder="Digite o nome do gestor"
-                      aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                label="Nome do gestor"
+                placeholder="Digite o nome do gestor"
               />
-              <Controller
+              <FormField
+                control={form.control}
                 name="email"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="email" className="font-bold">
-                      E-mail do Polo
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="email"
-                      type="email"
-                      placeholder="Digite o e-mail oficial do polo"
-                      aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                label="E-mail do Polo"
+                type="email"
+                placeholder="Digite o e-mail oficial do polo"
+                readOnly={!emailEditavel}
               />
-              <Controller
-                name="telefone"
+              <FormField
                 control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="telefone" className="font-bold">
-                      Telefone do Polo
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="telefone"
-                      inputMode="tel"
-                      autoComplete="tel"
-                      placeholder="(00) 00000-0000"
-                      aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
-                      onChange={(evento) =>
-                        field.onChange(
-                          aplicarMascaraTelefone(evento.target.value),
-                        )
-                      }
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                name="telefone"
+                label="Telefone do Polo"
+                type="tel"
+                placeholder="(00) 00000-0000"
+                autoComplete="tel"
+                readOnly={!telefoneEditavel}
               />
             </div>
           </section>
@@ -659,22 +447,12 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
             <h4 id="secao-observacoes" className="font-bold">
               Observações
             </h4>
-            <Controller
-              name="observacoesGerais"
+            <FormField
               control={form.control}
-              render={({ field }) => (
-                <Field>
-                  <FieldLabel htmlFor="observacoesGerais" className="font-bold">
-                    Observações Gerais
-                  </FieldLabel>
-                  <Textarea
-                    {...field}
-                    id="observacoesGerais"
-                    placeholder="Digite observações e comentários"
-                    className="rounded-sm border-input-border-muted"
-                  />
-                </Field>
-              )}
+              name="observacoesGerais"
+              label="Observações Gerais"
+              type="textarea"
+              placeholder="Digite observações e comentários"
             />
           </section>
 
@@ -683,14 +461,14 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
               type="button"
               variant="outline"
               className="h-9.5 rounded-sm border-brand-dark px-4 font-bold text-brand-dark hover:bg-accent hover:text-brand-dark"
-              onClick={() => navigate('/polos-parceiros')}
+              onClick={() => navigate(ROTA_POLOS_PARCEIROS)}
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               className="h-9.5 rounded-sm bg-brand-dark px-4 font-bold text-background hover:bg-brand-dark-hover disabled:bg-button-primary-disabled-bg disabled:opacity-100"
-              disabled={salvando}
+              disabled={salvando || consultaUnidade.isError}
             >
               {salvando ? 'Salvando...' : 'Salvar'}
             </Button>

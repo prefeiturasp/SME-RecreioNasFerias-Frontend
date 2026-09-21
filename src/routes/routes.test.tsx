@@ -6,6 +6,7 @@ import {
   definirSessaoAutenticacao,
   limparSessaoAutenticacao,
 } from '../services/autenticacao'
+import { ToastProvider } from '@/contexts/ToastContext'
 import { RotasAplicacao } from './index'
 
 const { restaurarSessaoAutenticacaoMock } = vi.hoisted(() => ({
@@ -103,7 +104,9 @@ function renderRotas(initialEntry: string) {
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[initialEntry]}>
-        <RotasAplicacao />
+        <ToastProvider>
+          <RotasAplicacao />
+        </ToastProvider>
       </MemoryRouter>
     </QueryClientProvider>,
   )
