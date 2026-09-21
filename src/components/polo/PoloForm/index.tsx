@@ -1,38 +1,18 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { AxiosError } from 'axios'
-import { SearchIcon } from 'lucide-react'
-import {
-  useEffect,
-  useRef,
-  useState,
-  type KeyboardEvent,
-  type SubmitEvent,
-} from 'react'
-import { Controller, useForm, useWatch } from 'react-hook-form'
+import { useEffect, useState, type SubmitEvent } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import type { FormValues } from './schema'
 import formSchema from './schema'
 
 import { AlertaErroApi } from '@/components/AlertaErroApi'
+import { FormField } from '@/components/FormField'
+import { FormFieldEol } from '@/components/FormFieldEol'
 import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 import { Modal } from '@/components/Modal'
 import { Button } from '@/components/ui/button'
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Spinner } from '@/components/ui/spinner'
-import { Textarea } from '@/components/ui/textarea'
+import { FieldGroup } from '@/components/ui/field'
 import { useGetDadosDaUnidade } from '@/hooks/useGetDadosDaUnidade'
 import { useGetPolo } from '@/hooks/useGetPolo'
 import { usePostPolo } from '@/hooks/usePostPolo'
@@ -47,8 +27,6 @@ const TOAST_ERRO_CADASTRO_ID = 'erro-cadastro-polo-parceiro'
 const TOAST_EOL_NAO_ENCONTRADO_ID = 'eol-nao-encontrado'
 const MENSAGEM_EOL_NAO_ENCONTRADO =
   'EOL não encontrado. Favor entrar em contato com a DRE'
-const CLASSE_CAMPO_SOMENTE_LEITURA =
-  'h-10 cursor-not-allowed rounded-sm border-input-border-muted bg-input-disabled-bg text-placeholder'
 const CAMPOS_DA_UNIDADE_VAZIOS = {
   nomePolo: '',
   dreNome: '',
@@ -77,7 +55,8 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
     string | null
   >(null)
   const [emailRetornado, setEmailRetornado] = useState('')
-  const dadosEdicaoRef = useRef<FormValues | null>(null)
+  const [dadosEdicaoPendente, setDadosEdicaoPendente] =
+    useState<FormValues | null>(null)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -235,16 +214,9 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
     dismissToast(TOAST_EOL_NAO_ENCONTRADO_ID)
   }
 
-  function handleCodigoEolKeyDown(evento: KeyboardEvent<HTMLInputElement>) {
-    if (evento.key !== 'Enter') return
-
-    evento.preventDefault()
-    consultarUnidade()
-  }
-
   function onSubmit(data: FormValues) {
     if (poloId) {
-      dadosEdicaoRef.current = data
+      setDadosEdicaoPendente(data)
       setConfirmacaoAberta(true)
       return
     }
@@ -256,18 +228,17 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
     })
   }
 
-  // adia a leitura do ref para o momento do submit, evitando acesso durante o render
   function handleFormSubmit(event: SubmitEvent<HTMLFormElement>) {
     form.handleSubmit(onSubmit)(event)
   }
 
   function confirmarEdicao() {
-    const dados = dadosEdicaoRef.current
-    if (!dados) return
+    if (!dadosEdicaoPendente) return
 
     setConfirmacaoAberta(false)
-    atualizacaoMutation.mutate(dados, {
+    atualizacaoMutation.mutate(dadosEdicaoPendente, {
       onSuccess: () => {
+        setDadosEdicaoPendente(null)
         navigate(ROTA_POLOS_PARCEIROS, { state: { poloAtualizado: true } })
       },
     })
@@ -305,224 +276,74 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                 poloId ? 'grid gap-x-4 gap-y-5.5 lg:grid-cols-2' : undefined
               }
             >
-              <Controller
-                name="tipo"
+              <FormField
                 control={form.control}
-                render={({ field }) => (
-                  <Field>
-                    <FieldLabel htmlFor="tipo" className="font-bold">
-                      Tipo
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="tipo"
-                      readOnly
-                      aria-readonly="true"
-                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
-                    />
-                  </Field>
-                )}
+                name="tipo"
+                label="Tipo"
+                readOnly
               />
 
               {poloId ? (
-                <Controller
-                  name="status"
+                <FormField
                   control={form.control}
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="status" className="font-bold">
-                        Status
-                      </FieldLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger
-                          id="status"
-                          aria-invalid={fieldState.invalid}
-                          className="h-10 w-full min-w-0 rounded-sm border-input-border-muted data-[size=default]:h-10"
-                        >
-                          <SelectValue placeholder="Selecione o status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="ativo">Ativo</SelectItem>
-                          <SelectItem value="inativo">Inativo</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {fieldState.invalid && (
-                        <FieldError errors={[fieldState.error]} />
-                      )}
-                    </Field>
-                  )}
+                  name="status"
+                  label="Status"
+                  type="select"
+                  options={[
+                    { value: 'ativo', label: 'Ativo' },
+                    { value: 'inativo', label: 'Inativo' },
+                  ]}
+                  placeholder="Selecione o status"
                 />
               ) : null}
             </div>
 
             <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
-              <Controller
+              <FormFieldEol
+                control={form.control}
                 name="codigoEol"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="codigoEol" className="font-bold">
-                      Código EOL
-                    </FieldLabel>
-                    <div className="flex gap-2">
-                      <Input
-                        {...field}
-                        id="codigoEol"
-                        placeholder="Digite o código EOL"
-                        aria-invalid={fieldState.invalid}
-                        className="h-10 rounded-sm border-input-border-muted"
-                        onChange={(evento) => {
-                          field.onChange(evento)
-                          handleCodigoEolChange(evento.target.value)
-                        }}
-                        onKeyDown={handleCodigoEolKeyDown}
-                      />
-                      <Button
-                        type="button"
-                        size="icon"
-                        aria-label={
-                          consultandoUnidade
-                            ? 'Consultando código EOL'
-                            : 'Consultar código EOL'
-                        }
-                        className="h-10 w-10 shrink-0 rounded-sm p-1.5!"
-                        disabled={consultandoUnidade}
-                        onClick={consultarUnidade}
-                      >
-                        {consultandoUnidade ? (
-                          <Spinner />
-                        ) : (
-                          <SearchIcon className="size-5" aria-hidden="true" />
-                        )}
-                      </Button>
-                    </div>
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                label="Código EOL"
+                placeholder="Digite o código EOL"
+                onSearch={consultarUnidade}
+                onChange={handleCodigoEolChange}
+                isLoading={consultandoUnidade}
               />
-              <Controller
+              <FormField
+                control={form.control}
                 name="nomeOsc"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="nomeOsc" className="font-bold">
-                      Nome da OSC
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="nomeOsc"
-                      placeholder="Digite o nome da OSC"
-                      aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                label="Nome da OSC"
+                placeholder="Digite o nome da OSC"
               />
-              <Controller
-                name="nomePolo"
+              <FormField
                 control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="nomePolo" className="font-bold">
-                      Nome do Polo
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="nomePolo"
-                      readOnly
-                      aria-readonly="true"
-                      placeholder="Nome preenchido pelo código EOL"
-                      aria-invalid={fieldState.invalid}
-                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                name="nomePolo"
+                label="Nome do Polo"
+                placeholder="Nome preenchido pelo código EOL"
+                readOnly
               />
             </div>
 
             <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
-              <Controller
+              <FormField
+                control={form.control}
                 name="dreNome"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="dre" className="font-bold">
-                      DRE
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="dre"
-                      readOnly
-                      aria-readonly="true"
-                      placeholder="DRE preenchida pelo código EOL"
-                      aria-invalid={fieldState.invalid}
-                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                label="DRE"
+                placeholder="DRE preenchida pelo código EOL"
+                readOnly
               />
-              <Controller
+              <FormField
+                control={form.control}
                 name="tipoUe"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="tipoUe" className="font-bold">
-                      Tipo de UE
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="tipoUe"
-                      readOnly
-                      aria-readonly="true"
-                      placeholder="Tipo preenchido pelo código EOL"
-                      aria-invalid={fieldState.invalid}
-                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                label="Tipo de UE"
+                placeholder="Tipo preenchido pelo código EOL"
+                readOnly
               />
-              <Controller
-                name="quantidadeMaximaAlunos"
+              <FormField
                 control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel
-                      htmlFor="quantidadeMaximaAlunos"
-                      className="font-bold"
-                    >
-                      Quantidade máxima de alunos
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="quantidadeMaximaAlunos"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="Digite a quantidade"
-                      aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                name="quantidadeMaximaAlunos"
+                label="Quantidade máxima de alunos"
+                type="number"
+                placeholder="Digite a quantidade"
               />
             </div>
           </section>
@@ -532,143 +353,51 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
               Endereço
             </h4>
             <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
-              <Controller
+              <FormField
+                control={form.control}
                 name="cep"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="cep" className="font-bold">
-                      CEP
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="cep"
-                      readOnly
-                      aria-readonly="true"
-                      inputMode="numeric"
-                      autoComplete="postal-code"
-                      placeholder="00000-000"
-                      aria-invalid={fieldState.invalid}
-                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                label="CEP"
+                placeholder="00000-000"
+                inputMode="numeric"
+                autoComplete="postal-code"
+                readOnly
               />
-              <Controller
-                name="tipoLogradouro"
+              <FormField
                 control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="tipoLogradouro" className="font-bold">
-                      Tipo de logradouro
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="tipoLogradouro"
-                      readOnly
-                      aria-readonly="true"
-                      placeholder="Ex.: Rua, Avenida"
-                      aria-invalid={fieldState.invalid}
-                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                name="tipoLogradouro"
+                label="Tipo de logradouro"
+                placeholder="Ex.: Rua, Avenida"
+                readOnly
               />
             </div>
-            <Controller
-              name="logradouro"
+            <FormField
               control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="logradouro" className="font-bold">
-                    Logradouro
-                  </FieldLabel>
-                  <Input
-                    {...field}
-                    id="logradouro"
-                    readOnly
-                    aria-readonly="true"
-                    placeholder="Digite o logradouro"
-                    aria-invalid={fieldState.invalid}
-                    className={CLASSE_CAMPO_SOMENTE_LEITURA}
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
+              name="logradouro"
+              label="Logradouro"
+              placeholder="Digite o logradouro"
+              readOnly
             />
             <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
-              <Controller
+              <FormField
+                control={form.control}
                 name="bairro"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="bairro" className="font-bold">
-                      Bairro
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="bairro"
-                      readOnly
-                      aria-readonly="true"
-                      placeholder="Digite o bairro"
-                      aria-invalid={fieldState.invalid}
-                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                label="Bairro"
+                placeholder="Digite o bairro"
+                readOnly
               />
-              <Controller
+              <FormField
+                control={form.control}
                 name="numero"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="numero" className="font-bold">
-                      Número
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="numero"
-                      readOnly
-                      aria-readonly="true"
-                      placeholder="Digite o número"
-                      aria-invalid={fieldState.invalid}
-                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                label="Número"
+                placeholder="Digite o número"
+                readOnly
               />
-              <Controller
-                name="complemento"
+              <FormField
                 control={form.control}
-                render={({ field }) => (
-                  <Field>
-                    <FieldLabel htmlFor="complemento" className="font-bold">
-                      Complemento
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="complemento"
-                      readOnly
-                      aria-readonly="true"
-                      placeholder="Digite o complemento"
-                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
-                    />
-                  </Field>
-                )}
+                name="complemento"
+                label="Complemento"
+                placeholder="Digite o complemento"
+                readOnly
               />
             </div>
           </section>
@@ -678,79 +407,28 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
               Informações de contato
             </h4>
             <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
-              <Controller
+              <FormField
+                control={form.control}
                 name="nomeGestor"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="nomeGestor" className="font-bold">
-                      Nome do gestor
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="nomeGestor"
-                      placeholder="Digite o nome do gestor"
-                      aria-invalid={fieldState.invalid}
-                      className="h-10 rounded-sm border-input-border-muted"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                label="Nome do gestor"
+                placeholder="Digite o nome do gestor"
               />
-              <Controller
+              <FormField
+                control={form.control}
                 name="email"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="email" className="font-bold">
-                      E-mail do Polo
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="email"
-                      type="email"
-                      readOnly={!emailEditavel}
-                      aria-readonly={emailEditavel ? undefined : 'true'}
-                      placeholder="Digite o e-mail oficial do polo"
-                      aria-invalid={fieldState.invalid}
-                      className={
-                        emailEditavel
-                          ? 'h-10 rounded-sm border-input-border-muted'
-                          : CLASSE_CAMPO_SOMENTE_LEITURA
-                      }
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                label="E-mail do Polo"
+                type="email"
+                placeholder="Digite o e-mail oficial do polo"
+                readOnly={!emailEditavel}
               />
-              <Controller
-                name="telefone"
+              <FormField
                 control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="telefone" className="font-bold">
-                      Telefone do Polo
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="telefone"
-                      readOnly
-                      aria-readonly="true"
-                      inputMode="tel"
-                      autoComplete="tel"
-                      placeholder="(00) 00000-0000"
-                      aria-invalid={fieldState.invalid}
-                      className={CLASSE_CAMPO_SOMENTE_LEITURA}
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+                name="telefone"
+                label="Telefone do Polo"
+                type="tel"
+                placeholder="(00) 00000-0000"
+                autoComplete="tel"
+                readOnly
               />
             </div>
           </section>
@@ -762,22 +440,12 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
             <h4 id="secao-observacoes" className="font-bold">
               Observações
             </h4>
-            <Controller
-              name="observacoesGerais"
+            <FormField
               control={form.control}
-              render={({ field }) => (
-                <Field>
-                  <FieldLabel htmlFor="observacoesGerais" className="font-bold">
-                    Observações Gerais
-                  </FieldLabel>
-                  <Textarea
-                    {...field}
-                    id="observacoesGerais"
-                    placeholder="Digite observações e comentários"
-                    className="rounded-sm border-input-border-muted"
-                  />
-                </Field>
-              )}
+              name="observacoesGerais"
+              label="Observações Gerais"
+              type="textarea"
+              placeholder="Digite observações e comentários"
             />
           </section>
 
