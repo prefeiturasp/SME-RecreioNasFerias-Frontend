@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { DefinicaoPolosListagem } from '@/components/definicaoPolo/DefinicaoPolosListagem'
 import { FiltrosDefinicaoPolosForm } from '@/components/definicaoPolo/FiltrosDefinicaoPolosForm'
 import { ModalAlterarSelecao } from '@/components/definicaoPolo/ModalAlterarSelecao'
@@ -25,6 +26,7 @@ type ResultadoOperacao = {
 }
 
 export function DefinicaoPolosConteudo() {
+  const navigate = useNavigate()
   const vincularEmMassaMutation = usePostVincularEmMassa()
   const alterarTipoMutation = usePostAlterarTipoEmMassa()
 
@@ -94,6 +96,10 @@ export function DefinicaoPolosConteudo() {
   function abrirModalAlterarTipoPolo(polos: PoloParaAlterarTipo[]) {
     alterarTipoMutation.reset()
     setPolosParaAlterarTipoPolo(polos)
+  }
+
+  function visualizarDetalheDefinicaoPolo(uuidDefinicaoPolo: string) {
+    navigate(`/definicoes-polo/${uuidDefinicaoPolo}`)
   }
 
   function confirmarAlteracaoEdicao(edicaoDestino: string) {
@@ -191,6 +197,7 @@ export function DefinicaoPolosConteudo() {
       <DefinicaoPolosListagem
         filtros={filtrosAplicados}
         chaveResetSelecao={chaveResetSelecao}
+        onVisualizarPolo={visualizarDetalheDefinicaoPolo}
         onAlterarEdicaoPolo={abrirModalAlterarEdicao}
         onAlterarTipoPolo={abrirModalAlterarTipoPolo}
       />

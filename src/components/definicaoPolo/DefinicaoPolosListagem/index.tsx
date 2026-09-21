@@ -87,7 +87,7 @@ const COLUNAS = [
 type DefinicaoPolosListagemProps = {
   filtros?: FiltrosListagemDefinicaoPolos
   chaveResetSelecao?: number
-  onVisualizarPolo?: (idPolo: string) => void
+  onVisualizarPolo?: (uuidDefinicaoPolo: string) => void
   onAlterarEdicaoPolo: (idsPolos: string[]) => void
   onAlterarTipoPolo: (polos: PoloParaAlterarTipo[]) => void
 }
@@ -199,7 +199,8 @@ export function DefinicaoPolosListagem({
             size="icon-sm"
             className="text-brand-dark"
             aria-label={`Visualizar polo ${polo.nome_polo}`}
-            onClick={() => onVisualizarPolo?.(polo.polo_uuid)}
+            disabled={!polo.definicao_uuid}
+            onClick={() => onVisualizarPolo?.(polo.definicao_uuid)}
           >
             <img src={iconeOlho} alt="" aria-hidden="true" className="size-5" />
           </Button>

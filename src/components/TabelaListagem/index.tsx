@@ -9,8 +9,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
-import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from 'lucide-react'
+import {
+  ArrowDownIcon,
+  ArrowUpDownIcon,
+  ArrowUpIcon,
+  InfoIcon,
+} from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import type { DefinicaoColuna } from './types'
 
@@ -293,7 +303,7 @@ export function TabelaListagem<T>({
                 </TableHead>
               ) : null}
 
-              {colunas.map(({ id, rotulo }) => {
+              {colunas.map(({ id, rotulo, informacao }) => {
                 const colunaAtiva = colunaOrdenacao === id
 
                 return (
@@ -319,6 +329,14 @@ export function TabelaListagem<T>({
                       onClick={() => alternarOrdenacao(id)}
                     >
                       {rotulo}
+                      {informacao ? (
+                        <Tooltip>
+                          <TooltipTrigger className="px-2">
+                            <InfoIcon aria-hidden="true" />
+                          </TooltipTrigger>
+                          <TooltipContent>{informacao}</TooltipContent>
+                        </Tooltip>
+                      ) : null}
                       <IconeDirecaoOrdenacao
                         colunaAtiva={colunaAtiva}
                         direcao={direcaoOrdenacao}

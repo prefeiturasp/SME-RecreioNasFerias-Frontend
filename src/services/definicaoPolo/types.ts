@@ -87,6 +87,71 @@ export type DefinicaoPolo = {
   atualizado_em: string
 }
 
+export type DetalheDefinicaoPolo = {
+  ativo: boolean
+  edicao: {
+    uuid: string
+    nome: string
+  }
+  polo: {
+    ativo: boolean
+    atualizado_em: string
+    bairro: string
+    cep: string
+    codigo_eol: string
+    complemento: string
+    criado_em: string
+    dre_codigo_eol: string
+    dre_nome: string
+    email: string
+    gestao: string
+    logradouro: string
+    nome_gestor: string
+    nome_osc: string
+    nome_polo: string
+    numero: string
+    observacoes_gerais: string
+    quantidade_maxima_alunos: number | null
+    status: string
+    telefone: string
+    tipo: string
+    tipo_logradouro: string
+    tipo_ue: string
+    uuid: string
+  }
+  ponto_focal_nome: string
+  ponto_focal_telefone: string
+  ponto_focal_email: string
+  projecao_inscritos: number | null
+  total_inscritos: number | null
+  tipo: string | null
+  uuid: string
+}
+
+export type Historico = {
+  edicao: {
+    nome: string
+  }
+  tipo: string | null
+  projecao_inscritos: number | null
+  total_inscritos?: number | null
+  resultado_final_de_inscritos: number | null
+}
+
+export type ParametrosHistoricoDefinicaoPolo = {
+  polo: string
+  page?: number
+  page_size?: number
+  desabilita_paginacao?: boolean
+}
+
+export type ListagemHistoricoDefinicaoPoloPaginada = {
+  count: number
+  next: string | null
+  previous: string | null
+  results: Historico[]
+}
+
 export const FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS: FiltrosListagemDefinicaoPolos =
   {
     dre: '',
