@@ -71,13 +71,22 @@ describe('PoloForm schema', () => {
     ).toContain('Digite um e-mail válido para o gestor.')
   })
 
-  it('aceita e-mail vazio', () => {
+  it('rejeita e-mail vazio', () => {
     expect(
-      formSchema.safeParse({
+      mensagensDeErro({
         ...dadosValidos,
         email: '',
-      }).success,
-    ).toBe(true)
+      }),
+    ).toContain('E-mail do polo é obrigatório')
+  })
+
+  it('rejeita telefone vazio', () => {
+    expect(
+      mensagensDeErro({
+        ...dadosValidos,
+        telefone: '',
+      }),
+    ).toContain('Telefone do polo é obrigatório')
   })
 
   it('aceita telefone com 8 dígitos retornado pela unidade', () => {

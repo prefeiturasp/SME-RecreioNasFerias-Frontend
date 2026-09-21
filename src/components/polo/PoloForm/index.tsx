@@ -55,6 +55,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
     string | null
   >(null)
   const [emailRetornado, setEmailRetornado] = useState('')
+  const [telefoneRetornado, setTelefoneRetornado] = useState('')
   const [dadosEdicaoPendente, setDadosEdicaoPendente] =
     useState<FormValues | null>(null)
 
@@ -94,6 +95,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
 
     setCodigoEolSincronizado(poloQuery.data.codigo_eol)
     setEmailRetornado(poloQuery.data.email)
+    setTelefoneRetornado(poloQuery.data.telefone)
     form.reset({
       tipo: poloQuery.data.tipo,
       gestao: poloQuery.data.gestao,
@@ -122,6 +124,8 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
   const consultandoUnidade = consultaUnidade.isPending
   const emailEditavel =
     codigoEolSincronizado !== null && emailRetornado.trim().length === 0
+  const telefoneEditavel =
+    codigoEolSincronizado !== null && telefoneRetornado.trim().length === 0
   const valoresFormulario = useWatch({ control: form.control })
 
   useEffect(() => {
@@ -153,6 +157,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
     })
     setCodigoEolSincronizado(null)
     setEmailRetornado('')
+    setTelefoneRetornado('')
   }
 
   function limparCamposDaUnidade() {
@@ -186,6 +191,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
           })
           setCodigoEolSincronizado(unidade.codigo_eol)
           setEmailRetornado(unidade.email)
+          setTelefoneRetornado(unidade.telefone)
         },
         onError: () => {
           resetarCamposDaUnidade()
@@ -428,7 +434,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                 type="tel"
                 placeholder="(00) 00000-0000"
                 autoComplete="tel"
-                readOnly
+                readOnly={!telefoneEditavel}
               />
             </div>
           </section>

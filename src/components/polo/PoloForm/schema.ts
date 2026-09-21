@@ -35,13 +35,9 @@ const formSchema = z.object({
   email: z
     .string()
     .trim()
+    .min(1, 'E-mail do polo é obrigatório')
     .toLowerCase()
-    .pipe(
-      z.union([
-        z.literal(''),
-        z.email({ error: 'Digite um e-mail válido para o gestor.' }),
-      ]),
-    ),
+    .pipe(z.email({ error: 'Digite um e-mail válido para o gestor.' })),
   telefone: z
     .string()
     .trim()

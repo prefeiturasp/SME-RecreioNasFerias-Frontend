@@ -310,6 +310,66 @@ describe('PoloForm', { timeout: 15000 }, () => {
     expect(campoEmail).toHaveValue('unidade@escola.sp.gov.br')
   })
 
+  it('permite informar o telefone quando a unidade retorna o campo vazio', async () => {
+    const usuario = criarUsuario()
+    obterDadosDaUnidadeMock.mockResolvedValue({
+      ...dadosDaUnidade,
+      telefone: '',
+    })
+    renderPoloForm()
+
+    await consultarUnidade(usuario)
+
+    const campoTelefone = screen.getByLabelText(/telefone do polo/i)
+    expect(campoTelefone).not.toHaveAttribute('readonly')
+    await usuario.type(campoTelefone, '11999999999')
+    expect(campoTelefone).toHaveValue('11999999999')
+  })
+
+  it('não cadastra sem e-mail e telefone quando a unidade não retorna esses dados', async () => {
+    const usuario = criarUsuario()
+    obterDadosDaUnidadeMock.mockResolvedValue({
+      ...dadosDaUnidade,
+      email: '',
+      telefone: '',
+    })
+    renderPoloForm()
+
+    await consultarUnidade(usuario)
+    await preencherCamposManuais(usuario)
+    await usuario.click(screen.getByRole('button', { name: 'Salvar' }))
+
+    expect(
+      await screen.findByText('E-mail do polo é obrigatório'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Telefone do polo é obrigatório'),
+    ).toBeInTheDocument()
+    expect(cadastrarPoloMock).not.toHaveBeenCalled()
+
+    await usuario.type(
+      screen.getByLabelText(/e-mail do polo/i),
+      'unidade@escola.sp.gov.br',
+    )
+    await usuario.type(
+      screen.getByLabelText(/telefone do polo/i),
+      '11999999999',
+    )
+    await usuario.click(screen.getByRole('button', { name: 'Salvar' }))
+
+    await waitFor(() => {
+      expect(cadastrarPoloMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: 'unidade@escola.sp.gov.br',
+          telefone: '11999999999',
+        }),
+        expect.objectContaining({
+          client: expect.any(QueryClient),
+        }),
+      )
+    })
+  })
+
   it('exibe toast quando o código EOL não é encontrado', async () => {
     const usuario = criarUsuario()
     obterDadosDaUnidadeMock.mockRejectedValue({
@@ -388,6 +448,9 @@ describe('PoloForm', { timeout: 15000 }, () => {
       'readonly',
     )
     expect(screen.getByLabelText(/telefone do polo/i)).toHaveValue('59742587')
+    expect(screen.getByLabelText(/telefone do polo/i)).toHaveAttribute(
+      'readonly',
+    )
   })
 
   it('não consulta a unidade quando o código EOL é inválido', async () => {
@@ -417,6 +480,10 @@ describe('PoloForm', { timeout: 15000 }, () => {
       await screen.findByText('Nome da OSC é obrigatório'),
     ).toBeInTheDocument()
     expect(screen.getByText('Nome do polo é obrigatório')).toBeInTheDocument()
+    expect(screen.getByText('E-mail do polo é obrigatório')).toBeInTheDocument()
+    expect(
+      screen.getByText('Telefone do polo é obrigatório'),
+    ).toBeInTheDocument()
     expect(cadastrarPoloMock).not.toHaveBeenCalled()
   })
 
