@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
+import { extrairDigitos } from '@/utils/mascarasEntrada'
 
 export type FormFieldEolProps<
   TFieldValues extends FieldValues,
@@ -60,10 +61,6 @@ export function FormFieldEol<
     onSearch()
   }
 
-  const handleChange = (evento: React.ChangeEvent<HTMLInputElement>) => {
-    onChange?.(evento.target.value)
-  }
-
   return (
     <Controller
       name={name}
@@ -77,12 +74,15 @@ export function FormFieldEol<
             <Input
               {...field}
               id={String(name)}
+              inputMode="numeric"
+              maxLength={7}
               placeholder={placeholder}
               aria-invalid={fieldState.invalid}
               className="h-10 rounded-sm border-input-border-muted"
               onChange={(evento) => {
-                field.onChange(evento)
-                handleChange(evento)
+                const valor = extrairDigitos(evento.target.value).slice(0, 7)
+                field.onChange(valor)
+                onChange?.(valor)
               }}
               onKeyDown={handleKeyDown}
             />

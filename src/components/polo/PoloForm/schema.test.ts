@@ -35,6 +35,15 @@ describe('PoloForm schema', () => {
     expect(formSchema.safeParse(dadosValidos).success).toBe(true)
   })
 
+  it('rejeita código EOL com letras', () => {
+    expect(
+      mensagensDeErro({
+        ...dadosValidos,
+        codigoEol: '12345a',
+      }),
+    ).toContain('Código EOL deve conter apenas números')
+  })
+
   it('rejeita nome da OSC composto só por espaços', () => {
     expect(
       mensagensDeErro({

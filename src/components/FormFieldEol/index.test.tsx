@@ -127,6 +127,32 @@ describe('FormFieldEol', () => {
     expect(onChange).toHaveBeenCalledWith('12')
   })
 
+  it('aceita apenas números no código EOL', async () => {
+    const usuario = userEvent.setup()
+    const onChange = vi.fn()
+
+    render(
+      <FormularioTeste>
+        {(control) => (
+          <FormFieldEol
+            control={control}
+            name="codigoEol"
+            onSearch={vi.fn()}
+            onChange={onChange}
+          />
+        )}
+      </FormularioTeste>,
+    )
+
+    await usuario.type(screen.getByLabelText('Código EOL'), '12a3b')
+
+    expect(screen.getByLabelText('Código EOL')).toHaveValue('123')
+    expect(onChange).toHaveBeenCalledWith('1')
+    expect(onChange).toHaveBeenCalledWith('12')
+    expect(onChange).toHaveBeenCalledWith('123')
+    expect(onChange).not.toHaveBeenCalledWith('12a3b')
+  })
+
   it('mostra o estado de carregamento no botão de consulta', () => {
     render(
       <FormularioTeste>

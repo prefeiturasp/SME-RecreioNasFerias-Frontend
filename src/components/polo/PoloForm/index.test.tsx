@@ -231,12 +231,7 @@ describe('PoloForm', { timeout: 15000 }, () => {
 
     await consultarUnidade(usuario)
 
-    expect(obterDadosDaUnidadeMock).toHaveBeenCalledWith(
-      '123456',
-      expect.objectContaining({
-        client: expect.any(QueryClient),
-      }),
-    )
+    expect(obterDadosDaUnidadeMock).toHaveBeenCalledWith('123456')
     expect(screen.getByLabelText(/nome do polo/i)).toHaveValue('Polo Teste')
     expect(screen.getByLabelText(/^dre$/i)).toHaveValue(dreNome)
     expect(screen.getByLabelText(/tipo de ue/i)).toHaveValue('EMEF')
@@ -262,12 +257,7 @@ describe('PoloForm', { timeout: 15000 }, () => {
     await waitFor(() => {
       expect(screen.getByLabelText(/nome do polo/i)).toHaveValue('Polo Teste')
     })
-    expect(obterDadosDaUnidadeMock).toHaveBeenCalledWith(
-      '123456',
-      expect.objectContaining({
-        client: expect.any(QueryClient),
-      }),
-    )
+    expect(obterDadosDaUnidadeMock).toHaveBeenCalledWith('123456')
     expect(cadastrarPoloMock).not.toHaveBeenCalled()
   })
 
@@ -378,6 +368,31 @@ describe('PoloForm', { timeout: 15000 }, () => {
     renderPoloForm()
 
     await usuario.type(campoCodigoEol(), '000000')
+    await usuario.click(
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    )
+
+    await waitFor(() => {
+      expect(toastMock).toHaveBeenCalledWith({
+        id: 'eol-nao-encontrado',
+        variant: 'destructive',
+        description: 'EOL não encontrado. Favor entrar em contato com a DRE',
+      })
+    })
+    expect(screen.getByLabelText(/nome do polo/i)).toHaveValue('')
+    expect(screen.getByRole('button', { name: 'Salvar' })).toBeDisabled()
+    expect(cadastrarPoloMock).not.toHaveBeenCalled()
+  })
+
+  it('exibe toast quando a unidade retorna codigo_eol vazio', async () => {
+    const usuario = criarUsuario()
+    obterDadosDaUnidadeMock.mockResolvedValue({
+      ...dadosDaUnidade,
+      codigo_eol: '',
+    })
+    renderPoloForm()
+
+    await usuario.type(campoCodigoEol(), '123456')
     await usuario.click(
       screen.getByRole('button', { name: /consultar código eol/i }),
     )

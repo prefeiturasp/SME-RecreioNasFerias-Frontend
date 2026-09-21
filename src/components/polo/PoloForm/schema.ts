@@ -5,7 +5,8 @@ const formSchema = z.object({
     .string()
     .trim()
     .min(6, 'Código EOL é obrigatório e não pode ser menor que 6 caracteres')
-    .max(7, 'Código EOL não pode ser maior que 7 caracteres'),
+    .max(7, 'Código EOL não pode ser maior que 7 caracteres')
+    .regex(/^\d+$/, 'Código EOL deve conter apenas números'),
   nomeOsc: z.string().trim().min(1, 'Nome da OSC é obrigatório'),
   nomePolo: z.string().trim().min(1, 'Nome do polo é obrigatório'),
   dreNome: z.string().trim().min(1, 'DRE é obrigatória'),
