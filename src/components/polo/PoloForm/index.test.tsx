@@ -612,6 +612,10 @@ describe('PoloForm em edição', { timeout: 15000 }, () => {
     expect(screen.getByLabelText(/^tipo$/i)).toHaveValue('pendente')
     expect(screen.getByLabelText(/^status$/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/nome do polo/i)).toHaveAttribute('readonly')
+    expect(screen.getByLabelText(/^código eol$/i)).toHaveAttribute('readonly')
+    expect(
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    ).toBeDisabled()
     expect(obterPoloMock).toHaveBeenCalledWith(poloCarregado.uuid)
   })
 

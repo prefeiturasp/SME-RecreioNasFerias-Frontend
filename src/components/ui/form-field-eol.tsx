@@ -24,6 +24,7 @@ export type FormFieldEolProps<
   onSearch: () => void
   onChange?: (value: string) => void
   isLoading?: boolean
+  readOnly?: boolean
   labelClassName?: string
 }
 
@@ -52,10 +53,11 @@ export function FormFieldEol<
   onSearch,
   onChange,
   isLoading = false,
+  readOnly = false,
   labelClassName = 'font-bold',
 }: Readonly<FormFieldEolProps<TFieldValues, TName>>): React.JSX.Element {
   const handleKeyDown = (evento: KeyboardEvent<HTMLInputElement>) => {
-    if (evento.key !== 'Enter') return
+    if (readOnly || evento.key !== 'Enter') return
 
     evento.preventDefault()
     onSearch()
@@ -77,9 +79,16 @@ export function FormFieldEol<
               inputMode="numeric"
               maxLength={7}
               placeholder={placeholder}
+              readOnly={readOnly}
+              aria-readonly={readOnly ? 'true' : undefined}
               aria-invalid={fieldState.invalid}
-              className="h-10 rounded-sm border-input-border-muted"
+              className={
+                readOnly
+                  ? 'h-10 cursor-not-allowed rounded-sm border-input-border-muted bg-input-disabled-bg text-placeholder'
+                  : 'h-10 rounded-sm border-input-border-muted'
+              }
               onChange={(evento) => {
+                if (readOnly) return
                 const valor = extrairDigitos(evento.target.value).slice(0, 7)
                 field.onChange(valor)
                 onChange?.(valor)
@@ -93,8 +102,11 @@ export function FormFieldEol<
                 isLoading ? 'Consultando código EOL' : 'Consultar código EOL'
               }
               className="h-10 w-10 shrink-0 rounded-sm p-1.5!"
-              disabled={isLoading}
-              onClick={onSearch}
+              disabled={readOnly || isLoading}
+              onClick={() => {
+                if (readOnly) return
+                onSearch()
+              }}
             >
               {isLoading ? (
                 <Spinner />

@@ -7,8 +7,8 @@ import type { FormValues } from './schema'
 import formSchema from './schema'
 
 import { AlertaErroApi } from '@/components/AlertaErroApi'
-import { FormField } from '@/components/FormField'
-import { FormFieldEol } from '@/components/FormFieldEol'
+import { FormField } from '@/components/ui/form-field'
+import { FormFieldEol } from '@/components/ui/form-field-eol'
 import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 import { Modal } from '@/components/Modal'
 import { Button } from '@/components/ui/button'
@@ -313,6 +313,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
                 onSearch={consultarUnidade}
                 onChange={handleCodigoEolChange}
                 isLoading={consultandoUnidade}
+                readOnly={Boolean(poloId)}
               />
               <FormField
                 control={form.control}
