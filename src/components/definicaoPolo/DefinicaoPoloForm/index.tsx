@@ -4,7 +4,7 @@ import { useEffect, type SubmitEvent } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import type { FormValues } from './schema'
-import formSchema from './schema'
+import formSchema, { calcularTotalInscritos } from './schema'
 
 import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 import { Button } from '@/components/ui/button'
@@ -114,11 +114,7 @@ export function DefinicaoPoloForm({
     control: form.control,
     name: 'projecaoInscritos',
   })
-  const projecaoNumerica = Number(projecaoInscritos)
-  const totalInscritos =
-    Number.isFinite(projecaoNumerica) && projecaoNumerica >= 0
-      ? Math.floor(projecaoNumerica * 1.3)
-      : 0
+  const totalInscritos = calcularTotalInscritos(Number(projecaoInscritos))
 
   useEffect(() => {
     if (atualizacaoMutation.isError) {
