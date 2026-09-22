@@ -29,6 +29,7 @@ const polos: DefinicaoPoloApi[] = [
     tipo_polo_edicao: 'pendente',
     projecao_inscritos_edicao: null,
     total_inscritos_edicao: null,
+    resultado_final_de_inscritos_edicao: null,
   },
 ]
 

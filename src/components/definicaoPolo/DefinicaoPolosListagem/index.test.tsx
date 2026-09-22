@@ -46,6 +46,7 @@ const poloDiretaApi: DefinicaoPoloApi = {
   tipo_polo_edicao: 'pendente',
   projecao_inscritos_edicao: null,
   total_inscritos_edicao: null,
+  resultado_final_de_inscritos_edicao: null,
 }
 
 const poloParceiraApi: DefinicaoPoloApi = {
@@ -64,6 +65,7 @@ const poloParceiraApi: DefinicaoPoloApi = {
   tipo_polo_edicao: 'oficial',
   projecao_inscritos_edicao: null,
   total_inscritos_edicao: null,
+  resultado_final_de_inscritos_edicao: null,
 }
 
 function criarListagemPaginada(
