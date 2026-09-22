@@ -377,6 +377,13 @@ describe('DefinicaoPolosListagem', () => {
     const onVisualizarPolo = vi.fn()
     const onAlterarEdicaoPolo = vi.fn()
 
+    listarDefinicoesPoloMock.mockResolvedValue(
+      criarListagemPaginada([
+        { ...poloDiretaApi, definicao_uuid: '1' },
+        poloParceiraApi,
+      ]),
+    )
+
     renderDefinicaoPolosListagem({
       onVisualizarPolo,
       onAlterarEdicaoPolo,

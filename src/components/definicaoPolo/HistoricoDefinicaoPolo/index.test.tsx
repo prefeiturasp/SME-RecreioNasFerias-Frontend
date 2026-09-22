@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { HistoricoDefinicaoPolo } from './index'
 import useGetHistoricoDefinicoesPolo from '@/hooks/useGetHistoricoDefinicoesPolo'
 import { vi, type Mock } from 'vitest'
@@ -110,5 +111,55 @@ describe('Componente: HistoricoDefinicaoPolo', () => {
         expect.objectContaining({ page: 2 }),
       )
     }
+  })
+
+  it('deve resetar para a primeira página e alterar o page_size ao mudar os itens por página', async () => {
+    const usuario = userEvent.setup()
+
+    mockUseGetHistoricoDefinicoesPolo.mockReturnValue({
+      data: {
+        count: 25,
+        results: [
+          {
+            edicao: { nome: 'Edição 2025' },
+            tipo: 'Presencial',
+            projecao_inscritos: 10,
+          },
+        ],
+      },
+      isLoading: false,
+    })
+
+    render(<HistoricoDefinicaoPolo poloUuid={mockPoloUuid} />)
+
+    const seletorItensPorPagina = screen.getByRole('combobox', {
+      name: /itens por página/i,
+    })
+
+    await usuario.click(seletorItensPorPagina)
+    await usuario.click(await screen.findByRole('option', { name: '20' }))
+
+    await waitFor(() => {
+      expect(mockUseGetHistoricoDefinicoesPolo).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 1, page_size: 20 }),
+      )
+    })
+  })
+
+  it('deve lidar com dados vazios ou indefinidos na listagem sem quebrar o componente', () => {
+    mockUseGetHistoricoDefinicoesPolo.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+    })
+
+    render(<HistoricoDefinicaoPolo poloUuid={mockPoloUuid} />)
+
+    expect(screen.getByText('Histórico')).toBeInTheDocument()
+    // Garante que o hook foi chamado com os parâmetros padrão mesmo sem dados
+    expect(mockUseGetHistoricoDefinicoesPolo).toHaveBeenCalledWith({
+      polo: mockPoloUuid,
+      page: 1,
+      page_size: 10,
+    })
   })
 })

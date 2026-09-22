@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
 import { queryClient } from '@/lib/queryClient'
 import { DefinicaoPolosConteudo } from './index'
 
@@ -124,9 +125,11 @@ function renderConteudo() {
   })
 
   return render(
-    <QueryClientProvider client={queryClient}>
-      <DefinicaoPolosConteudo />
-    </QueryClientProvider>,
+    <MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <DefinicaoPolosConteudo />
+      </QueryClientProvider>
+    </MemoryRouter>,
   )
 }
 
