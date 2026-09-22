@@ -115,4 +115,23 @@ describe('listarHistoricoDefinicaoPolo', () => {
       'Erro interno no servidor',
     )
   })
+
+  it('deve enviar desabilita_paginacao quando solicitado', async () => {
+    vi.mocked(api.get).mockResolvedValueOnce({ data: mockResposta })
+
+    await listarHistoricoDefinicaoPolo({
+      polo: 'uuid-polo',
+      desabilita_paginacao: true,
+    })
+
+    expect(api.get).toHaveBeenCalledWith(
+      '/api/v1/definicoes-polos/historico/',
+      {
+        params: {
+          polo: 'uuid-polo',
+          desabilita_paginacao: true,
+        },
+      },
+    )
+  })
 })

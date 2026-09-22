@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import type {
-  ListagemHistoricoDefinicaoPoloPaginada,
+  ListagemHistoricoDefinicaoPolo,
   ParametrosHistoricoDefinicaoPolo,
 } from '@/services/definicaoPolo/types'
 import { listarHistoricoDefinicaoPolo } from '@/services/definicaoPolo/listarHistoricoDefinicaoPolo'
@@ -18,7 +18,7 @@ export function useGetHistoricoDefinicoesPolo(
     desabilita_paginacao,
   }
 
-  return useQuery<ListagemHistoricoDefinicaoPoloPaginada, Error>({
+  return useQuery<ListagemHistoricoDefinicaoPolo, Error>({
     queryKey: ['historicoDefinicoesPolo', parametrosComPaginacao],
     queryFn: () => listarHistoricoDefinicaoPolo(parametrosComPaginacao),
     placeholderData: keepPreviousData,

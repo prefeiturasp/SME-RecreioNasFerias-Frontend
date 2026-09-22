@@ -152,6 +152,10 @@ export type ListagemHistoricoDefinicaoPoloPaginada = {
   results: Historico[]
 }
 
+export type ListagemHistoricoDefinicaoPolo =
+  | ListagemHistoricoDefinicaoPoloPaginada
+  | Historico[]
+
 export const FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS: FiltrosListagemDefinicaoPolos =
   {
     dre: '',

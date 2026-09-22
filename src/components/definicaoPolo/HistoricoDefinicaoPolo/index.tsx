@@ -40,21 +40,28 @@ export function HistoricoDefinicaoPolo({
 }: Readonly<{ poloUuid: string }>) {
   const [paginaAtual, setPaginaAtual] = useState(1)
   const [itensPorPagina, setItensPorPagina] = useState(10)
+  const [desabilitaPaginacao, setDesabilitaPaginacao] = useState(false)
 
   const listagemQuery = useGetHistoricoDefinicoesPolo({
     polo: poloUuid,
     page: paginaAtual,
     page_size: itensPorPagina,
+    desabilita_paginacao: desabilitaPaginacao,
   })
 
-  const historico: HistoricoListagem[] = (
-    listagemQuery.data?.results ?? []
-  ).map((item, indice) => ({
+  const resultados = Array.isArray(listagemQuery.data)
+    ? listagemQuery.data
+    : (listagemQuery.data?.results ?? [])
+  const historico: HistoricoListagem[] = resultados.map((item, indice) => ({
     ...item,
     id: `${paginaAtual}-${indice}`,
   }))
-  const totalRegistros = listagemQuery.data?.count ?? 0
-  const totalPaginas = Math.ceil(totalRegistros / itensPorPagina)
+  const totalRegistros = Array.isArray(listagemQuery.data)
+    ? historico.length
+    : (listagemQuery.data?.count ?? 0)
+  const totalPaginas = desabilitaPaginacao
+    ? 1
+    : Math.ceil(totalRegistros / itensPorPagina)
 
   function mudarItensPorPagina(novoTamanho: number) {
     setItensPorPagina(novoTamanho)
@@ -76,6 +83,12 @@ export function HistoricoDefinicaoPolo({
         itensPorPagina={itensPorPagina}
         onMudarPagina={setPaginaAtual}
         onMudarItensPorPagina={mudarItensPorPagina}
+        permitirDesabilitarPaginacao
+        desabilitaPaginacao={desabilitaPaginacao}
+        onMudarDesabilitaPaginacao={(desabilitada) => {
+          setDesabilitaPaginacao(desabilitada)
+          setPaginaAtual(1)
+        }}
         rotuloAcessivelPaginacao="Paginação do histórico da definição do polo"
       />
     </>

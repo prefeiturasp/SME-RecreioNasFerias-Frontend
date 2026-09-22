@@ -51,6 +51,9 @@ type TabelaListagemProps<T> = {
   itensPorPagina: number
   onMudarPagina: (pagina: number) => void
   onMudarItensPorPagina: (itensPorPagina: number) => void
+  permitirDesabilitarPaginacao?: boolean
+  desabilitaPaginacao?: boolean
+  onMudarDesabilitaPaginacao?: (desabilitada: boolean) => void
   rotuloAcessivelPaginacao?: string
   rotuloAcoes?: string
   renderizarAcoes?: (item: T) => ReactNode
@@ -153,6 +156,9 @@ export function TabelaListagem<T>({
   itensPorPagina,
   onMudarPagina,
   onMudarItensPorPagina,
+  permitirDesabilitarPaginacao,
+  desabilitaPaginacao,
+  onMudarDesabilitaPaginacao,
   rotuloAcessivelPaginacao,
   rotuloAcoes = 'Ações',
   renderizarAcoes,
@@ -408,6 +414,9 @@ export function TabelaListagem<T>({
           rotuloAcessivel={rotuloAcessivelPaginacao}
           onMudarPagina={onMudarPagina}
           onMudarItensPorPagina={onMudarItensPorPagina}
+          permitirDesabilitarPaginacao={permitirDesabilitarPaginacao}
+          desabilitaPaginacao={desabilitaPaginacao}
+          onMudarDesabilitaPaginacao={onMudarDesabilitaPaginacao}
         />
       ) : null}
     </>

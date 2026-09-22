@@ -79,6 +79,7 @@ describe('Componente: HistoricoDefinicaoPolo', () => {
       polo: mockPoloUuid,
       page: 1,
       page_size: 10,
+      desabilita_paginacao: false,
     })
   })
 
@@ -94,6 +95,7 @@ describe('Componente: HistoricoDefinicaoPolo', () => {
             total_inscritos: 5,
           },
         ],
+        desabilita_paginacao: false,
       },
       isLoading: false,
     })
@@ -141,9 +143,64 @@ describe('Componente: HistoricoDefinicaoPolo', () => {
 
     await waitFor(() => {
       expect(mockUseGetHistoricoDefinicoesPolo).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 1, page_size: 20 }),
+        expect.objectContaining({
+          page: 1,
+          page_size: 20,
+          desabilita_paginacao: false,
+        }),
       )
     })
+  })
+
+  it('deve desabilitar a paginação e solicitar todos os resultados', async () => {
+    const usuario = userEvent.setup()
+
+    mockUseGetHistoricoDefinicoesPolo.mockReturnValue({
+      data: {
+        count: 25,
+        results: [
+          {
+            edicao: { nome: 'Edição 2025' },
+            tipo: 'Presencial',
+            projecao_inscritos: 10,
+            resultado_final_de_inscritos: 8,
+          },
+        ],
+      },
+      isLoading: false,
+    })
+
+    render(<HistoricoDefinicaoPolo poloUuid={mockPoloUuid} />)
+
+    await usuario.click(
+      screen.getByRole('checkbox', { name: /desabilitar paginação/i }),
+    )
+
+    await waitFor(() => {
+      expect(mockUseGetHistoricoDefinicoesPolo).toHaveBeenCalledWith(
+        expect.objectContaining({ desabilita_paginacao: true }),
+      )
+    })
+  })
+
+  it('deve renderizar os dados quando a API retornar um array sem paginação', () => {
+    mockUseGetHistoricoDefinicoesPolo.mockReturnValue({
+      data: [
+        {
+          edicao: { nome: 'Edição sem paginação' },
+          tipo: 'Presencial',
+          projecao_inscritos: 30,
+          resultado_final_de_inscritos: 25,
+        },
+      ],
+      isLoading: false,
+    })
+
+    render(<HistoricoDefinicaoPolo poloUuid={mockPoloUuid} />)
+
+    expect(screen.getByText('Edição sem paginação')).toBeInTheDocument()
+    expect(screen.getByText('30')).toBeInTheDocument()
+    expect(screen.getByText('25')).toBeInTheDocument()
   })
 
   it('deve lidar com dados vazios ou indefinidos na listagem sem quebrar o componente', () => {
@@ -160,6 +217,7 @@ describe('Componente: HistoricoDefinicaoPolo', () => {
       polo: mockPoloUuid,
       page: 1,
       page_size: 10,
+      desabilita_paginacao: false,
     })
   })
 })
