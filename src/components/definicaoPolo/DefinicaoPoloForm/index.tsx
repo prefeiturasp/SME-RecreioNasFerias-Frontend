@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { AxiosError } from 'axios'
-import { useEffect, type SubmitEvent } from 'react'
+import { useEffect, useMemo, type SubmitEvent } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import type { FormValues } from './schema'
@@ -83,20 +83,14 @@ export function DefinicaoPoloForm({
   }, [definicaoQuery.error, definicaoQuery.isError, showToast])
 
   const salvando = atualizacaoMutation.isPending
-  const valoresFormulario = useWatch({ control: form.control })
   const projecaoInscritos = useWatch({
     control: form.control,
     name: 'projecaoInscritos',
   })
-  const totalInscritos = calcularTotalInscritos(Number(projecaoInscritos))
-
-  useEffect(() => {
-    if (atualizacaoMutation.isError) {
-      dismissToast(TOAST_ERRO_ATUALIZACAO_ID)
-      atualizacaoMutation.reset()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- limpa o erro ao alterar qualquer campo
-  }, [valoresFormulario])
+  const totalInscritos = useMemo(
+    () => calcularTotalInscritos(Number(projecaoInscritos)),
+    [projecaoInscritos],
+  )
 
   useEffect(() => {
     if (!atualizacaoMutation.error) return
@@ -113,6 +107,11 @@ export function DefinicaoPoloForm({
   function onSubmit(data: FormValues) {
     const detalhe = definicaoQuery.data
     if (!detalhe) return
+
+    if (atualizacaoMutation.isError) {
+      dismissToast(TOAST_ERRO_ATUALIZACAO_ID)
+      atualizacaoMutation.reset()
+    }
 
     atualizacaoMutation.mutate(
       {
