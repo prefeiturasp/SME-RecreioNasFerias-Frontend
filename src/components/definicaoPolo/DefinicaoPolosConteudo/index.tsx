@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { DefinicaoPolosListagem } from '@/components/definicaoPolo/DefinicaoPolosListagem'
 import { FiltrosDefinicaoPolosForm } from '@/components/definicaoPolo/FiltrosDefinicaoPolosForm'
 import { ModalAlterarSelecao } from '@/components/definicaoPolo/ModalAlterarSelecao'
@@ -14,7 +16,6 @@ import {
   type FiltrosListagemDefinicaoPolos,
   type PoloParaAlterarTipo,
 } from '@/services/definicaoPolo/types'
-import { useEffect, useState } from 'react'
 
 const MENSAGEM_POLO_ALTERADO = 'Polo alterado com sucesso!'
 const TEMPO_EXIBICAO_SUCESSO_MS = 3000
@@ -25,6 +26,7 @@ type ResultadoOperacao = {
 }
 
 export function DefinicaoPolosConteudo() {
+  const navigate = useNavigate()
   const vincularEmMassaMutation = usePostVincularEmMassa()
   const alterarTipoMutation = usePostAlterarTipoEmMassa()
 
@@ -94,6 +96,10 @@ export function DefinicaoPolosConteudo() {
   function abrirModalAlterarTipoPolo(polos: PoloParaAlterarTipo[]) {
     alterarTipoMutation.reset()
     setPolosParaAlterarTipoPolo(polos)
+  }
+
+  function visualizarDefinicao(definicaoUuid: string) {
+    navigate(`/definicoes-polo/${definicaoUuid}`)
   }
 
   function confirmarAlteracaoEdicao(edicaoDestino: string) {
@@ -191,6 +197,7 @@ export function DefinicaoPolosConteudo() {
       <DefinicaoPolosListagem
         filtros={filtrosAplicados}
         chaveResetSelecao={chaveResetSelecao}
+        onVisualizarPolo={visualizarDefinicao}
         onAlterarEdicaoPolo={abrirModalAlterarEdicao}
         onAlterarTipoPolo={abrirModalAlterarTipoPolo}
       />

@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 import { RotaProtegida } from '../components/RotaProtegida'
 import PaginaDefinicoesPolo from '../pages/PaginaDefinicoesPolo'
+import PaginaDetalhamentoDefinicaoPolo from '../pages/PaginaDetalhamentoDefinicaoPolo'
 import PaginaPolosParceiros from '../pages/PaginaPolosParceiros'
 import PaginaCadastrarNovaEdicaoPrograma from '../pages/PaginaCadastrarNovaEdicaoPrograma'
 import PaginaCadastrarPoloParceiro from '../pages/PaginaCadastrarPoloParceiro'
@@ -35,6 +36,14 @@ export function RotasAplicacao() {
         element={
           <RotaProtegida>
             <PaginaDefinicoesPolo />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/definicoes-polo/:idDefinicao"
+        element={
+          <RotaProtegida>
+            <PaginaDetalhamentoDefinicaoPolo />
           </RotaProtegida>
         }
       />

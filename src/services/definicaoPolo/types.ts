@@ -14,6 +14,7 @@ export type DefinicaoPoloApi = {
   tipo_polo_edicao: string | null
   projecao_inscritos_edicao: number | null
   total_inscritos_edicao: number | null
+  resultado_final_de_inscritos_edicao: number | null
 }
 
 export type FiltrosListagemDefinicaoPolos = {
@@ -85,6 +86,61 @@ export type DefinicaoPolo = {
   ativo: boolean
   criado_em: string
   atualizado_em: string
+}
+
+export type PoloDefinicaoDetalhe = {
+  uuid: string
+  codigo_eol: string
+  nome_polo: string
+  nome_osc: string
+  dre_nome: string
+  dre_codigo_eol: string
+  tipo: string
+  status: string
+  gestao: string
+  tipo_ue: string
+  quantidade_maxima_alunos: number
+  cep: string
+  tipo_logradouro: string
+  logradouro: string
+  bairro: string
+  numero: string
+  complemento: string
+  nome_gestor: string
+  email: string
+  telefone: string
+  observacoes_gerais: string
+  ativo: boolean
+  endereco_completo: string
+}
+
+export type EdicaoResumoDefinicao = {
+  uuid: string
+  nome: string
+}
+
+export type DefinicaoPoloDetalhe = {
+  uuid: string
+  polo: PoloDefinicaoDetalhe
+  edicao: EdicaoResumoDefinicao
+  tipo: string
+  projecao_inscritos: number
+  total_inscritos: number
+  ponto_focal_nome: string
+  ponto_focal_telefone: string
+  ponto_focal_email: string
+  ativo: boolean
+  resultado_final_de_inscritos: number
+}
+
+export type DadosAtualizacaoDefinicaoPolo = {
+  polo: string
+  edicao: string
+  tipo: string
+  projecao_inscritos: number
+  ponto_focal_nome: string
+  ponto_focal_telefone: string
+  ponto_focal_email: string
 }
 
 export const FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS: FiltrosListagemDefinicaoPolos =

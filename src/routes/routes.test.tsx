@@ -121,6 +121,49 @@ vi.mock('../services/definicaoPolo/listarDefinicoesPolo', () => ({
   }),
 }))
 
+vi.mock('../services/definicaoPolo/obterDefinicaoPolo', () => ({
+  obterDefinicaoPolo: vi.fn().mockResolvedValue({
+    uuid: '11c43c20-dfcb-4a26-a677-30703b7de766',
+    polo: {
+      uuid: 'f05bc2c0-4728-4907-a10e-4971d06103fe',
+      codigo_eol: '400496',
+      nome_polo: '13 DE MAIO',
+      nome_osc: '',
+      dre_nome: 'DIRETORIA REGIONAL DE EDUCACAO IPIRANGA',
+      dre_codigo_eol: '108600',
+      tipo: 'pendente',
+      status: 'ativo',
+      gestao: 'direta',
+      tipo_ue: 'CEI DIRET',
+      quantidade_maxima_alunos: 100,
+      cep: '04201000',
+      tipo_logradouro: 'Rua',
+      logradouro: 'Treze de Maio',
+      bairro: 'Ipiranga',
+      numero: '100',
+      complemento: '',
+      nome_gestor: 'Diretor Exemplo',
+      email: 'polo@exemplo.com',
+      telefone: '1133334444',
+      observacoes_gerais: '',
+      ativo: true,
+      endereco_completo: 'Rua Treze de Maio, 100 - Ipiranga',
+    },
+    edicao: {
+      uuid: '2da0f4f1-ef50-4346-b482-c06a237a7a8b',
+      nome: 'edicao de fevereiro 2',
+    },
+    tipo: 'reserva',
+    projecao_inscritos: 10,
+    total_inscritos: 13,
+    ponto_focal_nome: '',
+    ponto_focal_telefone: '',
+    ponto_focal_email: '',
+    ativo: true,
+    resultado_final_de_inscritos: 8,
+  }),
+}))
+
 describe('RotasAplicacao', () => {
   beforeEach(() => {
     limparSessaoAutenticacao()
@@ -270,6 +313,41 @@ describe('RotasAplicacao', () => {
     expect(mapa).toHaveTextContent('Definição de Polos')
     expect(
       screen.getByRole('heading', { name: /definição de polos/i }),
+    ).toBeInTheDocument()
+  })
+
+  it('redireciona para login ao acessar /definicoes-polo/:idDefinicao sem autenticação', async () => {
+    renderRotas('/definicoes-polo/11c43c20-dfcb-4a26-a677-30703b7de766')
+
+    expect(await screen.findByText(/bem-vindo\(a\) ao/i)).toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: /detalhamento do polo/i }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('renderiza a página Detalhamento do Polo na rota /definicoes-polo/:idDefinicao quando autenticado', async () => {
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
+    })
+
+    renderRotas('/definicoes-polo/11c43c20-dfcb-4a26-a677-30703b7de766')
+
+    const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
+    expect(mapa).toHaveTextContent('Início')
+    expect(mapa).toHaveTextContent('Cadastros')
+    expect(mapa).toHaveTextContent('Definição de Polos')
+    expect(mapa).toHaveTextContent('Detalhamento do Polo')
+    expect(
+      screen.getByRole('heading', { name: /detalhamento do polo/i }),
+    ).toBeInTheDocument()
+    expect(await screen.findByLabelText(/tipo de gest/i)).toHaveValue('Direta')
+    expect(
+      screen.getByRole('button', {
+        name: /voltar para definição de polos/i,
+      }),
     ).toBeInTheDocument()
   })
 })
