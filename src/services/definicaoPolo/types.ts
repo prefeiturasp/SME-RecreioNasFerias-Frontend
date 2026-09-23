@@ -158,3 +158,27 @@ export const OPCOES_TIPO_POLO = [
   { valor: 'oficial', rotulo: 'Polo oficial' },
   { valor: 'reserva', rotulo: 'Polo reserva' },
 ] as const
+
+export type Historico = {
+  edicao: {
+    nome: string
+  }
+  tipo: string
+  projecao_inscritos: number
+  total_inscritos?: number
+  resultado_final_de_inscritos: number
+}
+
+export type ParametrosHistoricoDefinicaoPolo = {
+  polo: string
+  page?: number
+  page_size?: number
+  desabilita_paginacao?: boolean
+}
+
+export type ListagemHistoricoDefinicaoPoloPaginada = {
+  count: number
+  next: string | null
+  previous: string | null
+  results: Historico[]
+}

@@ -5,6 +5,7 @@ import { DefinicaoPoloForm } from '@/components/definicaoPolo/DefinicaoPoloForm'
 import { MapaVisual } from '@/components/MapaVisual'
 import { MenuLateral } from '@/components/MenuLateral'
 import { Button } from '@/components/ui/button'
+import useGetDefinicaoPolo from '@/hooks/useGetDefinicaoPolo'
 
 const NIVEIS_MAPA_VISUAL = [
   { rotulo: 'Início', caminho: '/inicio' },
@@ -16,6 +17,9 @@ const NIVEIS_MAPA_VISUAL = [
 export default function PaginaDetalhamentoDefinicaoPolo() {
   const navigate = useNavigate()
   const { idDefinicao } = useParams()
+
+  const poloQuery = useGetDefinicaoPolo(idDefinicao)
+  const polo = poloQuery.data
 
   return (
     <main className="flex h-full w-full overflow-hidden">
@@ -48,7 +52,10 @@ export default function PaginaDetalhamentoDefinicaoPolo() {
             </div>
 
             {idDefinicao ? (
-              <DefinicaoPoloForm definicaoUuid={idDefinicao} />
+              <DefinicaoPoloForm
+                definicaoUuid={idDefinicao}
+                poloUuid={polo?.polo.uuid}
+              />
             ) : null}
           </section>
         </div>
