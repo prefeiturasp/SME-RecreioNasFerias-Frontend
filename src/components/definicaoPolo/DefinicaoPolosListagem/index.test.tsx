@@ -11,8 +11,15 @@ import type {
 import { FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS } from '@/services/definicaoPolo/types'
 import { DefinicaoPolosListagem } from './index'
 
-const { listarDefinicoesPoloMock } = vi.hoisted(() => ({
+const { listarDefinicoesPoloMock, toastMock } = vi.hoisted(() => ({
   listarDefinicoesPoloMock: vi.fn(),
+  toastMock: vi.fn(),
+}))
+
+vi.mock('@/hooks/useToast', () => ({
+  useToast: () => ({
+    showToast: toastMock,
+  }),
 }))
 
 vi.mock(
@@ -82,7 +89,7 @@ function criarListagemPaginada(
 
 function renderDefinicaoPolosListagem(
   props: Partial<{
-    onVisualizarPolo: (idPolo: string) => void
+    onVisualizarPolo: (definicaoUuid: string) => void
     onAlterarEdicaoPolo: (idsPolos: string[]) => void
     onAlterarTipoPolo: (polos: PoloParaAlterarTipo[]) => void
     filtros: FiltrosListagemDefinicaoPolos
@@ -109,6 +116,7 @@ function renderDefinicaoPolosListagem(
 
 describe('DefinicaoPolosListagem', () => {
   beforeEach(() => {
+    toastMock.mockReset()
     listarDefinicoesPoloMock.mockResolvedValue(
       criarListagemPaginada([poloDiretaApi, poloParceiraApi]),
     )
@@ -374,7 +382,7 @@ describe('DefinicaoPolosListagem', () => {
     expect(onAlterarEdicaoPolo).toHaveBeenCalledWith(['1'])
   })
 
-  it('chama visualizar e alterar edição pelos botões da linha', async () => {
+  it('chama visualizar com definicao_uuid e desabilita o olho sem definição', async () => {
     const usuario = userEvent.setup()
     const onVisualizarPolo = vi.fn()
     const onAlterarEdicaoPolo = vi.fn()
@@ -386,12 +394,20 @@ describe('DefinicaoPolosListagem', () => {
 
     await screen.findByRole('table')
 
+    const botaoSemDefinicao = screen.getByRole('button', {
+      name: /visualizar polo cei diret aloysio/i,
+    })
+    expect(botaoSemDefinicao).toBeDisabled()
+
+    await usuario.click(botaoSemDefinicao)
+    expect(onVisualizarPolo).not.toHaveBeenCalled()
+
     await usuario.click(
       screen.getByRole('button', {
-        name: /visualizar polo cei diret aloysio/i,
+        name: /visualizar polo emef amorim lima/i,
       }),
     )
-    expect(onVisualizarPolo).toHaveBeenCalledWith('1')
+    expect(onVisualizarPolo).toHaveBeenCalledWith('def-2')
 
     await usuario.click(
       screen.getByRole('button', {
@@ -443,16 +459,22 @@ describe('DefinicaoPolosListagem', () => {
     expect(screen.getByText('-')).toBeInTheDocument()
   })
 
-  it('exibe detalhe da API quando a listagem falha', async () => {
+  it('exibe o erro da listagem em um toast', async () => {
     listarDefinicoesPoloMock.mockRejectedValue({
       response: { data: { detalhe: 'Falha na listagem' } },
     })
 
     renderDefinicaoPolosListagem()
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Falha na listagem',
-    )
+    await waitFor(() => {
+      expect(toastMock).toHaveBeenCalledWith({
+        id: 'erro-listagem-definicoes-polos',
+        variant: 'destructive',
+        title: 'Erro ao carregar definições de polos',
+        description: 'Falha na listagem',
+      })
+    })
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 

@@ -1,6 +1,6 @@
+import type { AxiosError } from 'axios'
 import { useEffect, useState } from 'react'
 import { iconeOlho } from '@/assets'
-import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { BarraAcoesSelecao } from '@/components/definicaoPolo/BarraAcoesSelecao'
 import { IndicadorCargaPolos } from '@/components/definicaoPolo/IndicadorCargaPolos'
 import { ChevronDownIcon } from '@/components/icons'
@@ -9,12 +9,17 @@ import type { DefinicaoColuna } from '@/components/TabelaListagem/types'
 import { Button } from '@/components/ui/button'
 import { OPCOES_ITENS_POR_PAGINA } from '@/constants/paginacao'
 import { useGetDefinicoesPolo } from '@/hooks/useGetDefinicoesPolo'
+import { useToast } from '@/hooks/useToast'
 import {
   FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
   type DefinicaoPoloApi,
   type FiltrosListagemDefinicaoPolos,
   type PoloParaAlterarTipo,
 } from '@/services/definicaoPolo/types'
+
+const TOAST_ERRO_LISTAGEM_ID = 'erro-listagem-definicoes-polos'
+
+type ErroApi = AxiosError<{ detalhe: string }>
 
 function obterPolosParaAlterarTipo(
   polos: DefinicaoPoloApi[],
@@ -87,7 +92,7 @@ const COLUNAS = [
 type DefinicaoPolosListagemProps = {
   filtros?: FiltrosListagemDefinicaoPolos
   chaveResetSelecao?: number
-  onVisualizarPolo?: (idPolo: string) => void
+  onVisualizarPolo?: (definicaoUuid: string) => void
   onAlterarEdicaoPolo: (idsPolos: string[]) => void
   onAlterarTipoPolo: (polos: PoloParaAlterarTipo[]) => void
 }
@@ -99,6 +104,7 @@ export function DefinicaoPolosListagem({
   onAlterarEdicaoPolo,
   onAlterarTipoPolo,
 }: Readonly<DefinicaoPolosListagemProps>) {
+  const { showToast } = useToast()
   const [paginaAtual, setPaginaAtual] = useState(1)
   const [itensPorPagina, setItensPorPagina] = useState<number>(
     OPCOES_ITENS_POR_PAGINA[0],
@@ -146,6 +152,17 @@ export function DefinicaoPolosListagem({
     totalPaginas,
   ])
 
+  useEffect(() => {
+    if (!listagemQuery.isError) return
+
+    showToast({
+      id: TOAST_ERRO_LISTAGEM_ID,
+      variant: 'destructive',
+      title: 'Erro ao carregar definições de polos',
+      description: (listagemQuery.error as ErroApi).response?.data.detalhe,
+    })
+  }, [listagemQuery.error, listagemQuery.isError, showToast])
+
   function mudarItensPorPagina(novoTamanho: number) {
     setItensPorPagina(novoTamanho)
     setPaginaAtual(1)
@@ -156,7 +173,7 @@ export function DefinicaoPolosListagem({
   }
 
   if (listagemQuery.isError) {
-    return <AlertaErroApi erro={listagemQuery.error} />
+    return null
   }
 
   return (
@@ -191,31 +208,44 @@ export function DefinicaoPolosListagem({
           onCancelar={limparSelecao}
         />
       )}
-      renderizarAcoes={(polo) => (
-        <div className="inline-flex items-center justify-center gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="text-brand-dark"
-            aria-label={`Visualizar polo ${polo.nome_polo}`}
-            onClick={() => onVisualizarPolo?.(polo.polo_uuid)}
-          >
-            <img src={iconeOlho} alt="" aria-hidden="true" className="size-5" />
-          </Button>
+      renderizarAcoes={(polo) => {
+        const podeVisualizar = Boolean(polo.definicao_uuid)
 
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="text-brand-dark"
-            aria-label={`Alterar edição do polo ${polo.nome_polo}`}
-            onClick={() => onAlterarEdicaoPolo([polo.polo_uuid])}
-          >
-            <ChevronDownIcon />
-          </Button>
-        </div>
-      )}
+        return (
+          <div className="inline-flex items-center justify-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="text-brand-dark"
+              aria-label={`Visualizar polo ${polo.nome_polo}`}
+              disabled={!podeVisualizar}
+              onClick={() => {
+                if (!polo.definicao_uuid) return
+                onVisualizarPolo?.(polo.definicao_uuid)
+              }}
+            >
+              <img
+                src={iconeOlho}
+                alt=""
+                aria-hidden="true"
+                className="size-5"
+              />
+            </Button>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="text-brand-dark"
+              aria-label={`Alterar edição do polo ${polo.nome_polo}`}
+              onClick={() => onAlterarEdicaoPolo([polo.polo_uuid])}
+            >
+              <ChevronDownIcon />
+            </Button>
+          </div>
+        )
+      }}
     />
   )
 }

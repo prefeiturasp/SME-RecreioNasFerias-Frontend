@@ -8,9 +8,9 @@ import formSchema, { calcularTotalInscritos } from './schema'
 
 import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 import { Button } from '@/components/ui/button'
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { FieldGroup } from '@/components/ui/field'
 import { FormField } from '@/components/ui/form-field'
-import { Input } from '@/components/ui/input'
+import { FormFieldLeitura } from '@/components/ui/form-field-leitura'
 import { useGetDefinicaoPolo } from '@/hooks/useGetDefinicaoPolo'
 import { usePutDefinicaoPolo } from '@/hooks/usePutDefinicaoPolo'
 import { useToast } from '@/hooks/useToast'
@@ -23,8 +23,6 @@ const ROTA_DEFINICOES_POLO = '/definicoes-polo'
 const TOAST_ERRO_CARREGAMENTO_ID = 'erro-carregamento-definicao-polo'
 const TOAST_ERRO_ATUALIZACAO_ID = 'erro-atualizacao-definicao-polo'
 const TOAST_SUCESSO_ATUALIZACAO_ID = 'sucesso-atualizacao-definicao-polo'
-const CLASSE_CAMPO_LEITURA =
-  'h-10 cursor-not-allowed rounded-sm border-input-border-muted bg-input-disabled-bg text-placeholder'
 
 type ErroApi = AxiosError<{ detalhe: string }>
 
@@ -36,31 +34,6 @@ function rotuloGestao(gestao: string) {
   if (gestao === 'direta') return 'Direta'
   if (gestao === 'parceira') return 'Parceira'
   return gestao
-}
-
-function CampoLeitura({
-  id,
-  label,
-  value,
-}: Readonly<{
-  id: string
-  label: string
-  value: string
-}>) {
-  return (
-    <Field>
-      <FieldLabel htmlFor={id} className="font-bold">
-        {label}
-      </FieldLabel>
-      <Input
-        id={id}
-        value={value}
-        readOnly
-        aria-readonly="true"
-        className={CLASSE_CAMPO_LEITURA}
-      />
-    </Field>
-  )
 }
 
 export function DefinicaoPoloForm({
@@ -187,27 +160,27 @@ export function DefinicaoPoloForm({
       onSubmit={handleFormSubmit}
       className="rounded-sm bg-background p-8 shadow-card max-md:p-4"
     >
-      <FieldGroup>
+      <FieldGroup className="gap-8">
         <section
           aria-labelledby="secao-informacoes-gerais"
           className="grid gap-y-5.5"
         >
-          <h4 id="secao-informacoes-gerais" className="font-bold">
+          <h4 id="secao-informacoes-gerais" className="font-bold text-primary">
             Informações Gerais
           </h4>
 
           <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
-            <CampoLeitura
+            <FormFieldLeitura
               id="gestao"
               label="Tipo de Gestão"
               value={rotuloGestao(polo.gestao)}
             />
-            <CampoLeitura
+            <FormFieldLeitura
               id="codigoEol"
               label="Código EOL"
               value={polo.codigo_eol}
             />
-            <CampoLeitura
+            <FormFieldLeitura
               id="nomeUnidade"
               label="Nome da Unidade"
               value={polo.nome_polo}
@@ -215,26 +188,26 @@ export function DefinicaoPoloForm({
           </div>
 
           <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
-            <CampoLeitura
+            <FormFieldLeitura
               id="tipoUnidade"
               label="Tipo de Unidade"
               value={polo.tipo_ue}
             />
-            <CampoLeitura id="dre" label="DRE" value={polo.dre_nome} />
+            <FormFieldLeitura id="dre" label="DRE" value={polo.dre_nome} />
           </div>
         </section>
 
         <section aria-labelledby="secao-endereco" className="grid gap-y-5.5">
-          <h4 id="secao-endereco" className="font-bold">
+          <h4 id="secao-endereco" className="font-bold text-primary">
             Endereço
           </h4>
           <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
-            <CampoLeitura
+            <FormFieldLeitura
               id="cep"
               label="CEP"
               value={aplicarMascaraCep(polo.cep)}
             />
-            <CampoLeitura
+            <FormFieldLeitura
               id="endereco"
               label="Endereço"
               value={polo.endereco_completo}
@@ -243,21 +216,21 @@ export function DefinicaoPoloForm({
         </section>
 
         <section aria-labelledby="secao-contato" className="grid gap-y-5.5">
-          <h4 id="secao-contato" className="font-bold">
+          <h4 id="secao-contato" className="font-bold text-primary">
             Informações de contato
           </h4>
           <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
-            <CampoLeitura
+            <FormFieldLeitura
               id="nomeDiretorGestor"
               label="Nome do Diretor/Gestor"
               value={polo.nome_gestor}
             />
-            <CampoLeitura
+            <FormFieldLeitura
               id="emailPolo"
               label="E-mail do Polo"
               value={polo.email}
             />
-            <CampoLeitura
+            <FormFieldLeitura
               id="telefonePolo"
               label="Telefone do Polo"
               value={polo.telefone}
@@ -266,7 +239,7 @@ export function DefinicaoPoloForm({
         </section>
 
         <section aria-labelledby="secao-ponto-focal" className="grid gap-y-5.5">
-          <h4 id="secao-ponto-focal" className="font-bold">
+          <h4 id="secao-ponto-focal" className="font-bold text-primary">
             Ponto focal
           </h4>
           <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
@@ -295,7 +268,7 @@ export function DefinicaoPoloForm({
         </section>
 
         <section aria-labelledby="secao-capacidade" className="grid gap-y-5.5">
-          <h4 id="secao-capacidade" className="font-bold">
+          <h4 id="secao-capacidade" className="font-bold text-primary">
             Capacidade
           </h4>
           <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
@@ -307,12 +280,12 @@ export function DefinicaoPoloForm({
               placeholder="Insira a projeção de inscritos"
               inputMode="numeric"
             />
-            <CampoLeitura
+            <FormFieldLeitura
               id="totalInscritos"
               label="Total de Inscritos"
               value={String(totalInscritos)}
             />
-            <CampoLeitura
+            <FormFieldLeitura
               id="resultadoRealInscritos"
               label="Resultado final de inscritos"
               value={String(resultado_final_de_inscritos)}
