@@ -4,7 +4,7 @@ import { useEffect, type SubmitEvent } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import type { FormValues } from './schema'
-import formSchema, { calcularTotalInscritos } from './schema'
+import formSchema from './schema'
 
 import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,7 @@ import { FormFieldLeitura } from '@/components/ui/form-field-leitura'
 import { useGetDefinicaoPolo } from '@/hooks/useGetDefinicaoPolo'
 import { usePutDefinicaoPolo } from '@/hooks/usePutDefinicaoPolo'
 import { useToast } from '@/hooks/useToast'
+import { calcularTotalInscritos } from '@/utils/calcularTotalInscritos'
 import {
   aplicarMascaraCep,
   aplicarMascaraTelefone,
