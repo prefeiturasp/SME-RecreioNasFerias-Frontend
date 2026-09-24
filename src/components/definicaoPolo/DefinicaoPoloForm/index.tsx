@@ -19,6 +19,7 @@ import {
   aplicarMascaraCep,
   aplicarMascaraTelefone,
 } from '@/utils/mascarasEntrada'
+import { HistoricoDefinicaoPolo } from '../HistoricoDefinicaoPolo'
 
 const ROTA_DEFINICOES_POLO = '/definicoes-polo'
 const TOAST_ERRO_CARREGAMENTO_ID = 'erro-carregamento-definicao-polo'
@@ -29,6 +30,7 @@ type ErroApi = AxiosError<{ detalhe: string }>
 
 type DefinicaoPoloFormProps = {
   definicaoUuid: string
+  poloUuid?: string
 }
 
 function rotuloGestao(gestao: string) {
@@ -39,6 +41,7 @@ function rotuloGestao(gestao: string) {
 
 export function DefinicaoPoloForm({
   definicaoUuid,
+  poloUuid,
 }: Readonly<DefinicaoPoloFormProps>) {
   const navigate = useNavigate()
   const { dismissToast, showToast } = useToast()
@@ -292,6 +295,8 @@ export function DefinicaoPoloForm({
             />
           </div>
         </section>
+
+        {poloUuid && <HistoricoDefinicaoPolo poloUuid={poloUuid} />}
 
         <div className="flex flex-wrap items-center justify-end gap-2 max-md:flex-col-reverse max-md:[&>button]:w-full">
           <Button
