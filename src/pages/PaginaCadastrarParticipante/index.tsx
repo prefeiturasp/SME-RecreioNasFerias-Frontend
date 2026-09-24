@@ -2,6 +2,7 @@ import IconeSetaVoltar from '@/assets/icone-seta-voltar.png'
 import { Cabecalho } from '@/components/Cabecalho'
 import { MapaVisual } from '@/components/MapaVisual'
 import { MenuLateral } from '@/components/MenuLateral'
+import { ParticipanteForm } from '@/components/participante/ParticipanteForm'
 import { Button } from '@/components/ui/button'
 import { useNavigate } from 'react-router-dom'
 
@@ -39,6 +40,7 @@ export default function PaginaCadastrarParticipante() {
                 </Button>
               </div>
             </div>
+            <ParticipanteForm />
           </section>
         </div>
       </section>

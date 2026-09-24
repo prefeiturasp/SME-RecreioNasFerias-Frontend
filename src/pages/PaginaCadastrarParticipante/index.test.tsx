@@ -20,6 +20,12 @@ vi.mock('@/components/MapaVisual', () => ({
   MapaVisual: () => <nav aria-label="Mapa do site">Mapa visual</nav>,
 }))
 
+vi.mock('@/components/participante/ParticipanteForm', () => ({
+  ParticipanteForm: () => (
+    <form aria-label="formulário de cadastro de participante" />
+  ),
+}))
+
 const { navegarMock } = vi.hoisted(() => ({
   navegarMock: vi.fn(),
 }))
@@ -56,6 +62,11 @@ describe('PaginaCadastrarParticipante', () => {
     ).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: /voltar para o início/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('form', {
+        name: 'formulário de cadastro de participante',
+      }),
     ).toBeInTheDocument()
   })
 
