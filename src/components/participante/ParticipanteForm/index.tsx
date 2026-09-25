@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/collapsible'
 import { FieldGroup } from '@/components/ui/field'
 import { FormField } from '@/components/ui/form-field'
+import { FormFieldEol } from '@/components/ui/form-field-eol'
 
 const SECOES_FORMULARIO = [
   {
@@ -41,13 +42,36 @@ const SECOES_FORMULARIO = [
   },
 ] as const
 
-export function ParticipanteForm() {
+type ParticipanteFormProps = {
+  onBuscarCodigoEol?: (codigoEol: string) => void
+  onBuscarCpf?: (cpf: string) => void
+}
+
+export function ParticipanteForm({
+  onBuscarCodigoEol,
+  onBuscarCpf,
+}: ParticipanteFormProps = {}) {
   const navigate = useNavigate()
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       agrupamento: '',
       tipoEstudante: '',
+      codigoEol: '',
+      cpf: '',
+      nomeCompleto: '',
+      dataNascimento: '',
+      nomeResponsavel: '',
+      nomeSocialResponsavel: '',
+      cep: '',
+      logradouro: '',
+      numero: '',
+      complemento: '',
+      bairro: '',
+      cidade: '',
+      telefone1: '',
+      telefone2: '',
+      email: '',
     },
   })
   const agrupamento = useWatch({
@@ -159,6 +183,169 @@ export function ParticipanteForm() {
                           placeholder="Selecione o tipo de estudante"
                         />
                       ) : null}
+                      <FormFieldEol
+                        control={form.control}
+                        name="codigoEol"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> Código
+                            EOL
+                          </>
+                        }
+                        placeholder="Código EOL"
+                        buscaInterna
+                        onSearch={onBuscarCodigoEol}
+                      />
+                      <FormFieldEol
+                        control={form.control}
+                        name="cpf"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> CPF
+                          </>
+                        }
+                        placeholder="Digite o CPF"
+                        buscaInterna
+                        maxLength={11}
+                        rotuloBusca="CPF"
+                        onSearch={onBuscarCpf}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="nomeCompleto"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> Nome
+                            completo do(a) participante
+                          </>
+                        }
+                        placeholder="Nome completo do(a) participante"
+                        readOnly
+                      />
+                      <FormField
+                        control={form.control}
+                        name="dataNascimento"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> Data de
+                            nascimento
+                          </>
+                        }
+                        placeholder="DD/MM/AAAA"
+                        readOnly
+                      />
+                      <FormField
+                        control={form.control}
+                        name="nomeResponsavel"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> Nome
+                            completo do responsável
+                          </>
+                        }
+                        placeholder="Nome Completo do Responsável"
+                        readOnly
+                      />
+                      <FormField
+                        control={form.control}
+                        name="nomeSocialResponsavel"
+                        label="Nome social do(a) responsável"
+                        placeholder="Nome Social do(a) Responsável"
+                        readOnly
+                      />
+                      <FormField
+                        control={form.control}
+                        name="cep"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> CEP
+                          </>
+                        }
+                        placeholder="CEP"
+                        readOnly
+                      />
+                      <FormField
+                        control={form.control}
+                        name="logradouro"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span>{' '}
+                            Logradouro
+                          </>
+                        }
+                        placeholder="Logradouro"
+                        readOnly
+                      />
+                      <FormField
+                        control={form.control}
+                        name="numero"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> Número
+                          </>
+                        }
+                        placeholder="Número"
+                        readOnly
+                      />
+                      <FormField
+                        control={form.control}
+                        name="complemento"
+                        label="Complemento"
+                        placeholder="Complemento"
+                        readOnly
+                      />
+                      <FormField
+                        control={form.control}
+                        name="bairro"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> Bairro
+                          </>
+                        }
+                        placeholder="Bairro"
+                        readOnly
+                      />
+                      <FormField
+                        control={form.control}
+                        name="cidade"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> Cidade
+                          </>
+                        }
+                        placeholder="Cidade"
+                        readOnly
+                      />
+                      <FormField
+                        control={form.control}
+                        name="telefone1"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> Telefone
+                            de contato/emergência 1
+                          </>
+                        }
+                        type="tel"
+                        placeholder="(XX) XXXXX-XXXX"
+                      />
+                      <FormField
+                        control={form.control}
+                        name="telefone2"
+                        label="Telefone de contato/emergência 2"
+                        type="tel"
+                        placeholder="(XX) XXXXX-XXXX"
+                      />
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> E-mail
+                          </>
+                        }
+                        type="email"
+                        placeholder="Informe o e-mail"
+                      />
                     </div>
                   ) : null}
                 </CollapsibleContent>

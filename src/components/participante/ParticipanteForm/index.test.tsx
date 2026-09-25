@@ -1,7 +1,8 @@
+import type { ComponentProps } from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   AGRUPAMENTO_BERCARIO,
   AGRUPAMENTO_MINI_GRUPO,
@@ -11,13 +12,13 @@ import {
 } from './constantes'
 import { ParticipanteForm } from './index'
 
-function renderFormulario() {
+function renderFormulario(props?: ComponentProps<typeof ParticipanteForm>) {
   return render(
     <MemoryRouter initialEntries={['/inscricoes-participantes']}>
       <Routes>
         <Route
           path="/inscricoes-participantes"
-          element={<ParticipanteForm />}
+          element={<ParticipanteForm {...props} />}
         />
         <Route path="/inicio" element={<div>Página Início</div>} />
       </Routes>
@@ -75,6 +76,77 @@ describe('ParticipanteForm', () => {
     await usuario.click(screen.getByRole('button', { name: /cancelar/i }))
 
     expect(screen.getByText(/página início/i)).toBeInTheDocument()
+  })
+
+  it('mostra os campos de informações básicas, com EOL só no layout', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    const codigoEol = screen.getByRole('textbox', { name: /código eol/i })
+    expect(codigoEol).not.toHaveAttribute('readonly')
+    expect(codigoEol).toHaveAttribute('placeholder', 'Código EOL')
+    expect(codigoEol).toHaveClass('pl-9')
+    expect(
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    ).toBeEnabled()
+    await usuario.click(
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    )
+
+    const cpf = screen.getByRole('textbox', { name: /\bcpf\b/i })
+    expect(cpf).not.toHaveAttribute('readonly')
+    expect(cpf).toHaveAttribute('placeholder', 'Digite o CPF')
+    expect(cpf).toHaveClass('pl-9')
+    expect(
+      screen.getByRole('button', { name: /consultar cpf/i }),
+    ).toBeEnabled()
+    expect(
+      screen.getByLabelText(/nome completo do\(a\) participante/i),
+    ).toHaveAttribute('readonly')
+    expect(screen.getByLabelText(/data de nascimento/i)).toHaveAttribute(
+      'readonly',
+    )
+    expect(
+      screen.getByLabelText(/nome completo do responsável/i),
+    ).toHaveAttribute('readonly')
+    expect(
+      screen.getByLabelText(/nome social do\(a\) responsável/i),
+    ).toHaveAttribute('readonly')
+    expect(screen.getByLabelText(/\bcep\b/i)).toHaveAttribute('readonly')
+    expect(screen.getByLabelText(/\blogradouro\b/i)).toHaveAttribute('readonly')
+    expect(screen.getByLabelText(/\bnúmero\b/i)).toHaveAttribute('readonly')
+    expect(screen.getByLabelText(/^complemento$/i)).toHaveAttribute('readonly')
+    expect(screen.getByLabelText(/\bbairro\b/i)).toHaveAttribute('readonly')
+    expect(screen.getByLabelText(/\bcidade\b/i)).toHaveAttribute('readonly')
+    expect(
+      screen.getByLabelText(/telefone de contato\/emergência 1/i),
+    ).not.toHaveAttribute('readonly')
+    expect(
+      screen.getByLabelText(/telefone de contato\/emergência 2/i),
+    ).not.toHaveAttribute('readonly')
+    expect(screen.getByLabelText(/\be-mail\b/i)).not.toHaveAttribute('readonly')
+    expect(screen.queryByLabelText(/^dre$/i)).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/polo/i)).not.toBeInTheDocument()
+  })
+
+  it('repassa o valor digitado para a busca informada', async () => {
+    const usuario = userEvent.setup()
+    const onBuscarCodigoEol = vi.fn()
+    const onBuscarCpf = vi.fn()
+    renderFormulario({ onBuscarCodigoEol, onBuscarCpf })
+
+    await usuario.type(
+      screen.getByRole('textbox', { name: /código eol/i }),
+      '1234567',
+    )
+    await usuario.click(
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    )
+    expect(onBuscarCodigoEol).toHaveBeenCalledWith('1234567')
+
+    await usuario.type(screen.getByRole('textbox', { name: /\bcpf\b/i }), '123')
+    await usuario.click(screen.getByRole('button', { name: /consultar cpf/i }))
+    expect(onBuscarCpf).toHaveBeenCalledWith('123')
   })
 
   it('trava Estudante da Rede e libera as seções ao escolher Berçário', async () => {
