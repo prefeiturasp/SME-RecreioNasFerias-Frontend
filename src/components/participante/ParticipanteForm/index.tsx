@@ -115,8 +115,8 @@ export function ParticipanteForm({
       .then((lista) => {
         if (ativo) setDres(lista)
       })
-      .catch((erro: unknown) => {
-        if (ativo) setErroListagem(erro)
+      .catch((error_: unknown) => {
+        if (ativo) setErroListagem(error_)
       })
 
     return () => {
@@ -143,8 +143,8 @@ export function ParticipanteForm({
       .then((lista) => {
         if (ativo) setPolos(lista.results)
       })
-      .catch((erro: unknown) => {
-        if (ativo) setErroListagem(erro)
+      .catch((error_: unknown) => {
+        if (ativo) setErroListagem(error_)
       })
 
     return () => {
