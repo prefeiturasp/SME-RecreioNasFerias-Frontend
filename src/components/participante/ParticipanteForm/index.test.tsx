@@ -1,8 +1,8 @@
 import type { ComponentProps } from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   AGRUPAMENTO_BERCARIO,
   AGRUPAMENTO_MINI_GRUPO,
@@ -11,6 +11,19 @@ import {
   TIPO_ESTUDANTE_REDE,
 } from './constantes'
 import { ParticipanteForm } from './index'
+
+const { listarDresMock, listarPolosMock } = vi.hoisted(() => ({
+  listarDresMock: vi.fn(),
+  listarPolosMock: vi.fn(),
+}))
+
+vi.mock('@/services/dre/listarDres', () => ({
+  listarDres: listarDresMock,
+}))
+
+vi.mock('@/services/polo/listarPolos', () => ({
+  listarPolos: listarPolosMock,
+}))
 
 function renderFormulario(props?: ComponentProps<typeof ParticipanteForm>) {
   return render(
@@ -27,6 +40,18 @@ function renderFormulario(props?: ComponentProps<typeof ParticipanteForm>) {
 }
 
 describe('ParticipanteForm', () => {
+  beforeEach(() => {
+    listarDresMock.mockReset()
+    listarPolosMock.mockReset()
+    listarDresMock.mockResolvedValue([])
+    listarPolosMock.mockResolvedValue({
+      count: 0,
+      next: null,
+      previous: null,
+      results: [],
+    })
+  })
+
   it('renderiza alerta, seções do accordion e ações do rodapé', () => {
     renderFormulario()
 
@@ -125,8 +150,75 @@ describe('ParticipanteForm', () => {
       screen.getByLabelText(/telefone de contato\/emergência 2/i),
     ).not.toHaveAttribute('readonly')
     expect(screen.getByLabelText(/\be-mail\b/i)).not.toHaveAttribute('readonly')
-    expect(screen.queryByLabelText(/^dre$/i)).not.toBeInTheDocument()
-    expect(screen.queryByLabelText(/polo/i)).not.toBeInTheDocument()
+    expect(screen.getByLabelText(/\bdre\b/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/polo de inscrição/i)).toBeDisabled()
+  })
+
+  it('lista os polos da DRE e limpa o polo ao trocar a DRE', async () => {
+    const usuario = userEvent.setup()
+    listarDresMock.mockResolvedValue([
+      {
+        codigo_dre: '108100',
+        nome_dre: 'DRE Butantã',
+        sigla_dre: 'BT',
+      },
+      {
+        codigo_dre: '108200',
+        nome_dre: 'DRE Ipiranga',
+        sigla_dre: 'IP',
+      },
+    ])
+    listarPolosMock.mockImplementation(
+      async (_busca: string | undefined, dreCodigoEol: string) => ({
+        count: 1,
+        next: null,
+        previous: null,
+        results: [
+          {
+            uuid: `polo-${dreCodigoEol}`,
+            nome_polo: `Polo ${dreCodigoEol}`,
+          },
+        ],
+      }),
+    )
+    renderFormulario()
+
+    expect(screen.getByLabelText(/polo de inscrição/i)).toBeDisabled()
+
+    await usuario.click(screen.getByLabelText(/\bdre\b/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: 'DRE Butantã' }),
+    )
+
+    expect(listarPolosMock).toHaveBeenCalledWith(
+      undefined,
+      '108100',
+      undefined,
+      1,
+      50,
+    )
+    expect(screen.getByLabelText(/polo de inscrição/i)).toBeEnabled()
+
+    await usuario.click(screen.getByLabelText(/polo de inscrição/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: 'Polo 108100' }),
+    )
+    expect(screen.getAllByText('Polo 108100').length).toBeGreaterThan(0)
+
+    await usuario.click(screen.getByLabelText(/\bdre\b/i))
+    await usuario.click(screen.getByRole('option', { name: 'DRE Ipiranga' }))
+
+    expect(listarPolosMock).toHaveBeenLastCalledWith(
+      undefined,
+      '108200',
+      undefined,
+      1,
+      50,
+    )
+    await waitFor(() => {
+      expect(screen.queryByText('Polo 108100')).not.toBeInTheDocument()
+    })
+    expect(screen.getByText('Selecione o Polo')).toBeInTheDocument()
   })
 
   it('repassa o valor digitado para a busca informada', async () => {

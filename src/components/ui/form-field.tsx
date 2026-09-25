@@ -58,6 +58,7 @@ type FormFieldSelectProps<
   type: 'select'
   options: Array<{ value: string; label: string }>
   placeholder?: string
+  disabled?: boolean
 }
 
 /**
@@ -198,10 +199,14 @@ function renderInput<
 
   // Select
   if (props.type === 'select') {
-    const { options, placeholder } = props
+    const { options, placeholder, disabled = false } = props
 
     return (
-      <Select value={field.value} onValueChange={field.onChange}>
+      <Select
+        value={field.value}
+        onValueChange={field.onChange}
+        disabled={disabled}
+      >
         <SelectTrigger
           id={String(name)}
           className="h-10 w-full min-w-0 rounded-sm border-input-border-muted data-[size=default]:h-10"

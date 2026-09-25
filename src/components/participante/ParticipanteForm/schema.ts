@@ -18,6 +18,8 @@ const formSchema = z.object({
   telefone1: z.string(),
   telefone2: z.string(),
   email: z.string(),
+  dreCodigoEol: z.string(),
+  polo: z.string(),
 })
 
 export type FormValues = z.infer<typeof formSchema>

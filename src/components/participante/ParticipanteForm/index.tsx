@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -12,6 +12,7 @@ import {
 import type { FormValues } from './schema'
 import formSchema from './schema'
 
+import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { ChevronDownIcon } from '@/components/icons'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -23,6 +24,10 @@ import {
 import { FieldGroup } from '@/components/ui/field'
 import { FormField } from '@/components/ui/form-field'
 import { FormFieldEol } from '@/components/ui/form-field-eol'
+import { listarDres } from '@/services/dre/listarDres'
+import type { Dre } from '@/services/dre/types'
+import { listarPolos } from '@/services/polo/listarPolos'
+import type { PoloListagemItem } from '@/services/polo/types'
 
 const SECOES_FORMULARIO = [
   {
@@ -72,8 +77,13 @@ export function ParticipanteForm({
       telefone1: '',
       telefone2: '',
       email: '',
+      dreCodigoEol: '',
+      polo: '',
     },
   })
+  const [dres, setDres] = useState<Dre[]>([])
+  const [polos, setPolos] = useState<PoloListagemItem[]>([])
+  const [erroListagem, setErroListagem] = useState<unknown>(null)
   const agrupamento = useWatch({
     control: form.control,
     name: 'agrupamento',
@@ -82,6 +92,11 @@ export function ParticipanteForm({
     control: form.control,
     name: 'tipoEstudante',
   })
+  const dreCodigoEol = useWatch({
+    control: form.control,
+    name: 'dreCodigoEol',
+  })
+  const dreAnterior = useRef(dreCodigoEol)
   const tipoTravado =
     agrupamento === AGRUPAMENTO_BERCARIO ||
     agrupamento === AGRUPAMENTO_MINI_GRUPO
@@ -92,6 +107,50 @@ export function ParticipanteForm({
 
     form.setValue('tipoEstudante', tipoTravado ? TIPO_ESTUDANTE_REDE : '')
   }, [agrupamento, form, tipoTravado])
+
+  useEffect(() => {
+    let ativo = true
+
+    listarDres()
+      .then((lista) => {
+        if (ativo) setDres(lista)
+      })
+      .catch((erro: unknown) => {
+        if (ativo) setErroListagem(erro)
+      })
+
+    return () => {
+      ativo = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (dreAnterior.current === dreCodigoEol) return
+
+    dreAnterior.current = dreCodigoEol
+    form.setValue('polo', '')
+  }, [dreCodigoEol, form])
+
+  useEffect(() => {
+    if (!dreCodigoEol) {
+      setPolos([])
+      return
+    }
+
+    let ativo = true
+
+    listarPolos(undefined, dreCodigoEol, undefined, 1, 50)
+      .then((lista) => {
+        if (ativo) setPolos(lista.results)
+      })
+      .catch((erro: unknown) => {
+        if (ativo) setErroListagem(erro)
+      })
+
+    return () => {
+      ativo = false
+    }
+  }, [dreCodigoEol])
 
   return (
     <form
@@ -142,6 +201,10 @@ export function ParticipanteForm({
                 <CollapsibleContent className="px-5 py-4">
                   {secao.id === 'informacoes-basicas' ? (
                     <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
+                      <AlertaErroApi
+                        erro={erroListagem}
+                        className="lg:col-span-2"
+                      />
                       <FormField
                         control={form.control}
                         name="agrupamento"
@@ -345,6 +408,38 @@ export function ParticipanteForm({
                         }
                         type="email"
                         placeholder="Informe o e-mail"
+                      />
+                      <FormField
+                        control={form.control}
+                        name="dreCodigoEol"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> DRE
+                          </>
+                        }
+                        type="select"
+                        options={dres.map((dre) => ({
+                          value: dre.codigo_dre,
+                          label: dre.nome_dre,
+                        }))}
+                        placeholder="Selecione a DRE"
+                      />
+                      <FormField
+                        control={form.control}
+                        name="polo"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> Polo de
+                            Inscrição
+                          </>
+                        }
+                        type="select"
+                        disabled={!dreCodigoEol}
+                        options={polos.map((polo) => ({
+                          value: polo.uuid,
+                          label: polo.nome_polo,
+                        }))}
+                        placeholder="Selecione o Polo"
                       />
                     </div>
                   ) : null}
