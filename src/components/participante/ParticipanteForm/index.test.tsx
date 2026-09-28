@@ -17,18 +17,16 @@ import {
   AGRUPAMENTO_BERCARIO,
   AGRUPAMENTO_MINI_GRUPO,
   AGRUPAMENTO_QUATRO_A_QUATORZE,
-  TIPO_ESTUDANTE_FORA_DA_REDE,
-  TIPO_ESTUDANTE_REDE,
+  ROTULO_TIPO_ESTUDANTE_FORA_DA_REDE,
+  ROTULO_TIPO_ESTUDANTE_REDE,
 } from './constantes'
 import { ParticipanteForm } from './index'
 
-const { listarDresMock, listarPolosMock, showToastMock } = vi.hoisted(
-  () => ({
-    listarDresMock: vi.fn(),
-    listarPolosMock: vi.fn(),
-    showToastMock: vi.fn(),
-  }),
-)
+const { listarDresMock, listarPolosMock, showToastMock } = vi.hoisted(() => ({
+  listarDresMock: vi.fn(),
+  listarPolosMock: vi.fn(),
+  showToastMock: vi.fn(),
+}))
 
 vi.mock('@/services/dre/listarDres', () => ({
   listarDres: listarDresMock,
@@ -324,7 +322,7 @@ describe('ParticipanteForm', () => {
     )
 
     const tipo = await screen.findByLabelText(/tipo de estudante/i)
-    expect(tipo).toHaveValue(TIPO_ESTUDANTE_REDE)
+    expect(tipo).toHaveValue(ROTULO_TIPO_ESTUDANTE_REDE)
     expect(tipo).toHaveAttribute('readonly')
     expect(
       screen.getByRole('button', { name: /informações por grupo/i }),
@@ -368,7 +366,7 @@ describe('ParticipanteForm', () => {
     )
     await usuario.click(screen.getByLabelText(/tipo de estudante/i))
     await usuario.click(
-      screen.getByRole('option', { name: TIPO_ESTUDANTE_FORA_DA_REDE }),
+      screen.getByRole('option', { name: ROTULO_TIPO_ESTUDANTE_FORA_DA_REDE }),
     )
 
     await usuario.click(
@@ -376,13 +374,11 @@ describe('ParticipanteForm', () => {
     )
     await usuario.click(screen.getByRole('radio', { name: 'Estadual' }))
     await usuario.click(screen.getByLabelText(/grupo do participante/i))
-    await usuario.click(
-      screen.getByRole('option', { name: AGRUPAMENTO_MINI_GRUPO }),
-    )
+    await usuario.click(screen.getByRole('option', { name: 'Mini Grupo I' }))
 
     expect(screen.getByRole('radio', { name: 'Estadual' })).toBeChecked()
     expect(screen.getByLabelText(/tipo de estudante/i)).toHaveTextContent(
-      TIPO_ESTUDANTE_FORA_DA_REDE,
+      ROTULO_TIPO_ESTUDANTE_FORA_DA_REDE,
     )
 
     await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
@@ -524,7 +520,7 @@ describe('ParticipanteForm', () => {
     )
     await usuario.click(screen.getByLabelText(/tipo de estudante/i))
     await usuario.click(
-      screen.getByRole('option', { name: TIPO_ESTUDANTE_FORA_DA_REDE }),
+      screen.getByRole('option', { name: ROTULO_TIPO_ESTUDANTE_FORA_DA_REDE }),
     )
     await usuario.click(
       screen.getByRole('button', { name: /informações por grupo/i }),
@@ -551,7 +547,7 @@ describe('ParticipanteForm', () => {
     )
 
     const tipo = await screen.findByLabelText(/tipo de estudante/i)
-    expect(tipo).toHaveValue(TIPO_ESTUDANTE_REDE)
+    expect(tipo).toHaveValue(ROTULO_TIPO_ESTUDANTE_REDE)
     expect(tipo).toHaveAttribute('readonly')
   })
 
@@ -572,10 +568,10 @@ describe('ParticipanteForm', () => {
 
     await usuario.click(screen.getByLabelText(/tipo de estudante/i))
     expect(
-      screen.getByRole('option', { name: TIPO_ESTUDANTE_REDE }),
+      screen.getByRole('option', { name: ROTULO_TIPO_ESTUDANTE_REDE }),
     ).toBeInTheDocument()
     await usuario.click(
-      screen.getByRole('option', { name: TIPO_ESTUDANTE_FORA_DA_REDE }),
+      screen.getByRole('option', { name: ROTULO_TIPO_ESTUDANTE_FORA_DA_REDE }),
     )
 
     expect(
@@ -598,7 +594,7 @@ describe('ParticipanteForm', () => {
     )
     await usuario.click(screen.getByLabelText(/tipo de estudante/i))
     await usuario.click(
-      screen.getByRole('option', { name: TIPO_ESTUDANTE_FORA_DA_REDE }),
+      screen.getByRole('option', { name: ROTULO_TIPO_ESTUDANTE_FORA_DA_REDE }),
     )
 
     await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
@@ -607,7 +603,7 @@ describe('ParticipanteForm', () => {
     )
 
     const tipo = await screen.findByLabelText(/tipo de estudante/i)
-    expect(tipo).toHaveValue(TIPO_ESTUDANTE_REDE)
+    expect(tipo).toHaveValue(ROTULO_TIPO_ESTUDANTE_REDE)
     expect(tipo).toHaveAttribute('readonly')
 
     await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
@@ -615,8 +611,8 @@ describe('ParticipanteForm', () => {
       screen.getByRole('option', { name: AGRUPAMENTO_QUATRO_A_QUATORZE }),
     )
 
-    expect(screen.getByLabelText(/tipo de estudante/i)).not.toHaveValue(
-      TIPO_ESTUDANTE_FORA_DA_REDE,
+    expect(screen.getByLabelText(/tipo de estudante/i)).toHaveTextContent(
+      'Selecione o tipo de estudante',
     )
     expect(
       screen.queryByRole('button', { name: /informações por grupo/i }),
@@ -627,7 +623,9 @@ describe('ParticipanteForm', () => {
     const usuario = userEvent.setup()
     renderFormulario()
 
-    await usuario.click(screen.getByRole('button', { name: /salvar rascunho/i }))
+    await usuario.click(
+      screen.getByRole('button', { name: /salvar rascunho/i }),
+    )
     await waitFor(() => {
       expect(showToastMock).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -648,7 +646,9 @@ describe('ParticipanteForm', () => {
     showToastMock.mockClear()
     await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'ana')
     await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
-    expect(await screen.findByText(/digite um e-mail válido/i)).toBeInTheDocument()
+    expect(
+      await screen.findByText(/digite um e-mail válido/i),
+    ).toBeInTheDocument()
     expect(showToastMock).not.toHaveBeenCalled()
   })
 })

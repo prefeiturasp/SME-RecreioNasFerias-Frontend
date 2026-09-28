@@ -7,6 +7,7 @@ import {
   AGRUPAMENTO_MINI_GRUPO,
   ESTA_NA_REDE_SIM,
   OPCOES_AGRUPAMENTO,
+  OPCOES_GRUPO_PARTICIPANTE,
   OPCOES_SIM_NAO,
   OPCOES_TIPO_ESCOLA,
   OPCOES_TIPO_ESTUDANTE,
@@ -144,6 +145,12 @@ export function ParticipanteForm({
   const tipoTravado =
     agrupamento === AGRUPAMENTO_BERCARIO ||
     agrupamento === AGRUPAMENTO_MINI_GRUPO
+  const rotuloTipoEstudante = useMemo(
+    () =>
+      OPCOES_TIPO_ESTUDANTE.find((opcao) => opcao.value === tipoEstudante)
+        ?.label ?? '',
+    [tipoEstudante],
+  )
   const secoesLiberadas = Boolean(agrupamento) && Boolean(tipoEstudante)
 
   useEffect(() => {
@@ -264,16 +271,15 @@ export function ParticipanteForm({
                         placeholder="Selecione o tipo de agrupamento"
                       />
                       {agrupamento && tipoTravado ? (
-                        <FormField
-                          control={form.control}
-                          name="tipoEstudante"
+                        <FormFieldLeitura
+                          id="tipoEstudante"
                           label={
                             <>
                               <span className="text-destructive">*</span> Tipo
                               de estudante
                             </>
                           }
-                          readOnly
+                          value={rotuloTipoEstudante}
                         />
                       ) : null}
                       {agrupamento && !tipoTravado ? (
@@ -509,7 +515,7 @@ export function ParticipanteForm({
                           </>
                         }
                         type="select"
-                        options={OPCOES_AGRUPAMENTO}
+                        options={OPCOES_GRUPO_PARTICIPANTE}
                         placeholder="Selecione o grupo"
                       />
                       <FormField

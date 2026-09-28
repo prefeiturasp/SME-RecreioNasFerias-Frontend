@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest'
+import {
+  GRUPO_BERCARIO_I,
+  TIPO_ESTUDANTE_REDE,
+} from '@/components/participante/ParticipanteForm/constantes'
 import type { FormValues } from '@/components/participante/ParticipanteForm/schema'
 import { inscricaoEstaCompleta } from './inscricaoEstaCompleta'
 
 function inscricaoCompleta(): FormValues {
   return {
     agrupamento: 'Berçário',
-    tipoEstudante: 'Estudante da Rede',
+    tipoEstudante: TIPO_ESTUDANTE_REDE,
     codigoEol: '1234567',
     cpf: '12345678901',
     nomeCompleto: 'Ana',
@@ -23,7 +27,7 @@ function inscricaoCompleta(): FormValues {
     email: 'ana@email.com',
     dreCodigoEol: '108100',
     polo: 'polo-1',
-    grupoParticipante: 'Berçário',
+    grupoParticipante: GRUPO_BERCARIO_I,
     estaNaRede: 'Sim',
     tipoEscola: 'Estadual',
     unidadeEducacional: 'EMEI',

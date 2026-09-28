@@ -2,8 +2,17 @@ export const AGRUPAMENTO_BERCARIO = 'Berçário'
 export const AGRUPAMENTO_MINI_GRUPO = 'Mini Grupo I e II'
 export const AGRUPAMENTO_QUATRO_A_QUATORZE = '4 a 14 anos'
 
-export const TIPO_ESTUDANTE_REDE = 'Estudante da Rede'
-export const TIPO_ESTUDANTE_FORA_DA_REDE = 'Fora da Rede'
+export const TIPO_ESTUDANTE_REDE = 'ESTUDANTE_DA_REDE'
+export const TIPO_ESTUDANTE_FORA_DA_REDE = 'ESTUDANTE_EXTERNO'
+
+export const ROTULO_TIPO_ESTUDANTE_REDE = 'Estudante da Rede'
+export const ROTULO_TIPO_ESTUDANTE_FORA_DA_REDE = 'Fora da Rede'
+
+export const GRUPO_BERCARIO_I = 'BERCARIO_I'
+export const GRUPO_BERCARIO_II = 'BERCARIO_II'
+export const GRUPO_MINI_GRUPO_I = 'MINI_GRUPO_I'
+export const GRUPO_MINI_GRUPO_II = 'MINI_GRUPO_II'
+export const GRUPO_QUATRO_A_14_ANOS = 'QUATRO_A_14_ANOS'
 
 export const OPCOES_AGRUPAMENTO = [
   { value: AGRUPAMENTO_BERCARIO, label: AGRUPAMENTO_BERCARIO },
@@ -15,8 +24,19 @@ export const OPCOES_AGRUPAMENTO = [
 ]
 
 export const OPCOES_TIPO_ESTUDANTE = [
-  { value: TIPO_ESTUDANTE_REDE, label: TIPO_ESTUDANTE_REDE },
-  { value: TIPO_ESTUDANTE_FORA_DA_REDE, label: TIPO_ESTUDANTE_FORA_DA_REDE },
+  { value: TIPO_ESTUDANTE_REDE, label: ROTULO_TIPO_ESTUDANTE_REDE },
+  {
+    value: TIPO_ESTUDANTE_FORA_DA_REDE,
+    label: ROTULO_TIPO_ESTUDANTE_FORA_DA_REDE,
+  },
+]
+
+export const OPCOES_GRUPO_PARTICIPANTE = [
+  { value: GRUPO_BERCARIO_I, label: 'Berçário I' },
+  { value: GRUPO_BERCARIO_II, label: 'Berçário II' },
+  { value: GRUPO_MINI_GRUPO_I, label: 'Mini Grupo I' },
+  { value: GRUPO_MINI_GRUPO_II, label: 'Mini Grupo II' },
+  { value: GRUPO_QUATRO_A_14_ANOS, label: '4 a 14 anos' },
 ]
 
 export const ESTA_NA_REDE_SIM = 'Sim'
