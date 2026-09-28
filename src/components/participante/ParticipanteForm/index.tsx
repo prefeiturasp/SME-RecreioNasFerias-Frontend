@@ -34,8 +34,8 @@ import { FormFieldLeitura } from '@/components/ui/form-field-leitura'
 import { FormFieldEol } from '@/components/ui/form-field-eol'
 import { useGetDres } from '@/hooks/useGetDres'
 import { useGetPolosElegiveis } from '@/hooks/useGetPolosElegiveis'
+import { usePostInscricao } from '@/hooks/usePostInscricao'
 import { calcularIdade } from '@/utils/calcularIdade'
-import { inscricaoEstaCompleta } from '@/utils/inscricaoEstaCompleta'
 import { useToast } from '@/hooks/useToast'
 
 const SECOES_FORMULARIO = [
@@ -67,6 +67,7 @@ export function ParticipanteForm({
 }: ParticipanteFormProps = {}) {
   const navigate = useNavigate()
   const { showToast } = useToast()
+  const cadastroMutation = usePostInscricao()
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -179,40 +180,26 @@ export function ParticipanteForm({
     form.setValue('dreNome', dreNome)
   }, [dreNome, form])
 
-  function avisarRascunho() {
-    showToast({
-      id: 'inscricao-rascunho',
-      title: 'Rascunho salvo',
-      description: 'A inscrição foi salva como rascunho.',
+  function salvar(dados: FormValues) {
+    if (cadastroMutation.isError) {
+      cadastroMutation.reset()
+    }
+
+    cadastroMutation.mutate(dados, {
+      onSuccess: (inscricao) => {
+        showToast({
+          id: 'inscricao-salva',
+          description: inscricao.status_label,
+        })
+      },
     })
-  }
-
-  function salvarRascunho() {
-    void form.handleSubmit(() => {
-      avisarRascunho()
-    })()
-  }
-
-  function salvar() {
-    void form.handleSubmit((dados) => {
-      if (!inscricaoEstaCompleta(dados)) {
-        avisarRascunho()
-        return
-      }
-
-      showToast({
-        id: 'inscricao-completa',
-        title: 'Inscrição realizada',
-        description: 'O participante foi inscrito.',
-      })
-    })()
   }
 
   return (
     <form
       noValidate
       aria-label="Formulário de cadastro de participante"
-      onSubmit={form.handleSubmit(() => undefined)}
+      onSubmit={form.handleSubmit(salvar)}
       className="rounded-sm bg-background p-8 shadow-card max-md:p-4"
     >
       <input type="hidden" {...form.register('dreNome')} />
@@ -259,7 +246,11 @@ export function ParticipanteForm({
                   {secao.id === 'informacoes-basicas' ? (
                     <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
                       <AlertaErroApi
-                        erro={dresQuery.error ?? polosQuery.error}
+                        erro={
+                          cadastroMutation.error ??
+                          dresQuery.error ??
+                          polosQuery.error
+                        }
                         className="lg:col-span-2"
                       />
                       <FormField
@@ -634,17 +625,17 @@ export function ParticipanteForm({
             Cancelar
           </Button>
           <Button
-            type="button"
+            type="submit"
             variant="outline"
+            disabled={cadastroMutation.isPending}
             className="h-9.5 rounded-sm border-brand-dark px-4 font-bold text-brand-dark hover:bg-accent hover:text-brand-dark"
-            onClick={salvarRascunho}
           >
             Salvar Rascunho
           </Button>
           <Button
-            type="button"
+            type="submit"
+            disabled={cadastroMutation.isPending}
             className="h-9.5 rounded-sm bg-brand-dark px-4 font-bold text-background hover:bg-brand-dark-hover disabled:bg-button-primary-disabled-bg disabled:opacity-100"
-            onClick={salvar}
           >
             Salvar
           </Button>

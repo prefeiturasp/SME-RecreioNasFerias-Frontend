@@ -17,18 +17,24 @@ import {
   AGRUPAMENTO_BERCARIO,
   AGRUPAMENTO_MINI_GRUPO,
   AGRUPAMENTO_QUATRO_A_QUATORZE,
+  GRUPO_BERCARIO_I,
   ROTULO_TIPO_ESTUDANTE_FORA_DA_REDE,
   ROTULO_TIPO_ESTUDANTE_REDE,
+  TIPO_ESTUDANTE_REDE,
 } from './constantes'
 import { ParticipanteForm } from './index'
 
-const { listarDresMock, listarPolosElegiveisMock, showToastMock } = vi.hoisted(
-  () => ({
-    listarDresMock: vi.fn(),
-    listarPolosElegiveisMock: vi.fn(),
-    showToastMock: vi.fn(),
-  }),
-)
+const {
+  listarDresMock,
+  listarPolosElegiveisMock,
+  cadastrarInscricaoMock,
+  showToastMock,
+} = vi.hoisted(() => ({
+  listarDresMock: vi.fn(),
+  listarPolosElegiveisMock: vi.fn(),
+  cadastrarInscricaoMock: vi.fn(),
+  showToastMock: vi.fn(),
+}))
 
 vi.mock('@/services/dre/listarDres', () => ({
   listarDres: listarDresMock,
@@ -36,6 +42,10 @@ vi.mock('@/services/dre/listarDres', () => ({
 
 vi.mock('@/services/inscricao/listarPolosElegiveis', () => ({
   listarPolosElegiveis: listarPolosElegiveisMock,
+}))
+
+vi.mock('@/services/inscricao/cadastrarInscricao', () => ({
+  cadastrarInscricao: cadastrarInscricaoMock,
 }))
 
 vi.mock('@/hooks/useToast', () => ({
@@ -69,9 +79,14 @@ describe('ParticipanteForm', () => {
   beforeEach(() => {
     listarDresMock.mockReset()
     listarPolosElegiveisMock.mockReset()
+    cadastrarInscricaoMock.mockReset()
     showToastMock.mockReset()
     listarDresMock.mockResolvedValue([])
     listarPolosElegiveisMock.mockResolvedValue([])
+    cadastrarInscricaoMock.mockResolvedValue({
+      status: 'RASCUNHO',
+      status_label: 'Rascunho',
+    })
   })
 
   it('renderiza alerta, seções do accordion e ações do rodapé', () => {
@@ -611,7 +626,7 @@ describe('ParticipanteForm', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('salva rascunho incompleto e recusa e-mail inválido', async () => {
+  it('salva o rascunho incompleto e recusa e-mail inválido', async () => {
     const usuario = userEvent.setup()
     renderFormulario()
 
@@ -619,21 +634,45 @@ describe('ParticipanteForm', () => {
       screen.getByRole('button', { name: /salvar rascunho/i }),
     )
     await waitFor(() => {
-      expect(showToastMock).toHaveBeenCalledWith(
+      expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          id: 'inscricao-rascunho',
-          description: 'A inscrição foi salva como rascunho.',
+          agrupamento: '',
+          polo: '',
+          tipoEstudante: '',
+          grupoParticipante: '',
+          codigoEol: '',
+          cpf: '',
+          nomeCompleto: '',
+          dataNascimento: '',
+          email: '',
+          dreCodigoEol: '',
+          dreNome: '',
         }),
+        expect.anything(),
       )
     })
+    expect(showToastMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'inscricao-salva',
+        description: 'Rascunho',
+      }),
+    )
 
     showToastMock.mockClear()
+    cadastrarInscricaoMock.mockResolvedValueOnce({
+      status: 'COMPLETA',
+      status_label: 'Completa',
+    })
     await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
     await waitFor(() => {
       expect(showToastMock).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 'inscricao-rascunho' }),
+        expect.objectContaining({
+          id: 'inscricao-salva',
+          description: 'Completa',
+        }),
       )
     })
+    expect(cadastrarInscricaoMock).toHaveBeenCalledTimes(2)
 
     showToastMock.mockClear()
     await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'ana')
@@ -642,5 +681,89 @@ describe('ParticipanteForm', () => {
       await screen.findByText(/digite um e-mail válido/i),
     ).toBeInTheDocument()
     expect(showToastMock).not.toHaveBeenCalled()
+    expect(cadastrarInscricaoMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('mostra o detalhe quando o cadastro falha', async () => {
+    const usuario = userEvent.setup()
+    cadastrarInscricaoMock.mockRejectedValue({
+      response: {
+        data: {
+          detalhe:
+            'Já existe inscrição com o identificador informado neste polo.',
+        },
+      },
+    })
+    renderFormulario()
+
+    await usuario.click(
+      screen.getByRole('button', { name: /salvar rascunho/i }),
+    )
+
+    expect(
+      await screen.findByText(
+        'Já existe inscrição com o identificador informado neste polo.',
+      ),
+    ).toBeInTheDocument()
+    expect(showToastMock).not.toHaveBeenCalled()
+  })
+
+  it('envia os códigos da tela no cadastro', async () => {
+    const usuario = userEvent.setup()
+    listarDresMock.mockResolvedValue([
+      {
+        codigo_dre: '108100',
+        nome_dre: 'DRE Butantã',
+        sigla_dre: 'BT',
+      },
+    ])
+    listarPolosElegiveisMock.mockImplementation(
+      async (dreCodigoEol: string) => [
+        {
+          uuid: `polo-${dreCodigoEol}`,
+          codigo_eol: '123456',
+          nome_polo: `Polo ${dreCodigoEol}`,
+          dre_codigo_eol: dreCodigoEol,
+          dre_nome: 'DRE Butantã',
+        },
+      ],
+    )
+    renderFormulario()
+
+    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: AGRUPAMENTO_BERCARIO }),
+    )
+    await usuario.click(
+      screen.getByRole('button', { name: /informações por grupo/i }),
+    )
+    await usuario.click(screen.getByLabelText(/grupo do participante/i))
+    await usuario.click(screen.getByRole('option', { name: 'Berçário I' }))
+    await usuario.click(screen.getByLabelText(/\bdre\b/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: 'DRE Butantã' }),
+    )
+    await usuario.click(screen.getByLabelText(/polo de inscrição/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: 'Polo 108100' }),
+    )
+    await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'Ana@Email.com')
+
+    await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
+
+    await waitFor(() => {
+      expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          agrupamento: AGRUPAMENTO_BERCARIO,
+          polo: 'polo-108100',
+          tipoEstudante: TIPO_ESTUDANTE_REDE,
+          grupoParticipante: GRUPO_BERCARIO_I,
+          email: 'ana@email.com',
+          dreCodigoEol: '108100',
+          dreNome: 'DRE Butantã',
+        }),
+        expect.anything(),
+      )
+    })
   })
 })

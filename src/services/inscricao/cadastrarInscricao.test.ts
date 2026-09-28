@@ -10,7 +10,30 @@ vi.mock('../api/http', () => ({
 const apiPostMock = vi.mocked(api.post)
 
 const dadosInscricaoExemplo: DadosCadastroInscricao = {
-  edicao: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+  polo: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+  tipoEstudante: 'ESTUDANTE_DA_REDE',
+  grupoParticipante: 'BERCARIO_I',
+  codigoEol: '1234567',
+  cpf: '12345678901',
+  nomeCompleto: 'Ana Souza',
+  dataNascimento: '2020-03-15',
+  nomeResponsavel: 'Maria Souza',
+  nomeSocialResponsavel: '',
+  cep: '05508000',
+  logradouro: 'Exemplo',
+  numero: '100',
+  complemento: '',
+  bairro: 'Centro',
+  cidade: 'São Paulo',
+  telefone1: '11999999999',
+  telefone2: '',
+  email: 'maria@example.com',
+  dreCodigoEol: '108100',
+  dreNome: 'DRE Butantã',
+}
+
+const payloadEsperado = {
+  edicao: null,
   polo: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
   tipo_estudante: 'ESTUDANTE_DA_REDE',
   grupo: 'BERCARIO_I',
@@ -21,7 +44,7 @@ const dadosInscricaoExemplo: DadosCadastroInscricao = {
   responsavel_nome: 'Maria Souza',
   responsavel_nome_social: '',
   cep: '05508000',
-  tipo_logradouro: 'Rua',
+  tipo_logradouro: '',
   logradouro: 'Exemplo',
   numero: '100',
   complemento: '',
@@ -32,11 +55,11 @@ const dadosInscricaoExemplo: DadosCadastroInscricao = {
   email: 'maria@example.com',
   dre_codigo_eol: '108100',
   dre_nome: 'DRE Butantã',
-}
+} as const
 
 const respostaCadastroExemplo: Inscricao = {
   uuid: '22222222-2222-2222-2222-222222222222',
-  ...dadosInscricaoExemplo,
+  ...payloadEsperado,
   tipo_estudante_label: 'Estudante da rede',
   grupo_label: 'Berçário I',
   status: 'RASCUNHO',
@@ -59,8 +82,48 @@ describe('cadastrarInscricao', () => {
     expect(apiPostMock).toHaveBeenCalledTimes(1)
     expect(apiPostMock).toHaveBeenCalledWith(
       '/api/v1/inscricoes/',
-      dadosInscricaoExemplo,
+      payloadEsperado,
     )
+  })
+
+  it('envia nulo nos campos vazios e ignora tipo e grupo fora do contrato', async () => {
+    apiPostMock.mockResolvedValue({ data: respostaCadastroExemplo })
+
+    await cadastrarInscricao({
+      ...dadosInscricaoExemplo,
+      polo: '   ',
+      dataNascimento: '',
+      tipoEstudante: 'outro',
+      grupoParticipante: 'outro',
+    })
+
+    expect(apiPostMock).toHaveBeenCalledWith(
+      '/api/v1/inscricoes/',
+      expect.objectContaining({
+        polo: null,
+        data_nascimento: null,
+        tipo_estudante: '',
+        grupo: '',
+      }),
+    )
+  })
+
+  it('não envia campos que ficam só no formulário', async () => {
+    apiPostMock.mockResolvedValue({ data: respostaCadastroExemplo })
+
+    const dados = {
+      ...dadosInscricaoExemplo,
+      agrupamento: 'Berçário',
+      estaNaRede: 'Sim',
+      criancaDeficiencia: 'Não',
+    }
+
+    await cadastrarInscricao(dados)
+
+    const payload = apiPostMock.mock.calls[0][1]
+    expect(payload).not.toHaveProperty('agrupamento')
+    expect(payload).not.toHaveProperty('estaNaRede')
+    expect(payload).not.toHaveProperty('criancaDeficiencia')
   })
 
   it('lança erro quando a API retorna falha no cadastro', async () => {
