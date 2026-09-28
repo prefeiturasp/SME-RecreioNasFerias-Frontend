@@ -22,18 +22,20 @@ import {
 } from './constantes'
 import { ParticipanteForm } from './index'
 
-const { listarDresMock, listarPolosMock, showToastMock } = vi.hoisted(() => ({
-  listarDresMock: vi.fn(),
-  listarPolosMock: vi.fn(),
-  showToastMock: vi.fn(),
-}))
+const { listarDresMock, listarPolosElegiveisMock, showToastMock } = vi.hoisted(
+  () => ({
+    listarDresMock: vi.fn(),
+    listarPolosElegiveisMock: vi.fn(),
+    showToastMock: vi.fn(),
+  }),
+)
 
 vi.mock('@/services/dre/listarDres', () => ({
   listarDres: listarDresMock,
 }))
 
-vi.mock('@/services/polo/listarPolos', () => ({
-  listarPolos: listarPolosMock,
+vi.mock('@/services/inscricao/listarPolosElegiveis', () => ({
+  listarPolosElegiveis: listarPolosElegiveisMock,
 }))
 
 vi.mock('@/hooks/useToast', () => ({
@@ -66,15 +68,10 @@ function renderFormulario(props?: ComponentProps<typeof ParticipanteForm>) {
 describe('ParticipanteForm', () => {
   beforeEach(() => {
     listarDresMock.mockReset()
-    listarPolosMock.mockReset()
+    listarPolosElegiveisMock.mockReset()
     showToastMock.mockReset()
     listarDresMock.mockResolvedValue([])
-    listarPolosMock.mockResolvedValue({
-      count: 0,
-      next: null,
-      previous: null,
-      results: [],
-    })
+    listarPolosElegiveisMock.mockResolvedValue([])
   })
 
   it('renderiza alerta, seções do accordion e ações do rodapé', () => {
@@ -191,37 +188,28 @@ describe('ParticipanteForm', () => {
         sigla_dre: 'IP',
       },
     ])
-    listarPolosMock.mockImplementation(
-      async (_busca: string | undefined, dreCodigoEol: string) => ({
-        count: 1,
-        next: null,
-        previous: null,
-        results: [
-          {
-            uuid: `polo-${dreCodigoEol}`,
-            nome_polo: `Polo ${dreCodigoEol}`,
-          },
-        ],
-      }),
+    listarPolosElegiveisMock.mockImplementation(
+      async (dreCodigoEol: string) => [
+        {
+          uuid: `polo-${dreCodigoEol}`,
+          codigo_eol: '123456',
+          nome_polo: `Polo ${dreCodigoEol}`,
+          dre_codigo_eol: dreCodigoEol,
+          dre_nome: 'DRE',
+        },
+      ],
     )
     renderFormulario()
 
     expect(screen.getByLabelText(/polo de inscrição/i)).toBeDisabled()
-    expect(listarPolosMock).not.toHaveBeenCalled()
+    expect(listarPolosElegiveisMock).not.toHaveBeenCalled()
 
     await usuario.click(screen.getByLabelText(/\bdre\b/i))
     await usuario.click(
       await screen.findByRole('option', { name: 'DRE Butantã' }),
     )
 
-    expect(listarPolosMock).toHaveBeenCalledWith(
-      undefined,
-      '108100',
-      undefined,
-      1,
-      50,
-      undefined,
-    )
+    expect(listarPolosElegiveisMock).toHaveBeenCalledWith('108100')
     expect(screen.getByLabelText(/polo de inscrição/i)).toBeEnabled()
     await waitFor(() => {
       expect(
@@ -238,14 +226,7 @@ describe('ParticipanteForm', () => {
     await usuario.click(screen.getByLabelText(/\bdre\b/i))
     await usuario.click(screen.getByRole('option', { name: 'DRE Ipiranga' }))
 
-    expect(listarPolosMock).toHaveBeenLastCalledWith(
-      undefined,
-      '108200',
-      undefined,
-      1,
-      50,
-      undefined,
-    )
+    expect(listarPolosElegiveisMock).toHaveBeenLastCalledWith('108200')
     await waitFor(() => {
       expect(screen.queryByText('Polo 108100')).not.toBeInTheDocument()
     })
@@ -269,7 +250,7 @@ describe('ParticipanteForm', () => {
         sigla_dre: 'IP',
       },
     ])
-    listarPolosMock.mockRejectedValueOnce({
+    listarPolosElegiveisMock.mockRejectedValueOnce({
       response: { data: { detalhe: 'Falha ao carregar polos.' } },
     })
     renderFormulario()
@@ -283,12 +264,15 @@ describe('ParticipanteForm', () => {
       await screen.findByText('Falha ao carregar polos.'),
     ).toBeInTheDocument()
 
-    listarPolosMock.mockResolvedValue({
-      count: 1,
-      next: null,
-      previous: null,
-      results: [{ uuid: 'polo-108200', nome_polo: 'Polo 108200' }],
-    })
+    listarPolosElegiveisMock.mockResolvedValue([
+      {
+        uuid: 'polo-108200',
+        codigo_eol: '123456',
+        nome_polo: 'Polo 108200',
+        dre_codigo_eol: '108200',
+        dre_nome: 'DRE Ipiranga',
+      },
+    ])
 
     await usuario.click(screen.getByLabelText(/\bdre\b/i))
     await usuario.click(screen.getByRole('option', { name: 'DRE Ipiranga' }))

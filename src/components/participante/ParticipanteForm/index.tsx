@@ -33,7 +33,7 @@ import { FormField } from '@/components/ui/form-field'
 import { FormFieldLeitura } from '@/components/ui/form-field-leitura'
 import { FormFieldEol } from '@/components/ui/form-field-eol'
 import { useGetDres } from '@/hooks/useGetDres'
-import { useGetPolos } from '@/hooks/useGetPolos'
+import { useGetPolosElegiveis } from '@/hooks/useGetPolosElegiveis'
 import { calcularIdade } from '@/utils/calcularIdade'
 import { inscricaoEstaCompleta } from '@/utils/inscricaoEstaCompleta'
 import { useToast } from '@/hooks/useToast'
@@ -132,15 +132,7 @@ export function ParticipanteForm({
     return anos === '1' ? '1 ano' : `${anos} anos`
   }, [dataNascimento])
   const dresQuery = useGetDres()
-  const polosQuery = useGetPolos(
-    undefined,
-    dreCodigoEol,
-    undefined,
-    1,
-    50,
-    undefined,
-    Boolean(dreCodigoEol),
-  )
+  const polosQuery = useGetPolosElegiveis(dreCodigoEol)
   const dres = dresQuery.data ?? []
   const dreNome = useMemo(() => {
     if (!dreCodigoEol) return ''
@@ -149,7 +141,7 @@ export function ParticipanteForm({
         ?.nome_dre ?? ''
     )
   }, [dreCodigoEol, dresQuery.data])
-  const polos = polosQuery.data?.results ?? []
+  const polos = polosQuery.data ?? []
   const tipoTravado =
     agrupamento === AGRUPAMENTO_BERCARIO ||
     agrupamento === AGRUPAMENTO_MINI_GRUPO

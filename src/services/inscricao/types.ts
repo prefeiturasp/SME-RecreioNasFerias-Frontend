@@ -42,3 +42,11 @@ export type Inscricao = DadosCadastroInscricao & {
   status_label: string
   ativo: boolean
 }
+
+export type PoloElegivel = {
+  uuid: string
+  codigo_eol: string
+  nome_polo: string
+  dre_codigo_eol: string
+  dre_nome: string
+}
