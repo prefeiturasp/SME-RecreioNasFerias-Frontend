@@ -1,5 +1,14 @@
 import type { ComponentProps } from 'react'
-import { render, screen, waitFor } from '@testing-library/react'
+
+class ObservadorTamanho {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+globalThis.ResizeObserver ??=
+  ObservadorTamanho as unknown as typeof ResizeObserver
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -71,9 +80,7 @@ describe('ParticipanteForm', () => {
     })
 
     expect(basicas).toHaveAttribute('aria-expanded', 'true')
-    expect(
-      screen.getByLabelText(/tipo de agrupamento/i),
-    ).toBeInTheDocument()
+    expect(screen.getByLabelText(/tipo de agrupamento/i)).toBeInTheDocument()
     expect(
       screen.queryByLabelText(/tipo de estudante/i),
     ).not.toBeInTheDocument()
@@ -91,7 +98,9 @@ describe('ParticipanteForm', () => {
     expect(
       screen.getByRole('button', { name: /salvar rascunho/i }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^salvar$/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /^salvar$/i }),
+    ).toBeInTheDocument()
   })
 
   it('navega para o início ao clicar em Cancelar', async () => {
@@ -122,9 +131,7 @@ describe('ParticipanteForm', () => {
     expect(cpf).not.toHaveAttribute('readonly')
     expect(cpf).toHaveAttribute('placeholder', 'Digite o CPF')
     expect(cpf).toHaveClass('pl-9')
-    expect(
-      screen.getByRole('button', { name: /consultar cpf/i }),
-    ).toBeEnabled()
+    expect(screen.getByRole('button', { name: /consultar cpf/i })).toBeEnabled()
     expect(
       screen.getByLabelText(/nome completo do\(a\) participante/i),
     ).toHaveAttribute('readonly')
@@ -264,15 +271,23 @@ describe('ParticipanteForm', () => {
       screen.getByRole('button', { name: /informações por grupo/i }),
     )
 
-    expect(screen.getByLabelText(/grupo do participante/i)).toHaveValue(
-      AGRUPAMENTO_BERCARIO,
+    expect(screen.getByLabelText(/grupo do participante/i)).toHaveTextContent(
+      'Selecione o grupo',
     )
-    const estaNaRede = screen.getByLabelText(/está na rede/i)
-    expect(estaNaRede).toHaveValue('Sim')
-    expect(estaNaRede).toHaveAttribute('readonly')
-    expect(screen.getByLabelText(/unidade educacional/i)).toHaveAttribute(
-      'readonly',
-    )
+    const rede = screen.getByRole('radiogroup', {
+      name: /é aluno da rede municipal/i,
+    })
+    expect(within(rede).getByRole('radio', { name: /^sim$/i })).toBeChecked()
+    expect(
+      screen.getByLabelText(/unidade educacional do participante/i),
+    ).toHaveAttribute('readonly')
+    expect(screen.getByLabelText(/turma \/ ano/i)).toHaveAttribute('readonly')
+    expect(
+      screen.getByLabelText(/responsável por retirar na saída/i),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('radiogroup', { name: /autoriza uso da piscina/i }),
+    ).toBeInTheDocument()
   })
 
   it('limpa os campos do grupo ao trocar o agrupamento', async () => {
@@ -293,17 +308,131 @@ describe('ParticipanteForm', () => {
     await usuario.click(
       screen.getByRole('button', { name: /informações por grupo/i }),
     )
-    await usuario.click(screen.getByLabelText(/tipo de vaga/i))
-    await usuario.click(screen.getByRole('option', { name: 'Integral' }))
+    await usuario.click(screen.getByRole('radio', { name: 'Estadual' }))
+    await usuario.click(screen.getByLabelText(/grupo do participante/i))
+    await usuario.click(
+      screen.getByRole('option', { name: AGRUPAMENTO_MINI_GRUPO }),
+    )
+
+    expect(screen.getByRole('radio', { name: 'Estadual' })).toBeChecked()
+    expect(screen.getByLabelText(/tipo de estudante/i)).toHaveTextContent(
+      TIPO_ESTUDANTE_FORA_DA_REDE,
+    )
 
     await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
     await usuario.click(
       screen.getByRole('option', { name: AGRUPAMENTO_BERCARIO }),
     )
 
-    expect(screen.getByLabelText(/tipo de vaga/i)).toHaveTextContent(
-      'Selecione o tipo de vaga',
+    expect(screen.getByRole('radio', { name: 'Estadual' })).not.toBeChecked()
+    expect(screen.getByLabelText(/grupo do participante/i)).toHaveTextContent(
+      'Selecione o grupo',
     )
+  })
+
+  it('mantém Qual visível e só libera quando a resposta de saúde é Sim', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: AGRUPAMENTO_BERCARIO }),
+    )
+    await usuario.click(
+      screen.getByRole('button', { name: /informações de saúde/i }),
+    )
+
+    expect(
+      screen.getByRole('radiogroup', { name: /criança com deficiência/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('radiogroup', {
+        name: /criança com problema de saúde/i,
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('radiogroup', {
+        name: /medicação\/tratamento contínuo/i,
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('radiogroup', {
+        name: /restrição a medicamento em pronto atendimento/i,
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('radiogroup', { name: /tem convênio médico/i }),
+    ).toBeInTheDocument()
+
+    const qualsSelect = screen.getAllByRole('combobox', { name: /qual\?/i })
+    expect(qualsSelect).toHaveLength(4)
+    for (const campo of qualsSelect) {
+      expect(campo).toBeDisabled()
+    }
+
+    const qualConvenio = screen.getByRole('textbox', { name: /qual\?/i })
+    expect(qualConvenio).toHaveAttribute('readonly')
+
+    const deficiencia = screen.getByRole('radiogroup', {
+      name: /criança com deficiência/i,
+    })
+    await usuario.click(
+      within(deficiencia).getByRole('radio', { name: /^sim$/i }),
+    )
+    expect(qualsSelect[0]).toBeEnabled()
+    await usuario.click(
+      within(deficiencia).getByRole('radio', { name: /^não$/i }),
+    )
+    expect(qualsSelect[0]).toBeDisabled()
+
+    const convenio = screen.getByRole('radiogroup', {
+      name: /tem convênio médico/i,
+    })
+    await usuario.click(within(convenio).getByRole('radio', { name: /^sim$/i }))
+    await usuario.type(qualConvenio, 'Amil')
+    expect(qualConvenio).toHaveValue('Amil')
+    await usuario.click(within(convenio).getByRole('radio', { name: /^não$/i }))
+    await waitFor(() => {
+      expect(qualConvenio).toHaveValue('')
+    })
+    expect(qualConvenio).toHaveAttribute('readonly')
+
+    expect(
+      screen.getByText(/clique ou arraste para fazer o upload dos arquivos/i),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/tamanho do arquivo até 10mb/i)).toBeInTheDocument()
+  })
+
+  it('aceita anexo de até 10MB e recusa arquivo maior', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: AGRUPAMENTO_BERCARIO }),
+    )
+    await usuario.click(
+      screen.getByRole('button', { name: /informações de saúde/i }),
+    )
+
+    const input = screen.getByLabelText(/anexo de documentos/i)
+    const pequeno = new File(['ok'], 'laudo.pdf', { type: 'application/pdf' })
+    await usuario.upload(input, pequeno)
+    expect(screen.getByText('laudo.pdf')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /remover laudo\.pdf/i }),
+    ).toBeInTheDocument()
+
+    const grande = new File(['x'], 'grande.pdf')
+    Object.defineProperty(grande, 'size', { value: 10 * 1024 * 1024 + 1 })
+    await usuario.upload(input, grande)
+    expect(screen.getByText(/o arquivo deve ter até 10mb/i)).toBeInTheDocument()
+    expect(screen.queryByText('grande.pdf')).not.toBeInTheDocument()
+
+    await usuario.click(
+      screen.getByRole('button', { name: /remover laudo\.pdf/i }),
+    )
+    expect(screen.queryByText('laudo.pdf')).not.toBeInTheDocument()
   })
 
   it('limpa Está na Rede ao sair de Estudante da Rede', async () => {
@@ -317,7 +446,11 @@ describe('ParticipanteForm', () => {
     await usuario.click(
       screen.getByRole('button', { name: /informações por grupo/i }),
     )
-    expect(screen.getByLabelText(/está na rede/i)).toHaveValue('Sim')
+    expect(
+      within(
+        screen.getByRole('radiogroup', { name: /é aluno da rede municipal/i }),
+      ).getByRole('radio', { name: /^sim$/i }),
+    ).toBeChecked()
 
     await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
     await usuario.click(
@@ -331,9 +464,15 @@ describe('ParticipanteForm', () => {
       screen.getByRole('button', { name: /informações por grupo/i }),
     )
 
-    expect(screen.getByLabelText(/está na rede/i)).toHaveTextContent(
-      'Selecione',
-    )
+    const rede = screen.getByRole('radiogroup', {
+      name: /é aluno da rede municipal/i,
+    })
+    expect(
+      within(rede).getByRole('radio', { name: /^sim$/i }),
+    ).not.toBeChecked()
+    expect(
+      within(rede).getByRole('radio', { name: /^não$/i }),
+    ).not.toBeChecked()
   })
 
   it('trava Estudante da Rede ao escolher Mini Grupo', async () => {

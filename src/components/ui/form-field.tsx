@@ -16,7 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 /**
  * Props base para todos os tipos de FormField
@@ -59,11 +61,20 @@ type FormFieldSelectProps<
   options: Array<{ value: string; label: string }>
   placeholder?: string
   disabled?: boolean
+  triggerClassName?: string
 }
 
 /**
  * Props para FormField do tipo Textarea
  */
+type FormFieldRadioProps<
+  TFieldValues extends FieldValues,
+  TName extends FieldPath<TFieldValues>,
+> = FormFieldBaseProps<TFieldValues, TName> & {
+  type: 'radio'
+  options: Array<{ value: string; label: string }>
+}
+
 type FormFieldTextareaProps<
   TFieldValues extends FieldValues,
   TName extends FieldPath<TFieldValues>,
@@ -83,6 +94,7 @@ export type FormFieldProps<
 > =
   | FormFieldInputProps<TFieldValues, TName>
   | FormFieldSelectProps<TFieldValues, TName>
+  | FormFieldRadioProps<TFieldValues, TName>
   | FormFieldTextareaProps<TFieldValues, TName>
 
 /**
@@ -118,6 +130,7 @@ export function FormField<
     (
       | FormFieldInputProps<TFieldValues, TName>
       | FormFieldSelectProps<TFieldValues, TName>
+      | FormFieldRadioProps<TFieldValues, TName>
       | FormFieldTextareaProps<TFieldValues, TName>
     ),
 ): React.JSX.Element {
@@ -129,6 +142,7 @@ export function FormField<
     hideError = false,
     readOnly = false,
   } = props
+  const fieldId = String(name)
 
   return (
     <Controller
@@ -137,7 +151,11 @@ export function FormField<
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
           {label && (
-            <FieldLabel htmlFor={String(name)} className={labelClassName}>
+            <FieldLabel
+              id={`${fieldId}-rotulo`}
+              htmlFor={fieldId}
+              className={labelClassName}
+            >
               {label}
             </FieldLabel>
           )}
@@ -162,9 +180,14 @@ function renderInput<
   readOnly: boolean,
 ): React.JSX.Element {
   const { name } = props
+  const fieldId = String(name)
 
   // Input
-  if (props.type !== 'select' && props.type !== 'textarea') {
+  if (
+    props.type !== 'select' &&
+    props.type !== 'textarea' &&
+    props.type !== 'radio'
+  ) {
     const {
       placeholder,
       inputMode,
@@ -184,7 +207,7 @@ function renderInput<
     return (
       <Input
         {...field}
-        id={String(name)}
+        id={fieldId}
         type={inputType}
         placeholder={placeholder}
         inputMode={inputMode}
@@ -199,7 +222,7 @@ function renderInput<
 
   // Select
   if (props.type === 'select') {
-    const { options, placeholder, disabled = false } = props
+    const { options, placeholder, disabled = false, triggerClassName } = props
 
     return (
       <Select
@@ -208,8 +231,11 @@ function renderInput<
         disabled={disabled}
       >
         <SelectTrigger
-          id={String(name)}
-          className="h-10 w-full min-w-0 rounded-sm border-input-border-muted data-[size=default]:h-10"
+          id={fieldId}
+          className={cn(
+            'h-10 w-full min-w-0 rounded-sm border-input-border-muted data-[size=default]:h-10',
+            triggerClassName,
+          )}
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
@@ -224,6 +250,36 @@ function renderInput<
     )
   }
 
+  if (props.type === 'radio') {
+    const { options } = props
+
+    return (
+      <RadioGroup
+        id={fieldId}
+        aria-labelledby={`${fieldId}-rotulo`}
+        value={field.value}
+        onValueChange={field.onChange}
+        disabled={readOnly}
+        className="flex flex-wrap gap-4"
+      >
+        {options.map((option) => (
+          <div key={option.value} className="flex items-center gap-2">
+            <RadioGroupItem
+              value={option.value}
+              id={`${String(name)}-${option.value}`}
+            />
+            <FieldLabel
+              htmlFor={`${String(name)}-${option.value}`}
+              className="font-normal"
+            >
+              {option.label}
+            </FieldLabel>
+          </div>
+        ))}
+      </RadioGroup>
+    )
+  }
+
   // Textarea
   if (props.type === 'textarea') {
     const {
@@ -235,7 +291,7 @@ function renderInput<
     return (
       <Textarea
         {...field}
-        id={String(name)}
+        id={fieldId}
         placeholder={placeholder}
         rows={rows}
         className={textareaClassName}

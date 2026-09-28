@@ -26,13 +26,48 @@ export const OPCOES_SIM_NAO = [
   { value: 'Não', label: 'Não' },
 ]
 
-export const OPCOES_TIPO_VAGA = [
-  { value: 'Integral', label: 'Integral' },
-  { value: 'Parcial', label: 'Parcial' },
+export const OPCOES_TIPO_ESCOLA = [
+  { value: 'Estadual', label: 'Estadual' },
+  { value: 'Particular', label: 'Particular' },
 ]
 
-export const OPCOES_TURNO = [
-  { value: 'Manhã', label: 'Manhã' },
-  { value: 'Tarde', label: 'Tarde' },
-  { value: 'Integral', label: 'Integral' },
-]
+export const RESPOSTA_SIM = 'Sim'
+
+export const LIMITE_ANEXO_BYTES = 10 * 1024 * 1024
+
+export const PERGUNTAS_SAUDE = [
+  {
+    name: 'criancaDeficiencia',
+    nameQual: 'criancaDeficienciaQual',
+    pergunta: 'Criança com deficiência?',
+    tipoQual: 'select',
+    opcoes: [],
+  },
+  {
+    name: 'problemaSaude',
+    nameQual: 'problemaSaudeQual',
+    pergunta: 'Criança com problema de saúde?',
+    tipoQual: 'select',
+    opcoes: [],
+  },
+  {
+    name: 'medicacao',
+    nameQual: 'medicacaoQual',
+    pergunta: 'Medicação/tratamento contínuo?',
+    tipoQual: 'select',
+    opcoes: [],
+  },
+  {
+    name: 'restricaoMedicamento',
+    nameQual: 'restricaoMedicamentoQual',
+    pergunta: 'Restrição a medicamento em pronto atendimento?',
+    tipoQual: 'select',
+    opcoes: [],
+  },
+  {
+    name: 'convenioMedico',
+    nameQual: 'convenioMedicoQual',
+    pergunta: 'Tem convênio médico?',
+    tipoQual: 'texto',
+  },
+] as const

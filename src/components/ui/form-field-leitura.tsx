@@ -1,9 +1,10 @@
+import type { ReactNode } from 'react'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 
 type FormFieldLeituraProps = {
   id: string
-  label: string
+  label: ReactNode
   value: string
 }
 

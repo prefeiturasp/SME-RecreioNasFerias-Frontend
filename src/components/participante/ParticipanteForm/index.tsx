@@ -8,11 +8,13 @@ import {
   ESTA_NA_REDE_SIM,
   OPCOES_AGRUPAMENTO,
   OPCOES_SIM_NAO,
+  OPCOES_TIPO_ESCOLA,
   OPCOES_TIPO_ESTUDANTE,
-  OPCOES_TIPO_VAGA,
-  OPCOES_TURNO,
+  PERGUNTAS_SAUDE,
   TIPO_ESTUDANTE_REDE,
 } from './constantes'
+import { AnexoDocumentos } from './AnexoDocumentos'
+import { PerguntaSaude } from './PerguntaSaude'
 import type { FormValues } from './schema'
 import formSchema from './schema'
 
@@ -85,13 +87,24 @@ export function ParticipanteForm({
       email: '',
       dreCodigoEol: '',
       polo: '',
+      grupoParticipante: '',
       estaNaRede: '',
-      tipoVaga: '',
+      tipoEscola: '',
       unidadeEducacional: '',
-      turno: '',
+      turmaAno: '',
       podeIrSozinho: '',
       responsavelRetirada: '',
-      autorizaImagens: '',
+      autorizaPiscina: '',
+      criancaDeficiencia: '',
+      criancaDeficienciaQual: '',
+      problemaSaude: '',
+      problemaSaudeQual: '',
+      medicacao: '',
+      medicacaoQual: '',
+      restricaoMedicamento: '',
+      restricaoMedicamentoQual: '',
+      convenioMedico: '',
+      convenioMedicoQual: '',
     },
   })
   const [dres, setDres] = useState<Dre[]>([])
@@ -113,10 +126,11 @@ export function ParticipanteForm({
     control: form.control,
     name: 'dataNascimento',
   })
-  const idade = useMemo(
-    () => calcularIdade(dataNascimento),
-    [dataNascimento],
-  )
+  const idade = useMemo(() => {
+    const anos = calcularIdade(dataNascimento)
+    if (!anos) return ''
+    return anos === '1' ? '1 ano' : `${anos} anos`
+  }, [dataNascimento])
   const dreAnterior = useRef(dreCodigoEol)
   const tipoTravado =
     agrupamento === AGRUPAMENTO_BERCARIO ||
@@ -127,11 +141,11 @@ export function ParticipanteForm({
     if (!agrupamento) return
 
     form.setValue('tipoEstudante', tipoTravado ? TIPO_ESTUDANTE_REDE : '')
-    form.setValue('tipoVaga', '')
-    form.setValue('turno', '')
+    form.setValue('grupoParticipante', '')
+    form.setValue('tipoEscola', '')
     form.setValue('podeIrSozinho', '')
     form.setValue('responsavelRetirada', '')
-    form.setValue('autorizaImagens', '')
+    form.setValue('autorizaPiscina', '')
   }, [agrupamento, form, tipoTravado])
 
   useEffect(() => {
@@ -480,72 +494,71 @@ export function ParticipanteForm({
                     <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
                       <FormFieldLeitura
                         id="idade"
-                        label="Idade"
-                        value={idade}
-                      />
-                      <FormFieldLeitura
-                        id="grupo-participante"
-                        label="Grupo do participante"
-                        value={agrupamento}
-                      />
-                      {tipoEstudante === TIPO_ESTUDANTE_REDE ? (
-                        <FormField
-                          control={form.control}
-                          name="estaNaRede"
-                          label={
-                            <>
-                              <span className="text-destructive">*</span> Está
-                              na Rede
-                            </>
-                          }
-                          readOnly
-                        />
-                      ) : (
-                        <FormField
-                          control={form.control}
-                          name="estaNaRede"
-                          label={
-                            <>
-                              <span className="text-destructive">*</span> Está
-                              na Rede
-                            </>
-                          }
-                          type="select"
-                          options={OPCOES_SIM_NAO}
-                          placeholder="Selecione"
-                        />
-                      )}
-                      <FormField
-                        control={form.control}
-                        name="tipoVaga"
                         label={
                           <>
-                            <span className="text-destructive">*</span> Tipo de
-                            vaga
+                            <span className="text-destructive">*</span> Idade
+                          </>
+                        }
+                        value={idade}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="grupoParticipante"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> Grupo do
+                            Participante
                           </>
                         }
                         type="select"
-                        options={OPCOES_TIPO_VAGA}
-                        placeholder="Selecione o tipo de vaga"
+                        options={OPCOES_AGRUPAMENTO}
+                        placeholder="Selecione o grupo"
+                      />
+                      <FormField
+                        control={form.control}
+                        name="estaNaRede"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> É aluno
+                            da Rede Municipal?
+                          </>
+                        }
+                        type="radio"
+                        options={OPCOES_SIM_NAO}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="tipoEscola"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> Tipo de
+                            escola
+                          </>
+                        }
+                        type="radio"
+                        options={OPCOES_TIPO_ESCOLA}
                       />
                       <FormField
                         control={form.control}
                         name="unidadeEducacional"
-                        label="Unidade educacional"
-                        placeholder="Preenchido pelo código EOL"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> Unidade
+                            Educacional do participante
+                          </>
+                        }
                         readOnly
                       />
                       <FormField
                         control={form.control}
-                        name="turno"
+                        name="turmaAno"
                         label={
                           <>
-                            <span className="text-destructive">*</span> Turno
+                            <span className="text-destructive">*</span> Turma /
+                            Ano
                           </>
                         }
-                        type="select"
-                        options={OPCOES_TURNO}
-                        placeholder="Selecione o turno"
+                        readOnly
                       />
                       <FormField
                         control={form.control}
@@ -553,32 +566,47 @@ export function ParticipanteForm({
                         label={
                           <>
                             <span className="text-destructive">*</span> Pode ir
-                            sozinho
+                            embora sozinho?
                           </>
                         }
-                        type="select"
+                        type="radio"
                         options={OPCOES_SIM_NAO}
-                        placeholder="Selecione"
                       />
                       <FormField
                         control={form.control}
                         name="responsavelRetirada"
-                        label="Responsável por retirar"
-                        placeholder="Nome de quem pode retirar"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span>{' '}
+                            Responsável por retirar na saída
+                          </>
+                        }
                       />
                       <FormField
                         control={form.control}
-                        name="autorizaImagens"
+                        name="autorizaPiscina"
                         label={
                           <>
                             <span className="text-destructive">*</span> Autoriza
-                            imagens
+                            uso da piscina?
                           </>
                         }
-                        type="select"
+                        type="radio"
                         options={OPCOES_SIM_NAO}
-                        placeholder="Selecione"
                       />
+                    </div>
+                  ) : null}
+                  {secao.id === 'informacoes-de-saude' ? (
+                    <div className="flex flex-col gap-5.5">
+                      {PERGUNTAS_SAUDE.map((pergunta) => (
+                        <PerguntaSaude
+                          key={pergunta.name}
+                          control={form.control}
+                          setValue={form.setValue}
+                          pergunta={pergunta}
+                        />
+                      ))}
+                      <AnexoDocumentos />
                     </div>
                   ) : null}
                 </CollapsibleContent>
