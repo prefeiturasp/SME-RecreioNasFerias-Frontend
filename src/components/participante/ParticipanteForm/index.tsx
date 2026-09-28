@@ -88,6 +88,7 @@ export function ParticipanteForm({
       telefone2: '',
       email: '',
       dreCodigoEol: '',
+      dreNome: '',
       polo: '',
       grupoParticipante: '',
       estaNaRede: '',
@@ -141,6 +142,13 @@ export function ParticipanteForm({
     Boolean(dreCodigoEol),
   )
   const dres = dresQuery.data ?? []
+  const dreNome = useMemo(() => {
+    if (!dreCodigoEol) return ''
+    return (
+      dresQuery.data?.find((dre) => dre.codigo_dre === dreCodigoEol)
+        ?.nome_dre ?? ''
+    )
+  }, [dreCodigoEol, dresQuery.data])
   const polos = polosQuery.data?.results ?? []
   const tipoTravado =
     agrupamento === AGRUPAMENTO_BERCARIO ||
@@ -174,6 +182,10 @@ export function ParticipanteForm({
   useEffect(() => {
     form.setValue('polo', '')
   }, [dreCodigoEol, form])
+
+  useEffect(() => {
+    form.setValue('dreNome', dreNome)
+  }, [dreNome, form])
 
   function avisarRascunho() {
     showToast({
@@ -211,6 +223,7 @@ export function ParticipanteForm({
       onSubmit={form.handleSubmit(() => undefined)}
       className="rounded-sm bg-background p-8 shadow-card max-md:p-4"
     >
+      <input type="hidden" {...form.register('dreNome')} />
       <FieldGroup className="gap-8">
         <Alert className="h-36 max-h-36 overflow-y-auto rounded-sm border-0 bg-[#c5d4d2] px-8 py-6">
           <AlertDescription className="text-sm text-foreground">

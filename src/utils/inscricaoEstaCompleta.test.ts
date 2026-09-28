@@ -26,6 +26,7 @@ function inscricaoCompleta(): FormValues {
     telefone2: '',
     email: 'ana@email.com',
     dreCodigoEol: '108100',
+    dreNome: 'DRE Butantã',
     polo: 'polo-1',
     grupoParticipante: GRUPO_BERCARIO_I,
     estaNaRede: 'Sim',
