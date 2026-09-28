@@ -1,10 +1,21 @@
 import { z } from 'zod'
 
+import { extrairDigitos } from '@/utils/mascarasEntrada'
+
+const telefone = z
+  .string()
+  .trim()
+  .refine((valor) => {
+    if (valor === '') return true
+    const quantidade = extrairDigitos(valor).length
+    return quantidade === 10 || quantidade === 11
+  }, 'Informe um telefone válido.')
+
 const formSchema = z.object({
   agrupamento: z.string(),
   tipoEstudante: z.string(),
   codigoEol: z.string(),
-  cpf: z.string(),
+  cpf: z.string().regex(/^(\d{11})?$/, 'Informe um CPF válido.'),
   nomeCompleto: z.string(),
   dataNascimento: z.string(),
   nomeResponsavel: z.string(),
@@ -15,9 +26,15 @@ const formSchema = z.object({
   complemento: z.string(),
   bairro: z.string(),
   cidade: z.string(),
-  telefone1: z.string(),
-  telefone2: z.string(),
-  email: z.string(),
+  telefone1: telefone,
+  telefone2: telefone,
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .pipe(
+      z.union([z.literal(''), z.email({ error: 'Digite um e-mail válido.' })]),
+    ),
   dreCodigoEol: z.string(),
   polo: z.string(),
   grupoParticipante: z.string(),

@@ -8,6 +8,7 @@ class ObservadorTamanho {
 
 globalThis.ResizeObserver ??=
   ObservadorTamanho as unknown as typeof ResizeObserver
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
@@ -21,10 +22,13 @@ import {
 } from './constantes'
 import { ParticipanteForm } from './index'
 
-const { listarDresMock, listarPolosMock } = vi.hoisted(() => ({
-  listarDresMock: vi.fn(),
-  listarPolosMock: vi.fn(),
-}))
+const { listarDresMock, listarPolosMock, showToastMock } = vi.hoisted(
+  () => ({
+    listarDresMock: vi.fn(),
+    listarPolosMock: vi.fn(),
+    showToastMock: vi.fn(),
+  }),
+)
 
 vi.mock('@/services/dre/listarDres', () => ({
   listarDres: listarDresMock,
@@ -34,17 +38,30 @@ vi.mock('@/services/polo/listarPolos', () => ({
   listarPolos: listarPolosMock,
 }))
 
+vi.mock('@/hooks/useToast', () => ({
+  useToast: () => ({ showToast: showToastMock, dismissToast: vi.fn() }),
+}))
+
 function renderFormulario(props?: ComponentProps<typeof ParticipanteForm>) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  })
+
   return render(
-    <MemoryRouter initialEntries={['/inscricoes-participantes']}>
-      <Routes>
-        <Route
-          path="/inscricoes-participantes"
-          element={<ParticipanteForm {...props} />}
-        />
-        <Route path="/inicio" element={<div>Página Início</div>} />
-      </Routes>
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={['/inscricoes-participantes']}>
+        <Routes>
+          <Route
+            path="/inscricoes-participantes"
+            element={<ParticipanteForm {...props} />}
+          />
+          <Route path="/inicio" element={<div>Página Início</div>} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
   )
 }
 
@@ -52,6 +69,7 @@ describe('ParticipanteForm', () => {
   beforeEach(() => {
     listarDresMock.mockReset()
     listarPolosMock.mockReset()
+    showToastMock.mockReset()
     listarDresMock.mockResolvedValue([])
     listarPolosMock.mockResolvedValue({
       count: 0,
@@ -191,6 +209,7 @@ describe('ParticipanteForm', () => {
     renderFormulario()
 
     expect(screen.getByLabelText(/polo de inscrição/i)).toBeDisabled()
+    expect(listarPolosMock).not.toHaveBeenCalled()
 
     await usuario.click(screen.getByLabelText(/\bdre\b/i))
     await usuario.click(
@@ -203,6 +222,7 @@ describe('ParticipanteForm', () => {
       undefined,
       1,
       50,
+      undefined,
     )
     expect(screen.getByLabelText(/polo de inscrição/i)).toBeEnabled()
 
@@ -221,11 +241,57 @@ describe('ParticipanteForm', () => {
       undefined,
       1,
       50,
+      undefined,
     )
     await waitFor(() => {
       expect(screen.queryByText('Polo 108100')).not.toBeInTheDocument()
     })
     expect(screen.getByText('Selecione o Polo')).toBeInTheDocument()
+  })
+
+  it('mostra o erro dos polos e some quando a busca seguinte funciona', async () => {
+    const usuario = userEvent.setup()
+    listarDresMock.mockResolvedValue([
+      {
+        codigo_dre: '108100',
+        nome_dre: 'DRE Butantã',
+        sigla_dre: 'BT',
+      },
+      {
+        codigo_dre: '108200',
+        nome_dre: 'DRE Ipiranga',
+        sigla_dre: 'IP',
+      },
+    ])
+    listarPolosMock.mockRejectedValueOnce({
+      response: { data: { detalhe: 'Falha ao carregar polos.' } },
+    })
+    renderFormulario()
+
+    await usuario.click(screen.getByLabelText(/\bdre\b/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: 'DRE Butantã' }),
+    )
+
+    expect(
+      await screen.findByText('Falha ao carregar polos.'),
+    ).toBeInTheDocument()
+
+    listarPolosMock.mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [{ uuid: 'polo-108200', nome_polo: 'Polo 108200' }],
+    })
+
+    await usuario.click(screen.getByLabelText(/\bdre\b/i))
+    await usuario.click(screen.getByRole('option', { name: 'DRE Ipiranga' }))
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText('Falha ao carregar polos.'),
+      ).not.toBeInTheDocument()
+    })
   })
 
   it('repassa o valor digitado para a busca informada', async () => {
@@ -555,5 +621,34 @@ describe('ParticipanteForm', () => {
     expect(
       screen.queryByRole('button', { name: /informações por grupo/i }),
     ).not.toBeInTheDocument()
+  })
+
+  it('salva rascunho incompleto e recusa e-mail inválido', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await usuario.click(screen.getByRole('button', { name: /salvar rascunho/i }))
+    await waitFor(() => {
+      expect(showToastMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'inscricao-rascunho',
+          description: 'A inscrição foi salva como rascunho.',
+        }),
+      )
+    })
+
+    showToastMock.mockClear()
+    await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
+    await waitFor(() => {
+      expect(showToastMock).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'inscricao-rascunho' }),
+      )
+    })
+
+    showToastMock.mockClear()
+    await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'ana')
+    await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
+    expect(await screen.findByText(/digite um e-mail válido/i)).toBeInTheDocument()
+    expect(showToastMock).not.toHaveBeenCalled()
   })
 })

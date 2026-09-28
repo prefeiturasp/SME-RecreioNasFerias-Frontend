@@ -9,6 +9,7 @@ export function useGetPolos(
   page = 1,
   page_size = 10,
   gestao?: string,
+  enabled = true,
 ) {
   return useQuery<ListagemPolosPaginada, Error>({
     queryKey: [
@@ -22,6 +23,7 @@ export function useGetPolos(
     ],
     queryFn: () =>
       listarPolos(busca, dre_codigo_eol, tipo_ue, page, page_size, gestao),
+    enabled,
   })
 }
 

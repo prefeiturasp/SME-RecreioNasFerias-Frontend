@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -31,11 +31,11 @@ import { FieldGroup } from '@/components/ui/field'
 import { FormField } from '@/components/ui/form-field'
 import { FormFieldLeitura } from '@/components/ui/form-field-leitura'
 import { FormFieldEol } from '@/components/ui/form-field-eol'
-import { listarDres } from '@/services/dre/listarDres'
-import type { Dre } from '@/services/dre/types'
-import { listarPolos } from '@/services/polo/listarPolos'
-import type { PoloListagemItem } from '@/services/polo/types'
+import { useGetDres } from '@/hooks/useGetDres'
+import { useGetPolos } from '@/hooks/useGetPolos'
 import { calcularIdade } from '@/utils/calcularIdade'
+import { inscricaoEstaCompleta } from '@/utils/inscricaoEstaCompleta'
+import { useToast } from '@/hooks/useToast'
 
 const SECOES_FORMULARIO = [
   {
@@ -65,6 +65,7 @@ export function ParticipanteForm({
   onBuscarCpf,
 }: ParticipanteFormProps = {}) {
   const navigate = useNavigate()
+  const { showToast } = useToast()
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -107,9 +108,6 @@ export function ParticipanteForm({
       convenioMedicoQual: '',
     },
   })
-  const [dres, setDres] = useState<Dre[]>([])
-  const [polos, setPolos] = useState<PoloListagemItem[]>([])
-  const [erroListagem, setErroListagem] = useState<unknown>(null)
   const agrupamento = useWatch({
     control: form.control,
     name: 'agrupamento',
@@ -131,7 +129,18 @@ export function ParticipanteForm({
     if (!anos) return ''
     return anos === '1' ? '1 ano' : `${anos} anos`
   }, [dataNascimento])
-  const dreAnterior = useRef(dreCodigoEol)
+  const dresQuery = useGetDres()
+  const polosQuery = useGetPolos(
+    undefined,
+    dreCodigoEol,
+    undefined,
+    1,
+    50,
+    undefined,
+    Boolean(dreCodigoEol),
+  )
+  const dres = dresQuery.data ?? []
+  const polos = polosQuery.data?.results ?? []
   const tipoTravado =
     agrupamento === AGRUPAMENTO_BERCARIO ||
     agrupamento === AGRUPAMENTO_MINI_GRUPO
@@ -156,48 +165,37 @@ export function ParticipanteForm({
   }, [tipoEstudante, form])
 
   useEffect(() => {
-    let ativo = true
-
-    listarDres()
-      .then((lista) => {
-        if (ativo) setDres(lista)
-      })
-      .catch((error_: unknown) => {
-        if (ativo) setErroListagem(error_)
-      })
-
-    return () => {
-      ativo = false
-    }
-  }, [])
-
-  useEffect(() => {
-    if (dreAnterior.current === dreCodigoEol) return
-
-    dreAnterior.current = dreCodigoEol
     form.setValue('polo', '')
   }, [dreCodigoEol, form])
 
-  useEffect(() => {
-    if (!dreCodigoEol) {
-      setPolos([])
-      return
-    }
+  function avisarRascunho() {
+    showToast({
+      id: 'inscricao-rascunho',
+      title: 'Rascunho salvo',
+      description: 'A inscrição foi salva como rascunho.',
+    })
+  }
 
-    let ativo = true
+  function salvarRascunho() {
+    void form.handleSubmit(() => {
+      avisarRascunho()
+    })()
+  }
 
-    listarPolos(undefined, dreCodigoEol, undefined, 1, 50)
-      .then((lista) => {
-        if (ativo) setPolos(lista.results)
+  function salvar() {
+    void form.handleSubmit((dados) => {
+      if (!inscricaoEstaCompleta(dados)) {
+        avisarRascunho()
+        return
+      }
+
+      showToast({
+        id: 'inscricao-completa',
+        title: 'Inscrição realizada',
+        description: 'O participante foi inscrito.',
       })
-      .catch((error_: unknown) => {
-        if (ativo) setErroListagem(error_)
-      })
-
-    return () => {
-      ativo = false
-    }
-  }, [dreCodigoEol])
+    })()
+  }
 
   return (
     <form
@@ -249,7 +247,7 @@ export function ParticipanteForm({
                   {secao.id === 'informacoes-basicas' ? (
                     <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
                       <AlertaErroApi
-                        erro={erroListagem}
+                        erro={dresQuery.error ?? polosQuery.error}
                         className="lg:col-span-2"
                       />
                       <FormField
@@ -628,12 +626,14 @@ export function ParticipanteForm({
             type="button"
             variant="outline"
             className="h-9.5 rounded-sm border-brand-dark px-4 font-bold text-brand-dark hover:bg-accent hover:text-brand-dark"
+            onClick={salvarRascunho}
           >
             Salvar Rascunho
           </Button>
           <Button
             type="button"
             className="h-9.5 rounded-sm bg-brand-dark px-4 font-bold text-background hover:bg-brand-dark-hover disabled:bg-button-primary-disabled-bg disabled:opacity-100"
+            onClick={salvar}
           >
             Salvar
           </Button>
