@@ -36,7 +36,6 @@ const formSchema = z.object({
       z.union([z.literal(''), z.email({ error: 'Digite um e-mail válido.' })]),
     ),
   dreCodigoEol: z.string(),
-  dreNome: z.string(),
   polo: z.string(),
   grupoParticipante: z.string(),
   estaNaRede: z.string(),

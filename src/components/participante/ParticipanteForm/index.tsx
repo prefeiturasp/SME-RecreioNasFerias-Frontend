@@ -89,7 +89,6 @@ export function ParticipanteForm({
       telefone2: '',
       email: '',
       dreCodigoEol: '',
-      dreNome: '',
       polo: '',
       grupoParticipante: '',
       estaNaRede: '',
@@ -135,13 +134,6 @@ export function ParticipanteForm({
   const dresQuery = useGetDres()
   const polosQuery = useGetPolosElegiveis(dreCodigoEol)
   const dres = dresQuery.data ?? []
-  const dreNome = useMemo(() => {
-    if (!dreCodigoEol) return ''
-    return (
-      dresQuery.data?.find((dre) => dre.codigo_dre === dreCodigoEol)
-        ?.nome_dre ?? ''
-    )
-  }, [dreCodigoEol, dresQuery.data])
   const polos = polosQuery.data ?? []
   const tipoTravado =
     agrupamento === AGRUPAMENTO_BERCARIO ||
@@ -176,23 +168,28 @@ export function ParticipanteForm({
     form.setValue('polo', '')
   }, [dreCodigoEol, form])
 
-  useEffect(() => {
-    form.setValue('dreNome', dreNome)
-  }, [dreNome, form])
-
   function salvar(dados: FormValues) {
     if (cadastroMutation.isError) {
       cadastroMutation.reset()
     }
 
-    cadastroMutation.mutate(dados, {
-      onSuccess: (inscricao) => {
-        showToast({
-          id: 'inscricao-salva',
-          description: inscricao.status_label,
-        })
+    const dreNome =
+      dres.find((dre) => dre.codigo_dre === dados.dreCodigoEol)?.nome_dre ?? ''
+
+    cadastroMutation.mutate(
+      {
+        ...dados,
+        dreNome,
       },
-    })
+      {
+        onSuccess: (inscricao) => {
+          showToast({
+            id: 'inscricao-salva',
+            description: inscricao.status_label,
+          })
+        },
+      },
+    )
   }
 
   return (
@@ -202,7 +199,6 @@ export function ParticipanteForm({
       onSubmit={form.handleSubmit(salvar)}
       className="rounded-sm bg-background p-8 shadow-card max-md:p-4"
     >
-      <input type="hidden" {...form.register('dreNome')} />
       <FieldGroup className="gap-8">
         <Alert className="h-36 max-h-36 overflow-y-auto rounded-sm border-0 bg-[#c5d4d2] px-8 py-6">
           <AlertDescription className="text-sm text-foreground">

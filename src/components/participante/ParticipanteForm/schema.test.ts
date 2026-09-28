@@ -20,7 +20,6 @@ const vazio = {
   telefone2: '',
   email: '',
   dreCodigoEol: '',
-  dreNome: '',
   polo: '',
   grupoParticipante: '',
   estaNaRede: '',

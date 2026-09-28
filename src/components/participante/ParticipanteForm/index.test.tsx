@@ -226,11 +226,6 @@ describe('ParticipanteForm', () => {
 
     expect(listarPolosElegiveisMock).toHaveBeenCalledWith('108100')
     expect(screen.getByLabelText(/polo de inscrição/i)).toBeEnabled()
-    await waitFor(() => {
-      expect(
-        document.querySelector<HTMLInputElement>('input[name="dreNome"]'),
-      ).toHaveValue('DRE Butantã')
-    })
 
     await usuario.click(screen.getByLabelText(/polo de inscrição/i))
     await usuario.click(
@@ -246,9 +241,19 @@ describe('ParticipanteForm', () => {
       expect(screen.queryByText('Polo 108100')).not.toBeInTheDocument()
     })
     expect(screen.getByText('Selecione o Polo')).toBeInTheDocument()
-    expect(
-      document.querySelector<HTMLInputElement>('input[name="dreNome"]'),
-    ).toHaveValue('DRE Ipiranga')
+
+    await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
+
+    await waitFor(() => {
+      expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dreCodigoEol: '108200',
+          dreNome: 'DRE Ipiranga',
+          polo: '',
+        }),
+        expect.anything(),
+      )
+    })
   })
 
   it('mostra o erro dos polos e some quando a busca seguinte funciona', async () => {
