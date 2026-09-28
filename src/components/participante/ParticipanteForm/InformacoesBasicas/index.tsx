@@ -6,7 +6,6 @@ import type { FormValues } from '../schema'
 import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { FormField } from '@/components/ui/form-field'
 import { FormFieldEol } from '@/components/ui/form-field-eol'
-import { FormFieldLeitura } from '@/components/ui/form-field-leitura'
 import type { Dre } from '@/services/dre/types'
 import type { PoloElegivel } from '@/services/inscricao/types'
 
@@ -65,14 +64,16 @@ export function InformacoesBasicas({
         onChange={aoMudarAgrupamento}
       />
       {agrupamento && tipoTravado ? (
-        <FormFieldLeitura
-          id="tipoEstudante"
+        <FormField
+          control={control}
+          name="tipoEstudante"
           label={
             <>
               <span className="text-destructive">*</span> Tipo de estudante
             </>
           }
-          value={rotuloTipoEstudante}
+          readOnly
+          valorExibicao={rotuloTipoEstudante}
         />
       ) : null}
       {agrupamento && !tipoTravado ? (

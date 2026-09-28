@@ -48,6 +48,7 @@ type FormFieldInputProps<
   autoComplete?: string
   maxLength?: number
   inputClassName?: string
+  valorExibicao?: string
 }
 
 /**
@@ -196,9 +197,11 @@ function renderInput<
       autoComplete,
       maxLength,
       inputClassName = 'h-10 rounded-sm border-input-border-muted',
+      valorExibicao,
     } = props
 
-    const isReadOnlyField = readOnly || props.readOnly
+    const isReadOnlyField =
+      readOnly || props.readOnly || valorExibicao !== undefined
     const readOnlyClass = isReadOnlyField
       ? 'h-10 cursor-not-allowed rounded-sm border-input-border-muted bg-input-disabled-bg text-placeholder'
       : inputClassName
@@ -217,6 +220,7 @@ function renderInput<
         maxLength={maxLength}
         readOnly={isReadOnlyField}
         aria-readonly={isReadOnlyField ? 'true' : undefined}
+        value={valorExibicao ?? field.value}
         className={readOnlyClass}
       />
     )
