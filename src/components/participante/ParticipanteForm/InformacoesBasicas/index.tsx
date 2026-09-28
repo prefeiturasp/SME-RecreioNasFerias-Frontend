@@ -21,6 +21,9 @@ type InformacoesBasicasProps = {
   erro?: unknown
   onBuscarCodigoEol?: (codigoEol: string) => void
   onBuscarCpf?: (cpf: string) => void
+  aoMudarAgrupamento?: (valor: string) => void
+  aoMudarTipoEstudante?: (valor: string) => void
+  aoMudarDre?: (valor: string) => void
 }
 
 export function InformacoesBasicas({
@@ -34,6 +37,9 @@ export function InformacoesBasicas({
   erro,
   onBuscarCodigoEol,
   onBuscarCpf,
+  aoMudarAgrupamento,
+  aoMudarTipoEstudante,
+  aoMudarDre,
 }: Readonly<InformacoesBasicasProps>) {
   const rotuloTipoEstudante = useMemo(
     () =>
@@ -56,6 +62,7 @@ export function InformacoesBasicas({
         type="select"
         options={OPCOES_AGRUPAMENTO}
         placeholder="Selecione o tipo de agrupamento"
+        onChange={aoMudarAgrupamento}
       />
       {agrupamento && tipoTravado ? (
         <FormFieldLeitura
@@ -80,6 +87,7 @@ export function InformacoesBasicas({
           type="select"
           options={OPCOES_TIPO_ESTUDANTE}
           placeholder="Selecione o tipo de estudante"
+          onChange={aoMudarTipoEstudante}
         />
       ) : null}
       <FormFieldEol
@@ -256,6 +264,7 @@ export function InformacoesBasicas({
           label: dre.nome_dre,
         }))}
         placeholder="Selecione a DRE"
+        onChange={aoMudarDre}
       />
       <FormField
         control={control}

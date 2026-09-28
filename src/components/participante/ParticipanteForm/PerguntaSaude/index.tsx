@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { useWatch, type Control, type UseFormSetValue } from 'react-hook-form'
 import { OPCOES_SIM_NAO, PERGUNTAS_SAUDE, RESPOSTA_SIM } from '../constantes'
 import type { FormValues } from '../schema'
@@ -21,11 +20,11 @@ export function PerguntaSaude({
   const resposta = useWatch({ control, name: pergunta.name })
   const qualLiberado = resposta === RESPOSTA_SIM
 
-  useEffect(() => {
-    if (qualLiberado) return
+  function aoMudarResposta(valor: string) {
+    if (valor === RESPOSTA_SIM) return
 
     setValue(pergunta.nameQual, '')
-  }, [qualLiberado, pergunta.nameQual, setValue])
+  }
 
   return (
     <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
@@ -39,6 +38,7 @@ export function PerguntaSaude({
         }
         type="radio"
         options={OPCOES_SIM_NAO}
+        onChange={aoMudarResposta}
       />
       {pergunta.tipoQual === 'select' ? (
         <FormField

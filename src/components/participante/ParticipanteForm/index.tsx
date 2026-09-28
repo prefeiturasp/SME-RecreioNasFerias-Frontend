@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -108,27 +108,34 @@ export function ParticipanteForm({
     agrupamento === AGRUPAMENTO_MINI_GRUPO
   const secoesLiberadas = Boolean(agrupamento) && Boolean(tipoEstudante)
 
-  useEffect(() => {
-    if (!agrupamento) return
+  function aoMudarAgrupamento(valor: string) {
+    const tipo =
+      valor === AGRUPAMENTO_BERCARIO || valor === AGRUPAMENTO_MINI_GRUPO
+        ? TIPO_ESTUDANTE_REDE
+        : ''
 
-    form.setValue('tipoEstudante', tipoTravado ? TIPO_ESTUDANTE_REDE : '')
+    form.setValue('tipoEstudante', tipo)
+    form.setValue(
+      'estaNaRede',
+      tipo === TIPO_ESTUDANTE_REDE ? ESTA_NA_REDE_SIM : '',
+    )
     form.setValue('grupoParticipante', '')
     form.setValue('tipoEscola', '')
     form.setValue('podeIrSozinho', '')
     form.setValue('responsavelRetirada', '')
     form.setValue('autorizaPiscina', '')
-  }, [agrupamento, form, tipoTravado])
+  }
 
-  useEffect(() => {
+  function aoMudarTipoEstudante(valor: string) {
     form.setValue(
       'estaNaRede',
-      tipoEstudante === TIPO_ESTUDANTE_REDE ? ESTA_NA_REDE_SIM : '',
+      valor === TIPO_ESTUDANTE_REDE ? ESTA_NA_REDE_SIM : '',
     )
-  }, [tipoEstudante, form])
+  }
 
-  useEffect(() => {
+  function aoMudarDre() {
     form.setValue('polo', '')
-  }, [dreCodigoEol, form])
+  }
 
   function salvar(dados: FormValues) {
     if (cadastroMutation.isError) {
@@ -184,6 +191,9 @@ export function ParticipanteForm({
               }
               onBuscarCodigoEol={onBuscarCodigoEol}
               onBuscarCpf={onBuscarCpf}
+              aoMudarAgrupamento={aoMudarAgrupamento}
+              aoMudarTipoEstudante={aoMudarTipoEstudante}
+              aoMudarDre={aoMudarDre}
             />
           </SecaoFormulario>
           {secoesLiberadas ? (

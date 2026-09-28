@@ -62,6 +62,7 @@ type FormFieldSelectProps<
   placeholder?: string
   disabled?: boolean
   triggerClassName?: string
+  onChange?: (valor: string) => void
 }
 
 /**
@@ -73,6 +74,7 @@ type FormFieldRadioProps<
 > = FormFieldBaseProps<TFieldValues, TName> & {
   type: 'radio'
   options: Array<{ value: string; label: string }>
+  onChange?: (valor: string) => void
 }
 
 type FormFieldTextareaProps<
@@ -222,12 +224,21 @@ function renderInput<
 
   // Select
   if (props.type === 'select') {
-    const { options, placeholder, disabled = false, triggerClassName } = props
+    const {
+      options,
+      placeholder,
+      disabled = false,
+      triggerClassName,
+      onChange,
+    } = props
 
     return (
       <Select
         value={field.value}
-        onValueChange={field.onChange}
+        onValueChange={(valor) => {
+          field.onChange(valor)
+          onChange?.(valor)
+        }}
         disabled={disabled}
       >
         <SelectTrigger
@@ -251,14 +262,17 @@ function renderInput<
   }
 
   if (props.type === 'radio') {
-    const { options } = props
+    const { options, onChange } = props
 
     return (
       <RadioGroup
         id={fieldId}
         aria-labelledby={`${fieldId}-rotulo`}
         value={field.value}
-        onValueChange={field.onChange}
+        onValueChange={(valor) => {
+          field.onChange(valor)
+          onChange?.(valor)
+        }}
         disabled={readOnly}
         className="flex flex-wrap gap-4"
       >
