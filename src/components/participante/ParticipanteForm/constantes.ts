@@ -18,3 +18,21 @@ export const OPCOES_TIPO_ESTUDANTE = [
   { value: TIPO_ESTUDANTE_REDE, label: TIPO_ESTUDANTE_REDE },
   { value: TIPO_ESTUDANTE_FORA_DA_REDE, label: TIPO_ESTUDANTE_FORA_DA_REDE },
 ]
+
+export const ESTA_NA_REDE_SIM = 'Sim'
+
+export const OPCOES_SIM_NAO = [
+  { value: ESTA_NA_REDE_SIM, label: ESTA_NA_REDE_SIM },
+  { value: 'Não', label: 'Não' },
+]
+
+export const OPCOES_TIPO_VAGA = [
+  { value: 'Integral', label: 'Integral' },
+  { value: 'Parcial', label: 'Parcial' },
+]
+
+export const OPCOES_TURNO = [
+  { value: 'Manhã', label: 'Manhã' },
+  { value: 'Tarde', label: 'Tarde' },
+  { value: 'Integral', label: 'Integral' },
+]

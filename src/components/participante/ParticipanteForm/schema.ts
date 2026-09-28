@@ -20,6 +20,13 @@ const formSchema = z.object({
   email: z.string(),
   dreCodigoEol: z.string(),
   polo: z.string(),
+  estaNaRede: z.string(),
+  tipoVaga: z.string(),
+  unidadeEducacional: z.string(),
+  turno: z.string(),
+  podeIrSozinho: z.string(),
+  responsavelRetirada: z.string(),
+  autorizaImagens: z.string(),
 })
 
 export type FormValues = z.infer<typeof formSchema>

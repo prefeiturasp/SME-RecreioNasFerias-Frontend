@@ -1,12 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import {
   AGRUPAMENTO_BERCARIO,
   AGRUPAMENTO_MINI_GRUPO,
+  ESTA_NA_REDE_SIM,
   OPCOES_AGRUPAMENTO,
+  OPCOES_SIM_NAO,
   OPCOES_TIPO_ESTUDANTE,
+  OPCOES_TIPO_VAGA,
+  OPCOES_TURNO,
   TIPO_ESTUDANTE_REDE,
 } from './constantes'
 import type { FormValues } from './schema'
@@ -23,11 +27,13 @@ import {
 } from '@/components/ui/collapsible'
 import { FieldGroup } from '@/components/ui/field'
 import { FormField } from '@/components/ui/form-field'
+import { FormFieldLeitura } from '@/components/ui/form-field-leitura'
 import { FormFieldEol } from '@/components/ui/form-field-eol'
 import { listarDres } from '@/services/dre/listarDres'
 import type { Dre } from '@/services/dre/types'
 import { listarPolos } from '@/services/polo/listarPolos'
 import type { PoloListagemItem } from '@/services/polo/types'
+import { calcularIdade } from '@/utils/calcularIdade'
 
 const SECOES_FORMULARIO = [
   {
@@ -79,6 +85,13 @@ export function ParticipanteForm({
       email: '',
       dreCodigoEol: '',
       polo: '',
+      estaNaRede: '',
+      tipoVaga: '',
+      unidadeEducacional: '',
+      turno: '',
+      podeIrSozinho: '',
+      responsavelRetirada: '',
+      autorizaImagens: '',
     },
   })
   const [dres, setDres] = useState<Dre[]>([])
@@ -96,6 +109,14 @@ export function ParticipanteForm({
     control: form.control,
     name: 'dreCodigoEol',
   })
+  const dataNascimento = useWatch({
+    control: form.control,
+    name: 'dataNascimento',
+  })
+  const idade = useMemo(
+    () => calcularIdade(dataNascimento),
+    [dataNascimento],
+  )
   const dreAnterior = useRef(dreCodigoEol)
   const tipoTravado =
     agrupamento === AGRUPAMENTO_BERCARIO ||
@@ -106,7 +127,19 @@ export function ParticipanteForm({
     if (!agrupamento) return
 
     form.setValue('tipoEstudante', tipoTravado ? TIPO_ESTUDANTE_REDE : '')
+    form.setValue('tipoVaga', '')
+    form.setValue('turno', '')
+    form.setValue('podeIrSozinho', '')
+    form.setValue('responsavelRetirada', '')
+    form.setValue('autorizaImagens', '')
   }, [agrupamento, form, tipoTravado])
+
+  useEffect(() => {
+    form.setValue(
+      'estaNaRede',
+      tipoEstudante === TIPO_ESTUDANTE_REDE ? ESTA_NA_REDE_SIM : '',
+    )
+  }, [tipoEstudante, form])
 
   useEffect(() => {
     let ativo = true
@@ -440,6 +473,111 @@ export function ParticipanteForm({
                           label: polo.nome_polo,
                         }))}
                         placeholder="Selecione o Polo"
+                      />
+                    </div>
+                  ) : null}
+                  {secao.id === 'informacoes-por-grupo' ? (
+                    <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
+                      <FormFieldLeitura
+                        id="idade"
+                        label="Idade"
+                        value={idade}
+                      />
+                      <FormFieldLeitura
+                        id="grupo-participante"
+                        label="Grupo do participante"
+                        value={agrupamento}
+                      />
+                      {tipoEstudante === TIPO_ESTUDANTE_REDE ? (
+                        <FormField
+                          control={form.control}
+                          name="estaNaRede"
+                          label={
+                            <>
+                              <span className="text-destructive">*</span> Está
+                              na Rede
+                            </>
+                          }
+                          readOnly
+                        />
+                      ) : (
+                        <FormField
+                          control={form.control}
+                          name="estaNaRede"
+                          label={
+                            <>
+                              <span className="text-destructive">*</span> Está
+                              na Rede
+                            </>
+                          }
+                          type="select"
+                          options={OPCOES_SIM_NAO}
+                          placeholder="Selecione"
+                        />
+                      )}
+                      <FormField
+                        control={form.control}
+                        name="tipoVaga"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> Tipo de
+                            vaga
+                          </>
+                        }
+                        type="select"
+                        options={OPCOES_TIPO_VAGA}
+                        placeholder="Selecione o tipo de vaga"
+                      />
+                      <FormField
+                        control={form.control}
+                        name="unidadeEducacional"
+                        label="Unidade educacional"
+                        placeholder="Preenchido pelo código EOL"
+                        readOnly
+                      />
+                      <FormField
+                        control={form.control}
+                        name="turno"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> Turno
+                          </>
+                        }
+                        type="select"
+                        options={OPCOES_TURNO}
+                        placeholder="Selecione o turno"
+                      />
+                      <FormField
+                        control={form.control}
+                        name="podeIrSozinho"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> Pode ir
+                            sozinho
+                          </>
+                        }
+                        type="select"
+                        options={OPCOES_SIM_NAO}
+                        placeholder="Selecione"
+                      />
+                      <FormField
+                        control={form.control}
+                        name="responsavelRetirada"
+                        label="Responsável por retirar"
+                        placeholder="Nome de quem pode retirar"
+                      />
+                      <FormField
+                        control={form.control}
+                        name="autorizaImagens"
+                        label={
+                          <>
+                            <span className="text-destructive">*</span> Autoriza
+                            imagens
+                          </>
+                        }
+                        type="select"
+                        options={OPCOES_SIM_NAO}
+                        placeholder="Selecione"
                       />
                     </div>
                   ) : null}

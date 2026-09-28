@@ -259,6 +259,81 @@ describe('ParticipanteForm', () => {
     expect(
       screen.getByRole('button', { name: /informações de saúde/i }),
     ).toHaveAttribute('aria-expanded', 'false')
+
+    await usuario.click(
+      screen.getByRole('button', { name: /informações por grupo/i }),
+    )
+
+    expect(screen.getByLabelText(/grupo do participante/i)).toHaveValue(
+      AGRUPAMENTO_BERCARIO,
+    )
+    const estaNaRede = screen.getByLabelText(/está na rede/i)
+    expect(estaNaRede).toHaveValue('Sim')
+    expect(estaNaRede).toHaveAttribute('readonly')
+    expect(screen.getByLabelText(/unidade educacional/i)).toHaveAttribute(
+      'readonly',
+    )
+  })
+
+  it('limpa os campos do grupo ao trocar o agrupamento', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
+    await usuario.click(
+      await screen.findByRole('option', {
+        name: AGRUPAMENTO_QUATRO_A_QUATORZE,
+      }),
+    )
+    await usuario.click(screen.getByLabelText(/tipo de estudante/i))
+    await usuario.click(
+      screen.getByRole('option', { name: TIPO_ESTUDANTE_FORA_DA_REDE }),
+    )
+
+    await usuario.click(
+      screen.getByRole('button', { name: /informações por grupo/i }),
+    )
+    await usuario.click(screen.getByLabelText(/tipo de vaga/i))
+    await usuario.click(screen.getByRole('option', { name: 'Integral' }))
+
+    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
+    await usuario.click(
+      screen.getByRole('option', { name: AGRUPAMENTO_BERCARIO }),
+    )
+
+    expect(screen.getByLabelText(/tipo de vaga/i)).toHaveTextContent(
+      'Selecione o tipo de vaga',
+    )
+  })
+
+  it('limpa Está na Rede ao sair de Estudante da Rede', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: AGRUPAMENTO_BERCARIO }),
+    )
+    await usuario.click(
+      screen.getByRole('button', { name: /informações por grupo/i }),
+    )
+    expect(screen.getByLabelText(/está na rede/i)).toHaveValue('Sim')
+
+    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
+    await usuario.click(
+      screen.getByRole('option', { name: AGRUPAMENTO_QUATRO_A_QUATORZE }),
+    )
+    await usuario.click(screen.getByLabelText(/tipo de estudante/i))
+    await usuario.click(
+      screen.getByRole('option', { name: TIPO_ESTUDANTE_FORA_DA_REDE }),
+    )
+    await usuario.click(
+      screen.getByRole('button', { name: /informações por grupo/i }),
+    )
+
+    expect(screen.getByLabelText(/está na rede/i)).toHaveTextContent(
+      'Selecione',
+    )
   })
 
   it('trava Estudante da Rede ao escolher Mini Grupo', async () => {
