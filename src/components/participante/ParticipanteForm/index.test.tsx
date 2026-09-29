@@ -13,25 +13,48 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { ValoresChoicesInscricao } from '@/services/inscricao/types'
 import {
   AGRUPAMENTO_BERCARIO,
   AGRUPAMENTO_MINI_GRUPO,
   AGRUPAMENTO_QUATRO_A_QUATORZE,
   GRUPO_BERCARIO_I,
-  ROTULO_TIPO_ESTUDANTE_FORA_DA_REDE,
-  ROTULO_TIPO_ESTUDANTE_REDE,
   TIPO_ESTUDANTE_REDE,
 } from './constantes'
 import { ParticipanteForm } from './index'
 
+const ROTULO_ESTUDANTE_REDE = 'Estudante da rede'
+const ROTULO_ESTUDANTE_EXTERNO = 'Estudante externo'
+
+const valoresChoicesExemplo: ValoresChoicesInscricao = {
+  grupo_inscricao: [
+    { value: 'BERCARIO_I', label: 'Berçário I' },
+    { value: 'BERCARIO_II', label: 'Berçário II' },
+    { value: 'MINI_GRUPO_I', label: 'Mini Grupo I' },
+    { value: 'MINI_GRUPO_II', label: 'Mini Grupo II' },
+    { value: 'QUATRO_A_14_ANOS', label: '4 a 14 anos' },
+  ],
+  tipo_estudante: [
+    { value: 'ESTUDANTE_DA_REDE', label: ROTULO_ESTUDANTE_REDE },
+    { value: 'ESTUDANTE_EXTERNO', label: ROTULO_ESTUDANTE_EXTERNO },
+  ],
+  status_inscricao: [
+    { value: 'RASCUNHO', label: 'Rascunho' },
+    { value: 'COMPLETA', label: 'Completa' },
+    { value: 'CANCELADA', label: 'Cancelada' },
+  ],
+}
+
 const {
   listarDresMock,
   listarPolosElegiveisMock,
+  listarValoresChoicesMock,
   cadastrarInscricaoMock,
   showToastMock,
 } = vi.hoisted(() => ({
   listarDresMock: vi.fn(),
   listarPolosElegiveisMock: vi.fn(),
+  listarValoresChoicesMock: vi.fn(),
   cadastrarInscricaoMock: vi.fn(),
   showToastMock: vi.fn(),
 }))
@@ -42,6 +65,10 @@ vi.mock('@/services/dre/listarDres', () => ({
 
 vi.mock('@/services/inscricao/listarPolosElegiveis', () => ({
   listarPolosElegiveis: listarPolosElegiveisMock,
+}))
+
+vi.mock('@/services/inscricao/listarValoresChoices', () => ({
+  listarValoresChoices: listarValoresChoicesMock,
 }))
 
 vi.mock('@/services/inscricao/cadastrarInscricao', () => ({
@@ -79,10 +106,12 @@ describe('ParticipanteForm', () => {
   beforeEach(() => {
     listarDresMock.mockReset()
     listarPolosElegiveisMock.mockReset()
+    listarValoresChoicesMock.mockReset()
     cadastrarInscricaoMock.mockReset()
     showToastMock.mockReset()
     listarDresMock.mockResolvedValue([])
     listarPolosElegiveisMock.mockResolvedValue([])
+    listarValoresChoicesMock.mockResolvedValue(valoresChoicesExemplo)
     cadastrarInscricaoMock.mockResolvedValue({
       status: 'RASCUNHO',
       status_label: 'Rascunho',
@@ -334,7 +363,7 @@ describe('ParticipanteForm', () => {
     )
 
     const tipo = await screen.findByLabelText(/tipo de estudante/i)
-    expect(tipo).toHaveValue(ROTULO_TIPO_ESTUDANTE_REDE)
+    expect(tipo).toHaveValue(ROTULO_ESTUDANTE_REDE)
     expect(tipo).toHaveAttribute('readonly')
     expect(
       screen.getByRole('button', { name: /informações por grupo/i }),
@@ -378,7 +407,7 @@ describe('ParticipanteForm', () => {
     )
     await usuario.click(screen.getByLabelText(/tipo de estudante/i))
     await usuario.click(
-      screen.getByRole('option', { name: ROTULO_TIPO_ESTUDANTE_FORA_DA_REDE }),
+      screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
     )
 
     await usuario.click(
@@ -390,7 +419,7 @@ describe('ParticipanteForm', () => {
 
     expect(screen.getByRole('radio', { name: 'Estadual' })).toBeChecked()
     expect(screen.getByLabelText(/tipo de estudante/i)).toHaveTextContent(
-      ROTULO_TIPO_ESTUDANTE_FORA_DA_REDE,
+      ROTULO_ESTUDANTE_EXTERNO,
     )
 
     await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
@@ -532,7 +561,7 @@ describe('ParticipanteForm', () => {
     )
     await usuario.click(screen.getByLabelText(/tipo de estudante/i))
     await usuario.click(
-      screen.getByRole('option', { name: ROTULO_TIPO_ESTUDANTE_FORA_DA_REDE }),
+      screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
     )
     await usuario.click(
       screen.getByRole('button', { name: /informações por grupo/i }),
@@ -559,7 +588,7 @@ describe('ParticipanteForm', () => {
     )
 
     const tipo = await screen.findByLabelText(/tipo de estudante/i)
-    expect(tipo).toHaveValue(ROTULO_TIPO_ESTUDANTE_REDE)
+    expect(tipo).toHaveValue(ROTULO_ESTUDANTE_REDE)
     expect(tipo).toHaveAttribute('readonly')
   })
 
@@ -580,10 +609,10 @@ describe('ParticipanteForm', () => {
 
     await usuario.click(screen.getByLabelText(/tipo de estudante/i))
     expect(
-      screen.getByRole('option', { name: ROTULO_TIPO_ESTUDANTE_REDE }),
+      screen.getByRole('option', { name: ROTULO_ESTUDANTE_REDE }),
     ).toBeInTheDocument()
     await usuario.click(
-      screen.getByRole('option', { name: ROTULO_TIPO_ESTUDANTE_FORA_DA_REDE }),
+      screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
     )
 
     expect(
@@ -606,7 +635,7 @@ describe('ParticipanteForm', () => {
     )
     await usuario.click(screen.getByLabelText(/tipo de estudante/i))
     await usuario.click(
-      screen.getByRole('option', { name: ROTULO_TIPO_ESTUDANTE_FORA_DA_REDE }),
+      screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
     )
 
     await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
@@ -615,7 +644,7 @@ describe('ParticipanteForm', () => {
     )
 
     const tipo = await screen.findByLabelText(/tipo de estudante/i)
-    expect(tipo).toHaveValue(ROTULO_TIPO_ESTUDANTE_REDE)
+    expect(tipo).toHaveValue(ROTULO_ESTUDANTE_REDE)
     expect(tipo).toHaveAttribute('readonly')
 
     await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))

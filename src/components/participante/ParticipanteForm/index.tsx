@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
 import { useGetDres } from '@/hooks/useGetDres'
 import { useGetPolosElegiveis } from '@/hooks/useGetPolosElegiveis'
+import { useGetValoresChoices } from '@/hooks/useGetValoresChoices'
 import { usePostInscricao } from '@/hooks/usePostInscricao'
 import { calcularIdade } from '@/utils/calcularIdade'
 import { useToast } from '@/hooks/useToast'
@@ -101,8 +102,11 @@ export function ParticipanteForm({
   }, [dataNascimento])
   const dresQuery = useGetDres()
   const polosQuery = useGetPolosElegiveis(dreCodigoEol)
+  const choicesQuery = useGetValoresChoices()
   const dres = dresQuery.data ?? []
   const polos = polosQuery.data ?? []
+  const tiposEstudante = choicesQuery.data?.tipo_estudante ?? []
+  const grupos = choicesQuery.data?.grupo_inscricao ?? []
   const tipoTravado =
     agrupamento === AGRUPAMENTO_BERCARIO ||
     agrupamento === AGRUPAMENTO_MINI_GRUPO
@@ -186,8 +190,12 @@ export function ParticipanteForm({
               dreCodigoEol={dreCodigoEol}
               dres={dres}
               polos={polos}
+              tiposEstudante={tiposEstudante}
               erro={
-                cadastroMutation.error ?? dresQuery.error ?? polosQuery.error
+                cadastroMutation.error ??
+                dresQuery.error ??
+                polosQuery.error ??
+                choicesQuery.error
               }
               onBuscarCodigoEol={onBuscarCodigoEol}
               onBuscarCpf={onBuscarCpf}
@@ -198,7 +206,11 @@ export function ParticipanteForm({
           </SecaoFormulario>
           {secoesLiberadas ? (
             <SecaoFormulario titulo="Informações por Grupo">
-              <InformacoesPorGrupo control={form.control} idade={idade} />
+              <InformacoesPorGrupo
+                control={form.control}
+                idade={idade}
+                grupos={grupos}
+              />
             </SecaoFormulario>
           ) : null}
           {secoesLiberadas ? (

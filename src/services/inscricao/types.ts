@@ -63,6 +63,17 @@ export type Inscricao = {
   ativo: boolean
 }
 
+export type OpcaoChoice = {
+  value: string
+  label: string
+}
+
+export type ValoresChoicesInscricao = {
+  grupo_inscricao: OpcaoChoice[]
+  tipo_estudante: OpcaoChoice[]
+  status_inscricao: OpcaoChoice[]
+}
+
 export type PoloElegivel = {
   uuid: string
   codigo_eol: string

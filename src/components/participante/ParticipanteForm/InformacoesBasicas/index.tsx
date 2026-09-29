@@ -1,13 +1,13 @@
 import { useMemo } from 'react'
 import type { Control } from 'react-hook-form'
-import { OPCOES_AGRUPAMENTO, OPCOES_TIPO_ESTUDANTE } from '../constantes'
+import { OPCOES_AGRUPAMENTO } from '../constantes'
 import type { FormValues } from '../schema'
 
 import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { FormField } from '@/components/ui/form-field'
 import { FormFieldEol } from '@/components/ui/form-field-eol'
 import type { Dre } from '@/services/dre/types'
-import type { PoloElegivel } from '@/services/inscricao/types'
+import type { OpcaoChoice, PoloElegivel } from '@/services/inscricao/types'
 
 type InformacoesBasicasProps = {
   control: Control<FormValues>
@@ -17,6 +17,7 @@ type InformacoesBasicasProps = {
   dreCodigoEol: string
   dres: Dre[]
   polos: PoloElegivel[]
+  tiposEstudante: OpcaoChoice[]
   erro?: unknown
   onBuscarCodigoEol?: (codigoEol: string) => void
   onBuscarCpf?: (cpf: string) => void
@@ -33,6 +34,7 @@ export function InformacoesBasicas({
   dreCodigoEol,
   dres,
   polos,
+  tiposEstudante,
   erro,
   onBuscarCodigoEol,
   onBuscarCpf,
@@ -42,9 +44,9 @@ export function InformacoesBasicas({
 }: Readonly<InformacoesBasicasProps>) {
   const rotuloTipoEstudante = useMemo(
     () =>
-      OPCOES_TIPO_ESTUDANTE.find((opcao) => opcao.value === tipoEstudante)
-        ?.label ?? '',
-    [tipoEstudante],
+      tiposEstudante.find((opcao) => opcao.value === tipoEstudante)?.label ??
+      '',
+    [tipoEstudante, tiposEstudante],
   )
 
   return (
@@ -86,7 +88,7 @@ export function InformacoesBasicas({
             </>
           }
           type="select"
-          options={OPCOES_TIPO_ESTUDANTE}
+          options={tiposEstudante}
           placeholder="Selecione o tipo de estudante"
           onChange={aoMudarTipoEstudante}
         />

@@ -1,22 +1,21 @@
 import type { Control } from 'react-hook-form'
-import {
-  OPCOES_GRUPO_PARTICIPANTE,
-  OPCOES_SIM_NAO,
-  OPCOES_TIPO_ESCOLA,
-} from '../constantes'
+import { OPCOES_SIM_NAO, OPCOES_TIPO_ESCOLA } from '../constantes'
 import type { FormValues } from '../schema'
 
 import { FormField } from '@/components/ui/form-field'
 import { FormFieldLeitura } from '@/components/ui/form-field-leitura'
+import type { OpcaoChoice } from '@/services/inscricao/types'
 
 type InformacoesPorGrupoProps = {
   control: Control<FormValues>
   idade: string
+  grupos: OpcaoChoice[]
 }
 
 export function InformacoesPorGrupo({
   control,
   idade,
+  grupos,
 }: Readonly<InformacoesPorGrupoProps>) {
   return (
     <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
@@ -38,7 +37,7 @@ export function InformacoesPorGrupo({
           </>
         }
         type="select"
-        options={OPCOES_GRUPO_PARTICIPANTE}
+        options={grupos}
         placeholder="Selecione o grupo"
       />
       <FormField
