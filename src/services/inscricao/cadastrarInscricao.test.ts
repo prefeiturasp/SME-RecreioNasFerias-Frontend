@@ -12,7 +12,7 @@ const apiPostMock = vi.mocked(api.post)
 const dadosInscricaoExemplo: DadosCadastroInscricao = {
   polo: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
   tipoEstudante: 'ESTUDANTE_DA_REDE',
-  grupoParticipante: 'BERCARIO_I',
+  grupo: 'BERCARIO_I',
   codigoEol: '1234567',
   cpf: '12345678901',
   nomeCompleto: 'Ana Souza',
@@ -94,7 +94,7 @@ describe('cadastrarInscricao', () => {
       polo: '   ',
       dataNascimento: '',
       tipoEstudante: 'ESTUDANTE_EXTERNO',
-      grupoParticipante: 'MINI_GRUPO_I',
+      grupo: 'MINI_GRUPO_I',
     })
 
     expect(apiPostMock).toHaveBeenCalledWith(
@@ -115,16 +115,13 @@ describe('cadastrarInscricao', () => {
     const dados = {
       ...dadosInscricaoExemplo,
       agrupamento: 'Berçário',
-      estaNaRede: 'Sim',
-      criancaDeficiencia: 'Não',
     }
 
     await cadastrarInscricao(dados)
 
     const payload = apiPostMock.mock.calls[0][1]
     expect(payload).not.toHaveProperty('agrupamento')
-    expect(payload).not.toHaveProperty('estaNaRede')
-    expect(payload).not.toHaveProperty('criancaDeficiencia')
+    expect(payload).toMatchObject({ grupo: 'BERCARIO_I' })
   })
 
   it('lança erro quando a API retorna falha no cadastro', async () => {

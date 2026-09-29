@@ -12,7 +12,7 @@ const telefone = z
   }, 'Informe um telefone válido.')
 
 const formSchema = z.object({
-  agrupamento: z.string(),
+  grupo: z.string(),
   tipoEstudante: z.string(),
   codigoEol: z.string(),
   cpf: z.string().regex(/^(\d{11})?$/, 'Informe um CPF válido.'),
@@ -37,24 +37,6 @@ const formSchema = z.object({
     ),
   dreCodigoEol: z.string(),
   polo: z.string(),
-  grupoParticipante: z.string(),
-  estaNaRede: z.string(),
-  tipoEscola: z.string(),
-  unidadeEducacional: z.string(),
-  turmaAno: z.string(),
-  podeIrSozinho: z.string(),
-  responsavelRetirada: z.string(),
-  autorizaPiscina: z.string(),
-  criancaDeficiencia: z.string(),
-  criancaDeficienciaQual: z.string(),
-  problemaSaude: z.string(),
-  problemaSaudeQual: z.string(),
-  medicacao: z.string(),
-  medicacaoQual: z.string(),
-  restricaoMedicamento: z.string(),
-  restricaoMedicamentoQual: z.string(),
-  convenioMedico: z.string(),
-  convenioMedicoQual: z.string(),
 })
 
 export type FormValues = z.infer<typeof formSchema>

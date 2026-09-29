@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import formSchema from './schema'
 
 const vazio = {
-  agrupamento: '',
+  grupo: '',
   tipoEstudante: '',
   codigoEol: '',
   cpf: '',
@@ -21,24 +21,6 @@ const vazio = {
   email: '',
   dreCodigoEol: '',
   polo: '',
-  grupoParticipante: '',
-  estaNaRede: '',
-  tipoEscola: '',
-  unidadeEducacional: '',
-  turmaAno: '',
-  podeIrSozinho: '',
-  responsavelRetirada: '',
-  autorizaPiscina: '',
-  criancaDeficiencia: '',
-  criancaDeficienciaQual: '',
-  problemaSaude: '',
-  problemaSaudeQual: '',
-  medicacao: '',
-  medicacaoQual: '',
-  restricaoMedicamento: '',
-  restricaoMedicamentoQual: '',
-  convenioMedico: '',
-  convenioMedicoQual: '',
 }
 
 describe('ParticipanteForm schema', () => {

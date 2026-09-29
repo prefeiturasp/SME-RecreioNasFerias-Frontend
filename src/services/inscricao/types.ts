@@ -12,7 +12,7 @@ export type StatusInscricao = 'RASCUNHO' | 'COMPLETA' | 'CANCELADA'
 export type DadosCadastroInscricao = {
   polo: string
   tipoEstudante: string
-  grupoParticipante: string
+  grupo: string
   codigoEol: string
   cpf: string
   nomeCompleto: string

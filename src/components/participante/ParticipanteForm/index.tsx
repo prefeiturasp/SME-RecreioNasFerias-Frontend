@@ -2,15 +2,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMemo } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
-import {
-  AGRUPAMENTO_BERCARIO,
-  AGRUPAMENTO_MINI_GRUPO,
-  ESTA_NA_REDE_SIM,
-  TIPO_ESTUDANTE_REDE,
-} from './constantes'
+import { grupoExigeEstudanteDaRede, TIPO_ESTUDANTE_REDE } from './constantes'
 import { InformacoesBasicas } from './InformacoesBasicas'
-import { InformacoesPorGrupo } from './InformacoesPorGrupo'
-import { InformacoesSaude } from './InformacoesSaude'
 import { SecaoFormulario } from './SecaoFormulario'
 import type { FormValues } from './schema'
 import formSchema from './schema'
@@ -22,7 +15,6 @@ import { useGetDres } from '@/hooks/useGetDres'
 import { useGetPolosElegiveis } from '@/hooks/useGetPolosElegiveis'
 import { useGetValoresChoices } from '@/hooks/useGetValoresChoices'
 import { usePostInscricao } from '@/hooks/usePostInscricao'
-import { calcularIdade } from '@/utils/calcularIdade'
 import { useToast } from '@/hooks/useToast'
 
 type ParticipanteFormProps = {
@@ -40,7 +32,7 @@ export function ParticipanteForm({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      agrupamento: '',
+      grupo: '',
       tipoEstudante: '',
       codigoEol: '',
       cpf: '',
@@ -59,81 +51,35 @@ export function ParticipanteForm({
       email: '',
       dreCodigoEol: '',
       polo: '',
-      grupoParticipante: '',
-      estaNaRede: '',
-      tipoEscola: '',
-      unidadeEducacional: '',
-      turmaAno: '',
-      podeIrSozinho: '',
-      responsavelRetirada: '',
-      autorizaPiscina: '',
-      criancaDeficiencia: '',
-      criancaDeficienciaQual: '',
-      problemaSaude: '',
-      problemaSaudeQual: '',
-      medicacao: '',
-      medicacaoQual: '',
-      restricaoMedicamento: '',
-      restricaoMedicamentoQual: '',
-      convenioMedico: '',
-      convenioMedicoQual: '',
     },
   })
-  const agrupamento = useWatch({
+  const [grupo, tipoEstudante, dreCodigoEol] = useWatch({
     control: form.control,
-    name: 'agrupamento',
+    name: ['grupo', 'tipoEstudante', 'dreCodigoEol'],
   })
-  const tipoEstudante = useWatch({
-    control: form.control,
-    name: 'tipoEstudante',
-  })
-  const dreCodigoEol = useWatch({
-    control: form.control,
-    name: 'dreCodigoEol',
-  })
-  const dataNascimento = useWatch({
-    control: form.control,
-    name: 'dataNascimento',
-  })
-  const idade = useMemo(() => {
-    const anos = calcularIdade(dataNascimento)
-    if (!anos) return ''
-    return anos === '1' ? '1 ano' : `${anos} anos`
-  }, [dataNascimento])
   const dresQuery = useGetDres()
   const polosQuery = useGetPolosElegiveis(dreCodigoEol)
   const choicesQuery = useGetValoresChoices()
-  const dres = dresQuery.data ?? []
-  const polos = polosQuery.data ?? []
-  const tiposEstudante = choicesQuery.data?.tipo_estudante ?? []
-  const grupos = choicesQuery.data?.grupo_inscricao ?? []
-  const tipoTravado =
-    agrupamento === AGRUPAMENTO_BERCARIO ||
-    agrupamento === AGRUPAMENTO_MINI_GRUPO
-  const secoesLiberadas = Boolean(agrupamento) && Boolean(tipoEstudante)
+  const dres = useMemo(() => dresQuery.data ?? [], [dresQuery.data])
+  const polos = useMemo(() => polosQuery.data ?? [], [polosQuery.data])
+  const tiposEstudante = useMemo(
+    () => choicesQuery.data?.tipo_estudante ?? [],
+    [choicesQuery.data?.tipo_estudante],
+  )
+  const grupos = useMemo(
+    () => choicesQuery.data?.grupo_inscricao ?? [],
+    [choicesQuery.data?.grupo_inscricao],
+  )
+  const tipoTravado = useMemo(() => grupoExigeEstudanteDaRede(grupo), [grupo])
+  const camposLiberados = useMemo(
+    () => Boolean(grupo) && Boolean(tipoEstudante),
+    [grupo, tipoEstudante],
+  )
 
-  function aoMudarAgrupamento(valor: string) {
-    const tipo =
-      valor === AGRUPAMENTO_BERCARIO || valor === AGRUPAMENTO_MINI_GRUPO
-        ? TIPO_ESTUDANTE_REDE
-        : ''
-
-    form.setValue('tipoEstudante', tipo)
+  function aoMudarGrupo(valor: string) {
     form.setValue(
-      'estaNaRede',
-      tipo === TIPO_ESTUDANTE_REDE ? ESTA_NA_REDE_SIM : '',
-    )
-    form.setValue('grupoParticipante', '')
-    form.setValue('tipoEscola', '')
-    form.setValue('podeIrSozinho', '')
-    form.setValue('responsavelRetirada', '')
-    form.setValue('autorizaPiscina', '')
-  }
-
-  function aoMudarTipoEstudante(valor: string) {
-    form.setValue(
-      'estaNaRede',
-      valor === TIPO_ESTUDANTE_REDE ? ESTA_NA_REDE_SIM : '',
+      'tipoEstudante',
+      grupoExigeEstudanteDaRede(valor) ? TIPO_ESTUDANTE_REDE : '',
     )
   }
 
@@ -184,13 +130,15 @@ export function ParticipanteForm({
           <SecaoFormulario titulo="Informações Básicas" aberta>
             <InformacoesBasicas
               control={form.control}
-              agrupamento={agrupamento}
+              grupo={grupo}
               tipoTravado={tipoTravado}
+              camposLiberados={camposLiberados}
               tipoEstudante={tipoEstudante}
               dreCodigoEol={dreCodigoEol}
               dres={dres}
               polos={polos}
               tiposEstudante={tiposEstudante}
+              grupos={grupos}
               erro={
                 cadastroMutation.error ??
                 dresQuery.error ??
@@ -199,28 +147,10 @@ export function ParticipanteForm({
               }
               onBuscarCodigoEol={onBuscarCodigoEol}
               onBuscarCpf={onBuscarCpf}
-              aoMudarAgrupamento={aoMudarAgrupamento}
-              aoMudarTipoEstudante={aoMudarTipoEstudante}
+              aoMudarGrupo={aoMudarGrupo}
               aoMudarDre={aoMudarDre}
             />
           </SecaoFormulario>
-          {secoesLiberadas ? (
-            <SecaoFormulario titulo="Informações por Grupo">
-              <InformacoesPorGrupo
-                control={form.control}
-                idade={idade}
-                grupos={grupos}
-              />
-            </SecaoFormulario>
-          ) : null}
-          {secoesLiberadas ? (
-            <SecaoFormulario titulo="Informações de Saúde">
-              <InformacoesSaude
-                control={form.control}
-                setValue={form.setValue}
-              />
-            </SecaoFormulario>
-          ) : null}
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2 max-md:flex-col-reverse max-md:[&>button]:w-full">

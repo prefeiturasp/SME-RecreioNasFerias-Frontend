@@ -9,22 +9,17 @@ class ObservadorTamanho {
 globalThis.ResizeObserver ??=
   ObservadorTamanho as unknown as typeof ResizeObserver
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ValoresChoicesInscricao } from '@/services/inscricao/types'
-import {
-  AGRUPAMENTO_BERCARIO,
-  AGRUPAMENTO_MINI_GRUPO,
-  AGRUPAMENTO_QUATRO_A_QUATORZE,
-  GRUPO_BERCARIO_I,
-  TIPO_ESTUDANTE_REDE,
-} from './constantes'
+import { TIPO_ESTUDANTE_REDE } from './constantes'
 import { ParticipanteForm } from './index'
 
 const ROTULO_ESTUDANTE_REDE = 'Estudante da rede'
 const ROTULO_ESTUDANTE_EXTERNO = 'Estudante externo'
+const ROTULO_QUATRO_A_14 = '4 a 14 anos'
 
 const valoresChoicesExemplo: ValoresChoicesInscricao = {
   grupo_inscricao: [
@@ -32,7 +27,7 @@ const valoresChoicesExemplo: ValoresChoicesInscricao = {
     { value: 'BERCARIO_II', label: 'Berçário II' },
     { value: 'MINI_GRUPO_I', label: 'Mini Grupo I' },
     { value: 'MINI_GRUPO_II', label: 'Mini Grupo II' },
-    { value: 'QUATRO_A_14_ANOS', label: '4 a 14 anos' },
+    { value: 'QUATRO_A_14_ANOS', label: ROTULO_QUATRO_A_14 },
   ],
   tipo_estudante: [
     { value: 'ESTUDANTE_DA_REDE', label: ROTULO_ESTUDANTE_REDE },
@@ -102,6 +97,16 @@ function renderFormulario(props?: ComponentProps<typeof ParticipanteForm>) {
   )
 }
 
+async function escolherGrupo(
+  usuario: ReturnType<typeof userEvent.setup>,
+  rotulo: string,
+) {
+  await usuario.click(await screen.findByLabelText(/grupo/i))
+  await usuario.click(
+    await screen.findByRole('option', { name: new RegExp(`^${rotulo}$`) }),
+  )
+}
+
 describe('ParticipanteForm', () => {
   beforeEach(() => {
     listarDresMock.mockReset()
@@ -118,7 +123,7 @@ describe('ParticipanteForm', () => {
     })
   })
 
-  it('renderiza alerta, seções do accordion e ações do rodapé', () => {
+  it('renderiza alerta, seção de informações básicas e ações do rodapé', () => {
     renderFormulario()
 
     expect(
@@ -137,10 +142,11 @@ describe('ParticipanteForm', () => {
     })
 
     expect(basicas).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByLabelText(/tipo de agrupamento/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/grupo/i)).toBeInTheDocument()
     expect(
       screen.queryByLabelText(/tipo de estudante/i),
     ).not.toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: /código eol/i })).not.toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: /informações por grupo/i }),
     ).not.toBeInTheDocument()
@@ -169,9 +175,11 @@ describe('ParticipanteForm', () => {
     expect(screen.getByText(/página início/i)).toBeInTheDocument()
   })
 
-  it('mostra os campos de informações básicas, com EOL só no layout', async () => {
+  it('mostra o restante das informações básicas depois do grupo e do tipo', async () => {
     const usuario = userEvent.setup()
     renderFormulario()
+
+    await escolherGrupo(usuario, 'Berçário I')
 
     const codigoEol = screen.getByRole('textbox', { name: /código eol/i })
     expect(codigoEol).not.toHaveAttribute('readonly')
@@ -245,8 +253,14 @@ describe('ParticipanteForm', () => {
     )
     renderFormulario()
 
-    expect(screen.getByLabelText(/polo de inscrição/i)).toBeDisabled()
+    expect(
+      screen.queryByLabelText(/polo de inscrição/i),
+    ).not.toBeInTheDocument()
     expect(listarPolosElegiveisMock).not.toHaveBeenCalled()
+
+    await escolherGrupo(usuario, 'Berçário I')
+
+    expect(screen.getByLabelText(/polo de inscrição/i)).toBeDisabled()
 
     await usuario.click(screen.getByLabelText(/\bdre\b/i))
     await usuario.click(
@@ -276,6 +290,8 @@ describe('ParticipanteForm', () => {
     await waitFor(() => {
       expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
         expect.objectContaining({
+          grupo: 'BERCARIO_I',
+          tipoEstudante: TIPO_ESTUDANTE_REDE,
           dreCodigoEol: '108200',
           dreNome: 'DRE Ipiranga',
           polo: '',
@@ -304,6 +320,7 @@ describe('ParticipanteForm', () => {
     })
     renderFormulario()
 
+    await escolherGrupo(usuario, 'Berçário I')
     await usuario.click(screen.getByLabelText(/\bdre\b/i))
     await usuario.click(
       await screen.findByRole('option', { name: 'DRE Butantã' }),
@@ -339,6 +356,7 @@ describe('ParticipanteForm', () => {
     const onBuscarCpf = vi.fn()
     renderFormulario({ onBuscarCodigoEol, onBuscarCpf })
 
+    await escolherGrupo(usuario, 'Berçário I')
     await usuario.type(
       screen.getByRole('textbox', { name: /código eol/i }),
       '1234567',
@@ -353,311 +371,77 @@ describe('ParticipanteForm', () => {
     expect(onBuscarCpf).toHaveBeenCalledWith('123')
   })
 
-  it('trava Estudante da Rede e libera as seções ao escolher Berçário', async () => {
+  it.each(['Berçário I', 'Berçário II', 'Mini Grupo I', 'Mini Grupo II'])(
+    'trava Estudante da Rede e libera o restante ao escolher %s',
+    async (rotulo) => {
+      const usuario = userEvent.setup()
+      renderFormulario()
+
+      await escolherGrupo(usuario, rotulo)
+
+      const tipo = await screen.findByLabelText(/tipo de estudante/i)
+      expect(tipo).toHaveValue(ROTULO_ESTUDANTE_REDE)
+      expect(tipo).toHaveAttribute('readonly')
+      expect(
+        screen.getByRole('textbox', { name: /código eol/i }),
+      ).toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: /informações por grupo/i }),
+      ).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: /informações de saúde/i }),
+      ).not.toBeInTheDocument()
+    },
+  )
+
+  it('libera o tipo e só então o restante em 4 a 14 anos', async () => {
     const usuario = userEvent.setup()
     renderFormulario()
 
-    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
-    await usuario.click(
-      await screen.findByRole('option', { name: AGRUPAMENTO_BERCARIO }),
-    )
-
-    const tipo = await screen.findByLabelText(/tipo de estudante/i)
-    expect(tipo).toHaveValue(ROTULO_ESTUDANTE_REDE)
-    expect(tipo).toHaveAttribute('readonly')
-    expect(
-      screen.getByRole('button', { name: /informações por grupo/i }),
-    ).toHaveAttribute('aria-expanded', 'false')
-    expect(
-      screen.getByRole('button', { name: /informações de saúde/i }),
-    ).toHaveAttribute('aria-expanded', 'false')
-
-    await usuario.click(
-      screen.getByRole('button', { name: /informações por grupo/i }),
-    )
-
-    expect(screen.getByLabelText(/grupo do participante/i)).toHaveTextContent(
-      'Selecione o grupo',
-    )
-    const rede = screen.getByRole('radiogroup', {
-      name: /é aluno da rede municipal/i,
-    })
-    expect(within(rede).getByRole('radio', { name: /^sim$/i })).toBeChecked()
-    expect(
-      screen.getByLabelText(/unidade educacional do participante/i),
-    ).toHaveAttribute('readonly')
-    expect(screen.getByLabelText(/turma \/ ano/i)).toHaveAttribute('readonly')
-    expect(
-      screen.getByLabelText(/responsável por retirar na saída/i),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('radiogroup', { name: /autoriza uso da piscina/i }),
-    ).toBeInTheDocument()
-  })
-
-  it('limpa os campos do grupo ao trocar o agrupamento', async () => {
-    const usuario = userEvent.setup()
-    renderFormulario()
-
-    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
-    await usuario.click(
-      await screen.findByRole('option', {
-        name: AGRUPAMENTO_QUATRO_A_QUATORZE,
-      }),
-    )
-    await usuario.click(screen.getByLabelText(/tipo de estudante/i))
-    await usuario.click(
-      screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
-    )
-
-    await usuario.click(
-      screen.getByRole('button', { name: /informações por grupo/i }),
-    )
-    await usuario.click(screen.getByRole('radio', { name: 'Estadual' }))
-    await usuario.click(screen.getByLabelText(/grupo do participante/i))
-    await usuario.click(screen.getByRole('option', { name: 'Mini Grupo I' }))
-
-    expect(screen.getByRole('radio', { name: 'Estadual' })).toBeChecked()
-    expect(screen.getByLabelText(/tipo de estudante/i)).toHaveTextContent(
-      ROTULO_ESTUDANTE_EXTERNO,
-    )
-
-    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
-    await usuario.click(
-      screen.getByRole('option', { name: AGRUPAMENTO_BERCARIO }),
-    )
-
-    expect(screen.getByRole('radio', { name: 'Estadual' })).not.toBeChecked()
-    expect(screen.getByLabelText(/grupo do participante/i)).toHaveTextContent(
-      'Selecione o grupo',
-    )
-  })
-
-  it('mantém Qual visível e só libera quando a resposta de saúde é Sim', async () => {
-    const usuario = userEvent.setup()
-    renderFormulario()
-
-    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
-    await usuario.click(
-      await screen.findByRole('option', { name: AGRUPAMENTO_BERCARIO }),
-    )
-    await usuario.click(
-      screen.getByRole('button', { name: /informações de saúde/i }),
-    )
-
-    expect(
-      screen.getByRole('radiogroup', { name: /criança com deficiência/i }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('radiogroup', {
-        name: /criança com problema de saúde/i,
-      }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('radiogroup', {
-        name: /medicação\/tratamento contínuo/i,
-      }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('radiogroup', {
-        name: /restrição a medicamento em pronto atendimento/i,
-      }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('radiogroup', { name: /tem convênio médico/i }),
-    ).toBeInTheDocument()
-
-    const qualsSelect = screen.getAllByRole('combobox', { name: /qual\?/i })
-    expect(qualsSelect).toHaveLength(4)
-    for (const campo of qualsSelect) {
-      expect(campo).toBeDisabled()
-    }
-
-    const qualConvenio = screen.getByRole('textbox', { name: /qual\?/i })
-    expect(qualConvenio).toHaveAttribute('readonly')
-
-    const deficiencia = screen.getByRole('radiogroup', {
-      name: /criança com deficiência/i,
-    })
-    await usuario.click(
-      within(deficiencia).getByRole('radio', { name: /^sim$/i }),
-    )
-    expect(qualsSelect[0]).toBeEnabled()
-    await usuario.click(
-      within(deficiencia).getByRole('radio', { name: /^não$/i }),
-    )
-    expect(qualsSelect[0]).toBeDisabled()
-
-    const convenio = screen.getByRole('radiogroup', {
-      name: /tem convênio médico/i,
-    })
-    await usuario.click(within(convenio).getByRole('radio', { name: /^sim$/i }))
-    await usuario.type(qualConvenio, 'Amil')
-    expect(qualConvenio).toHaveValue('Amil')
-    await usuario.click(within(convenio).getByRole('radio', { name: /^não$/i }))
-    await waitFor(() => {
-      expect(qualConvenio).toHaveValue('')
-    })
-    expect(qualConvenio).toHaveAttribute('readonly')
-
-    expect(
-      screen.getByText(/clique ou arraste para fazer o upload dos arquivos/i),
-    ).toBeInTheDocument()
-    expect(screen.getByText(/tamanho do arquivo até 10mb/i)).toBeInTheDocument()
-  })
-
-  it('aceita anexo de até 10MB e recusa arquivo maior', async () => {
-    const usuario = userEvent.setup()
-    renderFormulario()
-
-    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
-    await usuario.click(
-      await screen.findByRole('option', { name: AGRUPAMENTO_BERCARIO }),
-    )
-    await usuario.click(
-      screen.getByRole('button', { name: /informações de saúde/i }),
-    )
-
-    const input = screen.getByLabelText(/anexo de documentos/i)
-    const pequeno = new File(['ok'], 'laudo.pdf', { type: 'application/pdf' })
-    await usuario.upload(input, pequeno)
-    expect(screen.getByText('laudo.pdf')).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: /remover laudo\.pdf/i }),
-    ).toBeInTheDocument()
-
-    const grande = new File(['x'], 'grande.pdf')
-    Object.defineProperty(grande, 'size', { value: 10 * 1024 * 1024 + 1 })
-    await usuario.upload(input, grande)
-    expect(screen.getByText(/o arquivo deve ter até 10mb/i)).toBeInTheDocument()
-    expect(screen.queryByText('grande.pdf')).not.toBeInTheDocument()
-
-    await usuario.click(
-      screen.getByRole('button', { name: /remover laudo\.pdf/i }),
-    )
-    expect(screen.queryByText('laudo.pdf')).not.toBeInTheDocument()
-  })
-
-  it('limpa Está na Rede ao sair de Estudante da Rede', async () => {
-    const usuario = userEvent.setup()
-    renderFormulario()
-
-    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
-    await usuario.click(
-      await screen.findByRole('option', { name: AGRUPAMENTO_BERCARIO }),
-    )
-    await usuario.click(
-      screen.getByRole('button', { name: /informações por grupo/i }),
-    )
-    expect(
-      within(
-        screen.getByRole('radiogroup', { name: /é aluno da rede municipal/i }),
-      ).getByRole('radio', { name: /^sim$/i }),
-    ).toBeChecked()
-
-    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
-    await usuario.click(
-      screen.getByRole('option', { name: AGRUPAMENTO_QUATRO_A_QUATORZE }),
-    )
-    await usuario.click(screen.getByLabelText(/tipo de estudante/i))
-    await usuario.click(
-      screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
-    )
-    await usuario.click(
-      screen.getByRole('button', { name: /informações por grupo/i }),
-    )
-
-    const rede = screen.getByRole('radiogroup', {
-      name: /é aluno da rede municipal/i,
-    })
-    expect(
-      within(rede).getByRole('radio', { name: /^sim$/i }),
-    ).not.toBeChecked()
-    expect(
-      within(rede).getByRole('radio', { name: /^não$/i }),
-    ).not.toBeChecked()
-  })
-
-  it('trava Estudante da Rede ao escolher Mini Grupo', async () => {
-    const usuario = userEvent.setup()
-    renderFormulario()
-
-    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
-    await usuario.click(
-      await screen.findByRole('option', { name: AGRUPAMENTO_MINI_GRUPO }),
-    )
-
-    const tipo = await screen.findByLabelText(/tipo de estudante/i)
-    expect(tipo).toHaveValue(ROTULO_ESTUDANTE_REDE)
-    expect(tipo).toHaveAttribute('readonly')
-  })
-
-  it('libera o tipo e só então as seções em 4 a 14 anos', async () => {
-    const usuario = userEvent.setup()
-    renderFormulario()
-
-    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
-    await usuario.click(
-      await screen.findByRole('option', {
-        name: AGRUPAMENTO_QUATRO_A_QUATORZE,
-      }),
-    )
-
-    expect(
-      screen.queryByRole('button', { name: /informações por grupo/i }),
-    ).not.toBeInTheDocument()
-
-    await usuario.click(screen.getByLabelText(/tipo de estudante/i))
-    expect(
-      screen.getByRole('option', { name: ROTULO_ESTUDANTE_REDE }),
-    ).toBeInTheDocument()
-    await usuario.click(
-      screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
-    )
-
-    expect(
-      screen.getByRole('button', { name: /informações por grupo/i }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: /informações de saúde/i }),
-    ).toBeInTheDocument()
-  })
-
-  it('limpa o tipo e oculta as seções ao trocar o agrupamento', async () => {
-    const usuario = userEvent.setup()
-    renderFormulario()
-
-    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
-    await usuario.click(
-      await screen.findByRole('option', {
-        name: AGRUPAMENTO_QUATRO_A_QUATORZE,
-      }),
-    )
-    await usuario.click(screen.getByLabelText(/tipo de estudante/i))
-    await usuario.click(
-      screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
-    )
-
-    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
-    await usuario.click(
-      screen.getByRole('option', { name: AGRUPAMENTO_BERCARIO }),
-    )
-
-    const tipo = await screen.findByLabelText(/tipo de estudante/i)
-    expect(tipo).toHaveValue(ROTULO_ESTUDANTE_REDE)
-    expect(tipo).toHaveAttribute('readonly')
-
-    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
-    await usuario.click(
-      screen.getByRole('option', { name: AGRUPAMENTO_QUATRO_A_QUATORZE }),
-    )
+    await escolherGrupo(usuario, ROTULO_QUATRO_A_14)
 
     expect(screen.getByLabelText(/tipo de estudante/i)).toHaveTextContent(
       'Selecione o tipo de estudante',
     )
+    expect(screen.queryByRole('textbox', { name: /código eol/i })).not.toBeInTheDocument()
+
+    await usuario.click(screen.getByLabelText(/tipo de estudante/i))
+    await usuario.click(
+      screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
+    )
+
+    expect(screen.getByRole('textbox', { name: /código eol/i })).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: /informações por grupo/i }),
     ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /informações de saúde/i }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('limpa o tipo e oculta o restante ao sair de um grupo da rede', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await escolherGrupo(usuario, ROTULO_QUATRO_A_14)
+    await usuario.click(screen.getByLabelText(/tipo de estudante/i))
+    await usuario.click(
+      screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
+    )
+    expect(screen.getByRole('textbox', { name: /código eol/i })).toBeInTheDocument()
+
+    await escolherGrupo(usuario, 'Berçário I')
+
+    const tipo = await screen.findByLabelText(/tipo de estudante/i)
+    expect(tipo).toHaveValue(ROTULO_ESTUDANTE_REDE)
+    expect(tipo).toHaveAttribute('readonly')
+
+    await escolherGrupo(usuario, ROTULO_QUATRO_A_14)
+
+    expect(screen.getByLabelText(/tipo de estudante/i)).toHaveTextContent(
+      'Selecione o tipo de estudante',
+    )
+    expect(screen.queryByRole('textbox', { name: /código eol/i })).not.toBeInTheDocument()
   })
 
   it('salva o rascunho incompleto e recusa e-mail inválido', async () => {
@@ -670,10 +454,9 @@ describe('ParticipanteForm', () => {
     await waitFor(() => {
       expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          agrupamento: '',
+          grupo: '',
           polo: '',
           tipoEstudante: '',
-          grupoParticipante: '',
           codigoEol: '',
           cpf: '',
           nomeCompleto: '',
@@ -709,6 +492,7 @@ describe('ParticipanteForm', () => {
     expect(cadastrarInscricaoMock).toHaveBeenCalledTimes(2)
 
     showToastMock.mockClear()
+    await escolherGrupo(usuario, 'Berçário I')
     await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'ana')
     await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
     expect(
@@ -742,7 +526,7 @@ describe('ParticipanteForm', () => {
     expect(showToastMock).not.toHaveBeenCalled()
   })
 
-  it('envia os códigos da tela no cadastro', async () => {
+  it('envia o grupo escolhido nas informações básicas', async () => {
     const usuario = userEvent.setup()
     listarDresMock.mockResolvedValue([
       {
@@ -764,15 +548,7 @@ describe('ParticipanteForm', () => {
     )
     renderFormulario()
 
-    await usuario.click(screen.getByLabelText(/tipo de agrupamento/i))
-    await usuario.click(
-      await screen.findByRole('option', { name: AGRUPAMENTO_BERCARIO }),
-    )
-    await usuario.click(
-      screen.getByRole('button', { name: /informações por grupo/i }),
-    )
-    await usuario.click(screen.getByLabelText(/grupo do participante/i))
-    await usuario.click(screen.getByRole('option', { name: 'Berçário I' }))
+    await escolherGrupo(usuario, 'Berçário I')
     await usuario.click(screen.getByLabelText(/\bdre\b/i))
     await usuario.click(
       await screen.findByRole('option', { name: 'DRE Butantã' }),
@@ -788,10 +564,9 @@ describe('ParticipanteForm', () => {
     await waitFor(() => {
       expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          agrupamento: AGRUPAMENTO_BERCARIO,
           polo: 'polo-108100',
           tipoEstudante: TIPO_ESTUDANTE_REDE,
-          grupoParticipante: GRUPO_BERCARIO_I,
+          grupo: 'BERCARIO_I',
           email: 'ana@email.com',
           dreCodigoEol: '108100',
           dreNome: 'DRE Butantã',

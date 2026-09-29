@@ -8,7 +8,7 @@ export async function cadastrarInscricao(
     edicao: null,
     polo: dados.polo.trim() === '' ? null : dados.polo,
     tipo_estudante: dados.tipoEstudante,
-    grupo: dados.grupoParticipante,
+    grupo: dados.grupo,
     codigo_eol: dados.codigoEol,
     cpf: dados.cpf,
     nome_participante: dados.nomeCompleto,
