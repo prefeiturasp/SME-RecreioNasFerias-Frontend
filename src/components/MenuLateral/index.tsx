@@ -2,16 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 
 import { iconeCadastro } from '@/assets'
 import logoSmeBranco from '@/assets/logo-sme-branco.png'
-import { ChevronDownIcon, CloseIcon, MenuIcon } from '@/components/icons'
+import { CloseIcon, IconeModuloInscricoes, MenuIcon } from '@/components/icons'
 import { Button } from '@/components/ui/button'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
 import { useEstadoMenuLateral } from '@/contexts/useEstadoMenuLateral'
 import { cn } from '@/lib/utils'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
+import { GrupoMenu } from './GrupoMenu'
+import { IconeCartaoMenu } from './IconeCartaoMenu'
 
 const tituloMenu = (
   <h3 className="flex-1 font-heading text-sm leading-snug font-normal text-primary-foreground">
@@ -40,20 +37,16 @@ const SUBITENS_CADASTROS = [
   },
 ] as const
 
-const MENU_TRANSITION_MS = 200
+const ROTAS_INSCRICOES = ['/inscricoes-participantes'] as const
 
-function IconeCartaoMenu({ icone }: Readonly<{ icone: string }>) {
-  return (
-    <span
-      className="flex size-6 shrink-0 items-center justify-center bg-brand-dark"
-      style={{
-        mask: `url(${icone}) center / contain no-repeat`,
-        WebkitMask: `url(${icone}) center / contain no-repeat`,
-      }}
-      aria-hidden="true"
-    />
-  )
-}
+const SUBITENS_INSCRICOES = [
+  {
+    rotulo: 'Inscrições de Participantes',
+    caminho: '/inscricoes-participantes',
+  },
+] as const
+
+const MENU_TRANSITION_MS = 200
 
 export function MenuLateral() {
   const location = useLocation()
@@ -64,6 +57,7 @@ export function MenuLateral() {
   } = useEstadoMenuLateral()
   const [conteudoMenuVisivel, setConteudoMenuVisivel] = useState(menuAberto)
   const [cadastrosExpandido, setCadastrosExpandido] = useState(true)
+  const [inscricoesExpandido, setInscricoesExpandido] = useState(true)
   const referenciaAside = useRef<HTMLElement>(null)
   const referenciaMenuAberto = useRef(menuAberto)
 
@@ -74,6 +68,9 @@ export function MenuLateral() {
   useEffect(() => {
     if (ROTAS_CADASTROS.some((rota) => location.pathname.startsWith(rota))) {
       setCadastrosExpandido(true)
+    }
+    if (ROTAS_INSCRICOES.some((rota) => location.pathname.startsWith(rota))) {
+      setInscricoesExpandido(true)
     }
   }, [location.pathname])
 
@@ -143,62 +140,30 @@ export function MenuLateral() {
 
             <ul className="m-0 flex list-none flex-col gap-2 px-1 pt-2.5">
               <li>
-                <Collapsible
-                  open={cadastrosExpandido}
-                  onOpenChange={setCadastrosExpandido}
-                  className="w-full overflow-hidden rounded-sm bg-background"
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="flex h-auto w-full min-h-6 items-center justify-start gap-1.5 rounded-none px-2 py-3 text-left text-brand-dark hover:bg-transparent focus-visible:outline focus-visible:-outline-offset-2 focus-visible:outline-background"
-                      aria-controls="submenu-cadastros"
-                    >
-                      <IconeCartaoMenu icone={iconeCadastro} />
-                      <span className="flex min-h-6 flex-1 items-center text-sm leading-none font-bold text-brand-dark">
-                        Cadastros
-                      </span>
-                      <span
-                        className={cn(
-                          'flex size-6 shrink-0 items-center justify-center text-brand-dark transition-transform duration-200 [&_svg]:size-6',
-                          cadastrosExpandido && 'rotate-180',
-                        )}
-                      >
-                        <ChevronDownIcon />
-                      </span>
-                    </Button>
-                  </CollapsibleTrigger>
-
-                  <CollapsibleContent>
-                    <ul
-                      id="submenu-cadastros"
-                      className="m-0 flex list-none flex-col border-t border-border p-0"
-                    >
-                      {SUBITENS_CADASTROS.map((subitem) => {
-                        const ativo = location.pathname.startsWith(
-                          subitem.caminho,
-                        )
-
-                        return (
-                          <li key={subitem.caminho}>
-                            <Link
-                              to={subitem.caminho}
-                              className={cn(
-                                'block border-t border-border py-3 pr-2 pl-10 text-sm leading-tight font-bold no-underline first:border-t-0 hover:bg-surface-muted hover:text-brand-dark focus-visible:outline focus-visible:-outline-offset-2 focus-visible:outline-brand-dark',
-                                ativo
-                                  ? 'bg-surface-muted text-brand-dark'
-                                  : 'bg-transparent text-muted-foreground',
-                              )}
-                            >
-                              {subitem.rotulo}
-                            </Link>
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  </CollapsibleContent>
-                </Collapsible>
+                <GrupoMenu
+                  rotulo="Cadastros"
+                  idSubmenu="submenu-cadastros"
+                  expandido={cadastrosExpandido}
+                  onExpandidoChange={setCadastrosExpandido}
+                  icone={<IconeCartaoMenu icone={iconeCadastro} />}
+                  subitens={SUBITENS_CADASTROS}
+                  pathname={location.pathname}
+                />
+              </li>
+              <li>
+                <GrupoMenu
+                  rotulo="Inscrições"
+                  idSubmenu="submenu-inscricoes"
+                  expandido={inscricoesExpandido}
+                  onExpandidoChange={setInscricoesExpandido}
+                  icone={
+                    <span className="flex size-6 shrink-0 items-center justify-center text-brand-dark [&_svg]:size-6">
+                      <IconeModuloInscricoes />
+                    </span>
+                  }
+                  subitens={SUBITENS_INSCRICOES}
+                  pathname={location.pathname}
+                />
               </li>
             </ul>
           </div>

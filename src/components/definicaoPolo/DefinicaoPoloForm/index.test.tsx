@@ -221,6 +221,9 @@ describe('DefinicaoPoloForm', () => {
     renderFormulario()
 
     const campoProjecao = await screen.findByLabelText(/proje.*de inscritos/i)
+    await waitFor(() => {
+      expect(campoProjecao).toHaveValue(10)
+    })
     await usuario.clear(campoProjecao)
     await usuario.click(screen.getByRole('button', { name: 'Salvar' }))
 

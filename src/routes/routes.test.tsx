@@ -350,4 +350,37 @@ describe('RotasAplicacao', () => {
       }),
     ).toBeInTheDocument()
   })
+
+  it('redireciona para login ao acessar /inscricoes-participantes sem autenticação', async () => {
+    renderRotas('/inscricoes-participantes')
+
+    expect(await screen.findByText(/bem-vindo\(a\) ao/i)).toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: /cadastrar participante/i }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('renderiza a página Cadastrar Participante na rota /inscricoes-participantes quando autenticado', () => {
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
+    })
+
+    renderRotas('/inscricoes-participantes')
+
+    const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
+    expect(mapa).toHaveTextContent('Início')
+    expect(mapa).toHaveTextContent('Inscrições')
+    expect(mapa).toHaveTextContent('Inscrições de Participantes')
+    expect(mapa).toHaveTextContent('Cadastrar Participante')
+    expect(
+      screen.getByRole('heading', { name: /cadastrar participante/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /voltar para o início/i }),
+    ).toBeInTheDocument()
+  })
 })
+

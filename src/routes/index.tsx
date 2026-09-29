@@ -4,6 +4,7 @@ import PaginaDefinicoesPolo from '../pages/PaginaDefinicoesPolo'
 import PaginaDetalhamentoDefinicaoPolo from '../pages/PaginaDetalhamentoDefinicaoPolo'
 import PaginaPolosParceiros from '../pages/PaginaPolosParceiros'
 import PaginaCadastrarNovaEdicaoPrograma from '../pages/PaginaCadastrarNovaEdicaoPrograma'
+import PaginaCadastrarParticipante from '../pages/PaginaCadastrarParticipante'
 import PaginaCadastrarPoloParceiro from '../pages/PaginaCadastrarPoloParceiro'
 import PaginaEditarPoloParceiro from '../pages/PaginaEditarPoloParceiro'
 import PaginaEditarEdicaoPrograma from '../pages/PaginaEditarEdicaoPrograma'
@@ -84,6 +85,14 @@ export function RotasAplicacao() {
         element={
           <RotaProtegida>
             <PaginaEditarEdicaoPrograma />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/inscricoes-participantes"
+        element={
+          <RotaProtegida>
+            <PaginaCadastrarParticipante />
           </RotaProtegida>
         }
       />
