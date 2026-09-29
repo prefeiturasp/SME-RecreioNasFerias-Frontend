@@ -8,7 +8,7 @@ import { SecaoFormulario } from './SecaoFormulario'
 import type { FormValues } from './schema'
 import formSchema from './schema'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { BlocoTexto } from '@/components/BlocoTexto'
 import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
 import { useGetDres } from '@/hooks/useGetDres'
@@ -119,12 +119,10 @@ export function ParticipanteForm({
       className="rounded-sm bg-background p-8 shadow-card max-md:p-4"
     >
       <FieldGroup className="gap-8">
-        <Alert className="h-36 max-h-36 overflow-y-auto rounded-sm border-0 bg-[#c5d4d2] px-8 py-6">
-          <AlertDescription className="text-sm text-foreground">
-            Usuário deve visualizar texto com orientações que precisa
-            compartilhar com familiares e responsáveis.
-          </AlertDescription>
-        </Alert>
+        <BlocoTexto>
+          Usuário deve visualizar texto com orientações que precisa compartilhar
+          com familiares e responsáveis.
+        </BlocoTexto>
 
         <div className="flex flex-col gap-4">
           <SecaoFormulario titulo="Informações Básicas" aberta>
