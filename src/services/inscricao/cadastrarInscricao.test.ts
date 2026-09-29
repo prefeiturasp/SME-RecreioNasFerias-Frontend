@@ -44,7 +44,6 @@ const payloadEsperado = {
   responsavel_nome: 'Maria Souza',
   responsavel_nome_social: '',
   cep: '05508000',
-  tipo_logradouro: '',
   logradouro: 'Exemplo',
   numero: '100',
   complemento: '',
@@ -60,6 +59,7 @@ const payloadEsperado = {
 const respostaCadastroExemplo: Inscricao = {
   uuid: '22222222-2222-2222-2222-222222222222',
   ...payloadEsperado,
+  tipo_logradouro: '',
   tipo_estudante_label: 'Estudante da rede',
   grupo_label: 'Berçário I',
   status: 'RASCUNHO',
@@ -86,15 +86,15 @@ describe('cadastrarInscricao', () => {
     )
   })
 
-  it('envia nulo nos campos vazios e ignora tipo e grupo fora do contrato', async () => {
+  it('envia nulo nos campos vazios e o tipo e o grupo informados', async () => {
     apiPostMock.mockResolvedValue({ data: respostaCadastroExemplo })
 
     await cadastrarInscricao({
       ...dadosInscricaoExemplo,
       polo: '   ',
       dataNascimento: '',
-      tipoEstudante: 'outro',
-      grupoParticipante: 'outro',
+      tipoEstudante: 'ESTUDANTE_EXTERNO',
+      grupoParticipante: 'MINI_GRUPO_I',
     })
 
     expect(apiPostMock).toHaveBeenCalledWith(
@@ -102,10 +102,11 @@ describe('cadastrarInscricao', () => {
       expect.objectContaining({
         polo: null,
         data_nascimento: null,
-        tipo_estudante: '',
-        grupo: '',
+        tipo_estudante: 'ESTUDANTE_EXTERNO',
+        grupo: 'MINI_GRUPO_I',
       }),
     )
+    expect(apiPostMock.mock.calls[0]?.[1]).not.toHaveProperty('tipo_logradouro')
   })
 
   it('não envia campos que ficam só no formulário', async () => {

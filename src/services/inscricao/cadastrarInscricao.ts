@@ -1,23 +1,5 @@
 import { api } from '../api/http'
-import type {
-  DadosCadastroInscricao,
-  GrupoInscricao,
-  Inscricao,
-  TipoEstudanteInscricao,
-} from './types'
-
-const TIPOS_ESTUDANTE: TipoEstudanteInscricao[] = [
-  'ESTUDANTE_DA_REDE',
-  'ESTUDANTE_EXTERNO',
-]
-
-const GRUPOS_INSCRICAO: GrupoInscricao[] = [
-  'BERCARIO_I',
-  'BERCARIO_II',
-  'MINI_GRUPO_I',
-  'MINI_GRUPO_II',
-  'QUATRO_A_14_ANOS',
-]
+import type { DadosCadastroInscricao, Inscricao } from './types'
 
 export async function cadastrarInscricao(
   dados: DadosCadastroInscricao,
@@ -25,11 +7,8 @@ export async function cadastrarInscricao(
   const { data } = await api.post<Inscricao>('/api/v1/inscricoes/', {
     edicao: null,
     polo: dados.polo.trim() === '' ? null : dados.polo,
-    tipo_estudante:
-      TIPOS_ESTUDANTE.find((tipo) => tipo === dados.tipoEstudante) ?? '',
-    grupo:
-      GRUPOS_INSCRICAO.find((grupo) => grupo === dados.grupoParticipante) ??
-      '',
+    tipo_estudante: dados.tipoEstudante,
+    grupo: dados.grupoParticipante,
     codigo_eol: dados.codigoEol,
     cpf: dados.cpf,
     nome_participante: dados.nomeCompleto,
@@ -38,7 +17,6 @@ export async function cadastrarInscricao(
     responsavel_nome: dados.nomeResponsavel,
     responsavel_nome_social: dados.nomeSocialResponsavel,
     cep: dados.cep,
-    tipo_logradouro: '',
     logradouro: dados.logradouro,
     numero: dados.numero,
     complemento: dados.complemento,
