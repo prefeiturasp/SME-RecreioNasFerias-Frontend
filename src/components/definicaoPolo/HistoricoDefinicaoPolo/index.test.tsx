@@ -23,7 +23,8 @@ describe('Componente: HistoricoDefinicaoPolo', () => {
         results: [
           {
             edicao: { nome: 'Edição 2025' },
-            tipo: 'Pendente',
+            tipo: 'pendente',
+            tipo_label: 'Pendente',
             projecao_inscritos: 100,
             total_inscritos: 85,
             resultado_final_de_inscritos: 0,
