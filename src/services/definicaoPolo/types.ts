@@ -6,12 +6,15 @@ export type DefinicaoPoloApi = {
   dre_codigo_eol: string
   tipo_ue: string
   gestao: string
+  gestao_label: string
   status: string
+  status_label: string
   ativo: boolean
   definicao_uuid: string | null
   edicao_uuid: string | null
   nome_edicao: string | null
   tipo_polo_edicao: string | null
+  tipo_polo_edicao_label: string | null
   projecao_inscritos_edicao: number | null
   total_inscritos_edicao: number | null
   resultado_final_de_inscritos_edicao: number | null
@@ -164,6 +167,7 @@ export type Historico = {
     nome: string
   }
   tipo: string
+  tipo_label: string
   projecao_inscritos: number
   total_inscritos?: number
   resultado_final_de_inscritos: number

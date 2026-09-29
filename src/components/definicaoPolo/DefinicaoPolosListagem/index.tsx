@@ -79,13 +79,13 @@ const COLUNAS = [
     id: 'tipo_polo_edicao',
     rotulo: 'Tipo de Polo',
     valorOrdenacao: (polo) => formatarTipoPolo(polo.tipo_polo_edicao),
-    renderizar: (polo) => formatarTipoPolo(polo.tipo_polo_edicao),
+    renderizar: (polo) => formatarTipoPolo(polo.tipo_polo_edicao_label),
   },
   {
     id: 'gestao',
     rotulo: 'Gestão',
     valorOrdenacao: (polo) => polo.gestao,
-    renderizar: (polo) => polo.gestao,
+    renderizar: (polo) => polo.gestao_label,
   },
 ] as const satisfies readonly DefinicaoColuna<DefinicaoPoloApi>[]
 

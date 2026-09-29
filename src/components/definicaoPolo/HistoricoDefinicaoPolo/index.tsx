@@ -17,7 +17,7 @@ const COLUNAS = [
     id: 'tipo_polo',
     rotulo: 'Tipo de Polo',
     valorOrdenacao: (historico) => historico.tipo ?? '',
-    renderizar: (historico) => historico.tipo,
+    renderizar: (historico) => historico.tipo_label,
   },
   {
     id: 'projecao_inscritos',

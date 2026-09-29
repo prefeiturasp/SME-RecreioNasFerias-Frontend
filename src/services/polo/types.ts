@@ -39,6 +39,8 @@ export type PoloDetalhado = {
 
 export type PoloListagemItem = Omit<PoloDetalhado, 'gestao'> & {
   gestao: GestaoPolo | 'direta'
+  gestao_label: string
+  status_label: string
 }
 
 export type ListagemPolosPaginada = {
