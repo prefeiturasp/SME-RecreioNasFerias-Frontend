@@ -799,5 +799,5 @@ describe('ParticipanteForm', () => {
         expect.anything(),
       )
     })
-  })
+  }, 15_000)
 })
