@@ -51,13 +51,13 @@ const COLUNAS = [
     id: 'gestao',
     rotulo: 'Gestão',
     valorOrdenacao: (polo) => polo.gestao,
-    renderizar: (polo) => polo.gestao,
+    renderizar: (polo) => polo.gestao_label,
   },
   {
     id: 'status',
     rotulo: 'Status',
     valorOrdenacao: (polo) => polo.status,
-    renderizar: (polo) => polo.status,
+    renderizar: (polo) => polo.status_label,
   },
 ] as const satisfies readonly DefinicaoColuna<PoloListagemItem>[]
 
