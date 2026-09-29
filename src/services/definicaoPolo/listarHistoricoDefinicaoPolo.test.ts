@@ -19,6 +19,7 @@ describe('listarHistoricoDefinicaoPolo', () => {
           nome: 'Edição Exemplo',
         },
         tipo: 'Tipo Exemplo',
+        tipo_label: 'Tipo Exemplo',
         projecao_inscritos: 50,
         total_inscritos: 45,
         resultado_final_de_inscritos: 40,
