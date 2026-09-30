@@ -1,10 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '../api/http'
 import { listarDefinicoesPolo } from './listarDefinicoesPolo'
-import type {
-  DefinicaoPoloApi,
-  ListagemDefinicoesPoloPaginada,
-} from './types'
+import type { DefinicaoPoloApi, ListagemDefinicoesPoloPaginada } from './types'
 
 vi.mock('../api/http', () => ({
   api: { get: vi.fn() },
@@ -21,14 +18,18 @@ const polos: DefinicaoPoloApi[] = [
     dre_codigo_eol: '108600',
     tipo_ue: 'CEI DIRET',
     gestao: 'direta',
+    gestao_label: 'Direta',
     status: 'ativo',
+    status_label: 'Ativo',
     ativo: true,
     definicao_uuid: null,
     edicao_uuid: null,
     nome_edicao: null,
     tipo_polo_edicao: 'pendente',
+    tipo_polo_edicao_label: 'Pendente',
     projecao_inscritos_edicao: null,
     total_inscritos_edicao: null,
+    resultado_final_de_inscritos_edicao: null,
   },
 ]
 

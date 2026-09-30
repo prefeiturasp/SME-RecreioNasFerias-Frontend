@@ -57,6 +57,15 @@ function renderMenuLateral(initialPath = '/inicio') {
               </>
             }
           />
+          <Route
+            path="/inscricoes-participantes"
+            element={
+              <>
+                <MenuLateral />
+                <div>Página Inscrições de Participantes</div>
+              </>
+            }
+          />
         </Routes>
       </MemoryRouter>
     </ProvedorEstadoMenuLateral>,
@@ -124,11 +133,68 @@ describe('MenuLateral', () => {
       screen.queryByRole('link', { name: /cronogramas/i }),
     ).not.toBeInTheDocument()
     expect(
-      screen.queryByRole('link', { name: /inscrições/i }),
-    ).not.toBeInTheDocument()
-    expect(
       screen.queryByRole('link', { name: /configurações/i }),
     ).not.toBeInTheDocument()
+  })
+
+  it('renderiza o grupo Inscrições com o subitem Inscrições de Participantes', async () => {
+    const usuario = userEvent.setup()
+    renderMenuLateral()
+    await abrirMenuCompleto(usuario)
+
+    expect(
+      screen.getByRole('button', { name: /^inscrições$/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: /inscrições de participantes/i }),
+    ).toBeInTheDocument()
+  })
+
+  it('navega para /inscricoes-participantes ao clicar em Inscrições de Participantes', async () => {
+    const usuario = userEvent.setup()
+    renderMenuLateral()
+    await abrirMenuCompleto(usuario)
+
+    await usuario.click(
+      screen.getByRole('link', { name: /inscrições de participantes/i }),
+    )
+
+    expect(
+      screen.getByText(/página inscrições de participantes/i),
+    ).toBeInTheDocument()
+  })
+
+  it('expande Inscrições automaticamente na rota de inscrições', async () => {
+    const usuario = userEvent.setup()
+    renderMenuLateral('/inscricoes-participantes')
+    await abrirMenuCompleto(usuario)
+
+    expect(
+      screen.getByRole('button', { name: /^inscrições$/i }),
+    ).toHaveAttribute('aria-expanded', 'true')
+    expect(
+      screen.getByRole('link', { name: /inscrições de participantes/i }),
+    ).toBeInTheDocument()
+  })
+
+  it('alterna a expansão de Inscrições ao clicar no cabeçalho', async () => {
+    const usuario = userEvent.setup()
+    renderMenuLateral('/inicio')
+    await abrirMenuCompleto(usuario)
+
+    const botaoInscricoes = screen.getByRole('button', {
+      name: /^inscrições$/i,
+    })
+    expect(botaoInscricoes).toHaveAttribute('aria-expanded', 'true')
+
+    await usuario.click(botaoInscricoes)
+    expect(botaoInscricoes).toHaveAttribute('aria-expanded', 'false')
+    expect(
+      screen.queryByRole('link', { name: /inscrições de participantes/i }),
+    ).not.toBeInTheDocument()
+
+    await usuario.click(botaoInscricoes)
+    expect(botaoInscricoes).toHaveAttribute('aria-expanded', 'true')
   })
 
   it('navega para /edicoes-programa ao clicar em Cadastro de Edições', async () => {
@@ -388,7 +454,7 @@ describe('MenuLateral', () => {
     await abrirMenuCompleto(usuario)
 
     const navegacao = screen.getByRole('navigation')
-    expect(within(navegacao).getAllByRole('list')).toHaveLength(2)
-    expect(within(navegacao).getAllByRole('listitem')).toHaveLength(4)
+    expect(within(navegacao).getAllByRole('list')).toHaveLength(3)
+    expect(within(navegacao).getAllByRole('listitem')).toHaveLength(6)
   })
 })

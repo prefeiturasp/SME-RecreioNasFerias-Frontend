@@ -20,13 +20,19 @@ vi.mock('../../components/MapaVisual', () => ({
   MapaVisual: () => <nav aria-label="Mapa do site">Mapa visual</nav>,
 }))
 
-const { listarPolosMock, listarDresMock, listarTiposEscolaMock, navegarMock } =
-  vi.hoisted(() => ({
-    listarPolosMock: vi.fn(),
-    listarDresMock: vi.fn(),
-    listarTiposEscolaMock: vi.fn(),
-    navegarMock: vi.fn(),
-  }))
+const {
+  listarPolosMock,
+  listarDresMock,
+  listarTiposEscolaMock,
+  navegarMock,
+  toastMock,
+} = vi.hoisted(() => ({
+  listarPolosMock: vi.fn(),
+  listarDresMock: vi.fn(),
+  listarTiposEscolaMock: vi.fn(),
+  navegarMock: vi.fn(),
+  toastMock: vi.fn(),
+}))
 
 vi.mock('../../services/polo/listarPolos', () => ({
   listarPolos: listarPolosMock,
@@ -38,6 +44,12 @@ vi.mock('../../services/dre/listarDres', () => ({
 
 vi.mock('../../services/tipoEscola/listarTiposEscola', () => ({
   listarTiposEscola: listarTiposEscolaMock,
+}))
+
+vi.mock('@/hooks/useToast', () => ({
+  useToast: () => ({
+    showToast: toastMock,
+  }),
 }))
 
 vi.mock('react-router-dom', async (importOriginal) => {
@@ -100,6 +112,7 @@ function renderPagina() {
 describe('PaginaPolosParceiros', () => {
   beforeEach(() => {
     navegarMock.mockReset()
+    toastMock.mockReset()
     listarPolosMock.mockResolvedValue(listagemPolos)
     listarDresMock.mockResolvedValue([
       {
@@ -247,7 +260,7 @@ describe('PaginaPolosParceiros', () => {
     expect(navegarMock).toHaveBeenCalledWith('/cadastrar-polo-parceiro')
   })
 
-  it('exibe mensagem de sucesso ao retornar do cadastro', () => {
+  it('exibe toast de sucesso ao retornar do cadastro e limpa o estado', async () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     })
@@ -267,8 +280,49 @@ describe('PaginaPolosParceiros', () => {
       </QueryClientProvider>,
     )
 
-    expect(
-      screen.getByText(/polo parceiro cadastrado com sucesso/i),
-    ).toBeInTheDocument()
+    await waitFor(() => {
+      expect(toastMock).toHaveBeenCalledWith({
+        id: 'polo-parceiro-cadastrado',
+        variant: 'success',
+        description: 'Polo Parceiro cadastrado com sucesso!',
+        duration: 3000,
+      })
+    })
+    expect(navegarMock).toHaveBeenCalledWith('/polos-parceiros', {
+      replace: true,
+    })
+  })
+
+  it('exibe toast de sucesso ao retornar da edição e limpa o estado', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter
+          initialEntries={[
+            {
+              pathname: '/polos-parceiros',
+              state: { poloAtualizado: true },
+            },
+          ]}
+        >
+          <PaginaPolosParceiros />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    await waitFor(() => {
+      expect(toastMock).toHaveBeenCalledWith({
+        id: 'polo-parceiro-atualizado',
+        variant: 'success',
+        description: 'Polo Parceiro atualizado com sucesso!',
+        duration: 3000,
+      })
+    })
+    expect(navegarMock).toHaveBeenCalledWith('/polos-parceiros', {
+      replace: true,
+    })
   })
 })

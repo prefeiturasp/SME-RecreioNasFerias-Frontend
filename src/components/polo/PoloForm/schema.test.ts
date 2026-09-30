@@ -35,6 +35,15 @@ describe('PoloForm schema', () => {
     expect(formSchema.safeParse(dadosValidos).success).toBe(true)
   })
 
+  it('rejeita código EOL com letras', () => {
+    expect(
+      mensagensDeErro({
+        ...dadosValidos,
+        codigoEol: '12345a',
+      }),
+    ).toContain('Código EOL deve conter apenas números')
+  })
+
   it('rejeita nome da OSC composto só por espaços', () => {
     expect(
       mensagensDeErro({
@@ -69,6 +78,33 @@ describe('PoloForm schema', () => {
         email: 'email-invalido',
       }),
     ).toContain('Digite um e-mail válido para o gestor.')
+  })
+
+  it('rejeita e-mail vazio', () => {
+    expect(
+      mensagensDeErro({
+        ...dadosValidos,
+        email: '',
+      }),
+    ).toContain('E-mail do polo é obrigatório')
+  })
+
+  it('rejeita telefone vazio', () => {
+    expect(
+      mensagensDeErro({
+        ...dadosValidos,
+        telefone: '',
+      }),
+    ).toContain('Telefone do polo é obrigatório')
+  })
+
+  it('aceita telefone com 8 dígitos retornado pela unidade', () => {
+    expect(
+      formSchema.safeParse({
+        ...dadosValidos,
+        telefone: '59742587',
+      }).success,
+    ).toBe(true)
   })
 
   it('rejeita CEP incompleto', () => {

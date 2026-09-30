@@ -5,7 +5,8 @@ const formSchema = z.object({
     .string()
     .trim()
     .min(6, 'Código EOL é obrigatório e não pode ser menor que 6 caracteres')
-    .max(7, 'Código EOL não pode ser maior que 7 caracteres'),
+    .max(7, 'Código EOL não pode ser maior que 7 caracteres')
+    .regex(/^\d+$/, 'Código EOL deve conter apenas números'),
   nomeOsc: z.string().trim().min(1, 'Nome da OSC é obrigatório'),
   nomePolo: z.string().trim().min(1, 'Nome do polo é obrigatório'),
   dreNome: z.string().trim().min(1, 'DRE é obrigatória'),
@@ -33,17 +34,17 @@ const formSchema = z.object({
   complemento: z.string(),
   nomeGestor: z.string().trim().min(1, 'Nome do gestor é obrigatório'),
   email: z
-    .email({
-      error: 'Digite um e-mail válido para o gestor.',
-    })
+    .string()
     .trim()
-    .toLowerCase(),
+    .min(1, 'E-mail do polo é obrigatório')
+    .toLowerCase()
+    .pipe(z.email({ error: 'Digite um e-mail válido para o gestor.' })),
   telefone: z
     .string()
     .trim()
     .min(1, 'Telefone do polo é obrigatório')
     .regex(
-      /^(?:\d{10}|\d{11}|\(\d{2}\) \d{4,5}-\d{4})$/,
+      /^(?:\d{8,11}|\(\d{2}\) \d{4,5}-\d{4})$/,
       'Informe um telefone válido para o polo.',
     ),
   status: z.enum(['ativo', 'inativo'], {

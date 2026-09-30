@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { queryClient } from '@/lib/queryClient'
 import { DefinicaoPolosConteudo } from './index'
@@ -8,10 +9,12 @@ import { DefinicaoPolosConteudo } from './index'
 vi.mock('@/components/definicaoPolo/DefinicaoPolosListagem', () => ({
   DefinicaoPolosListagem: ({
     filtros,
+    onVisualizarPolo,
     onAlterarEdicaoPolo,
     onAlterarTipoPolo,
   }: {
     filtros?: { gestao?: string }
+    onVisualizarPolo: (definicaoUuid: string) => void
     onAlterarEdicaoPolo: (idsPolos: string[]) => void
     onAlterarTipoPolo: (
       polos: { polo_uuid: string; edicao_uuid: string | null }[],
@@ -22,6 +25,9 @@ vi.mock('@/components/definicaoPolo/DefinicaoPolosListagem', () => ({
       <span data-testid="filtros-aplicados-gestao">
         {filtros?.gestao ?? ''}
       </span>
+      <button type="button" onClick={() => onVisualizarPolo('def-1')}>
+        Simular visualizar
+      </button>
       <button type="button" onClick={() => onAlterarEdicaoPolo(['polo-1'])}>
         Simular alterar edição
       </button>
@@ -115,8 +121,21 @@ vi.mock('@/services/tipoEscola/listarTiposEscola', async (importOriginal) => {
 
 const invalidarQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries')
 
+const { navegarMock } = vi.hoisted(() => ({
+  navegarMock: vi.fn(),
+}))
+
+vi.mock('react-router-dom', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router-dom')>()
+
+  return {
+    ...actual,
+    useNavigate: () => navegarMock,
+  }
+})
+
 function renderConteudo() {
-  const queryClient = new QueryClient({
+  const queryClientLocal = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
       mutations: { retry: false },
@@ -124,8 +143,10 @@ function renderConteudo() {
   })
 
   return render(
-    <QueryClientProvider client={queryClient}>
-      <DefinicaoPolosConteudo />
+    <QueryClientProvider client={queryClientLocal}>
+      <MemoryRouter>
+        <DefinicaoPolosConteudo />
+      </MemoryRouter>
     </QueryClientProvider>,
   )
 }
@@ -138,6 +159,7 @@ async function esperarConteudoPronto() {
 
 describe('DefinicaoPolosConteudo', () => {
   beforeEach(() => {
+    navegarMock.mockReset()
     vincularEmMassaMock.mockReset()
     alterarTipoEmMassaMock.mockReset()
     listarEdicoesProgramaMock.mockReset()
@@ -195,6 +217,19 @@ describe('DefinicaoPolosConteudo', () => {
         .getByText(/listagem de definição de polos/i)
         .closest('div.flex.flex-col'),
     ).toHaveClass('gap-4', 'bg-white', 'p-4')
+  })
+
+  it('navega para o detalhamento ao visualizar definição', async () => {
+    const usuario = userEvent.setup()
+
+    renderConteudo()
+    await esperarConteudoPronto()
+
+    await usuario.click(
+      screen.getByRole('button', { name: /^simular visualizar$/i }),
+    )
+
+    expect(navegarMock).toHaveBeenCalledWith('/definicoes-polo/def-1')
   })
 
   it('aplica filtro de gestão Parceira ao filtrar', async () => {
