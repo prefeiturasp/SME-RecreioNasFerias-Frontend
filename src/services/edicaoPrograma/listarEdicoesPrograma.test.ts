@@ -20,6 +20,8 @@ const itemListagemExemplo: EdicaoPrograma = {
   quantidade_atendimento_efetivo: 0,
   quantidade_passeios: 0,
   quantidade_apresentacoes: 0,
+  status: 'ativo',
+  status_label: 'Ativo',
 }
 
 describe('listarEdicoesPrograma', () => {
@@ -30,7 +32,9 @@ describe('listarEdicoesPrograma', () => {
   it('envia GET sem paginação e devolve o array da API', async () => {
     apiGetMock.mockResolvedValue({ data: [itemListagemExemplo] })
 
-    await expect(listarEdicoesPrograma()).resolves.toEqual([itemListagemExemplo])
+    await expect(listarEdicoesPrograma()).resolves.toEqual([
+      itemListagemExemplo,
+    ])
 
     expect(apiGetMock).toHaveBeenCalledTimes(1)
     expect(apiGetMock).toHaveBeenCalledWith('/api/v1/edicoes/')
