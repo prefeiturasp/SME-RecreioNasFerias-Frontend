@@ -106,11 +106,11 @@ export function InformacoesBasicas({
             name="codigoEol"
             label={
               <>
-                <span className="text-destructive">*</span> Código EOL
+                <span className="text-destructive">*</span> Consultar por código
+                EOL
               </>
             }
             placeholder="Código EOL"
-            buscaInterna
             buscarAoSair
             isLoading={consultandoCodigoEol}
             onSearch={onBuscarCodigoEol}

@@ -229,7 +229,7 @@ describe('ParticipanteForm', () => {
     const codigoEol = screen.getByRole('textbox', { name: /código eol/i })
     expect(codigoEol).not.toHaveAttribute('readonly')
     expect(codigoEol).toHaveAttribute('placeholder', 'Código EOL')
-    expect(codigoEol).toHaveClass('pl-9')
+    expect(codigoEol).not.toHaveClass('pl-9')
     expect(
       screen.getByRole('button', { name: /consultar código eol/i }),
     ).toBeEnabled()
