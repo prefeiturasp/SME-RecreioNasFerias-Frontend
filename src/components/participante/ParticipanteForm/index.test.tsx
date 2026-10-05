@@ -230,6 +230,11 @@ describe('ParticipanteForm', () => {
     expect(codigoEol).not.toHaveAttribute('readonly')
     expect(codigoEol).toHaveAttribute('placeholder', 'Código EOL')
     expect(codigoEol).not.toHaveClass('pl-9')
+    expect(codigoEol.parentElement).toHaveClass(
+      'overflow-hidden',
+      'rounded-sm',
+      'border',
+    )
     expect(
       screen.getByRole('button', { name: /consultar código eol/i }),
     ).toBeEnabled()

@@ -81,10 +81,11 @@ export function FormFieldEol<
       name={name}
       control={control}
       render={({ field, fieldState }) => {
-        let inputClassName = 'h-10 rounded-sm border-input-border-muted'
+        let inputClassName =
+          'h-full! w-auto! min-w-0 flex-1 rounded-none! border-0! bg-transparent px-3 shadow-none focus-visible:border-transparent focus-visible:ring-0!'
         if (readOnly) {
           inputClassName =
-            'h-10 cursor-not-allowed rounded-sm border-input-border-muted bg-input-disabled-bg text-placeholder'
+            'h-full! w-auto! min-w-0 flex-1 cursor-not-allowed rounded-none! border-0! bg-input-disabled-bg px-3 text-placeholder shadow-none focus-visible:border-transparent focus-visible:ring-0!'
         } else if (buscaInterna) {
           inputClassName = 'h-10 rounded-sm border-input-border-muted pl-9'
         }
@@ -94,7 +95,13 @@ export function FormFieldEol<
             <FieldLabel htmlFor={String(name)} className={labelClassName}>
               {label}
             </FieldLabel>
-            <div className={buscaInterna ? 'relative' : 'flex gap-2'}>
+            <div
+              className={
+                buscaInterna
+                  ? 'relative'
+                  : 'flex h-10 overflow-hidden rounded-sm border border-input-border-muted focus-within:border-ring'
+              }
+            >
               {buscaInterna ? (
                 <Button
                   type="button"
@@ -147,7 +154,7 @@ export function FormFieldEol<
                   type="button"
                   size="icon"
                   aria-label={rotuloAcao}
-                  className="h-10 w-10 shrink-0 rounded-sm p-1.5!"
+                  className="h-full! w-10! shrink-0 rounded-none! border-0! p-1.5!"
                   disabled={readOnly || isLoading}
                   onMouseDown={handleMouseDown}
                   onClick={() => {
