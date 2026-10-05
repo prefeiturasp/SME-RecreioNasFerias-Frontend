@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { extrairDigitos } from '@/utils/mascarasEntrada'
 import { SearchIcon } from 'lucide-react'
-import React, { type KeyboardEvent, type ReactNode } from 'react'
+import React, { type KeyboardEvent, type MouseEvent, type ReactNode } from 'react'
 import {
   Controller,
   type Control,
@@ -26,6 +26,7 @@ export type FormFieldEolProps<
   readOnly?: boolean
   labelClassName?: string
   buscaInterna?: boolean
+  buscarAoSair?: boolean
   maxLength?: number
   rotuloBusca?: string
 }
@@ -58,6 +59,7 @@ export function FormFieldEol<
   readOnly = false,
   labelClassName = 'font-bold',
   buscaInterna = false,
+  buscarAoSair = false,
   maxLength = 7,
   rotuloBusca = 'código EOL',
 }: Readonly<FormFieldEolProps<TFieldValues, TName>>): React.JSX.Element {
@@ -69,6 +71,9 @@ export function FormFieldEol<
 
     evento.preventDefault()
     onSearch?.(evento.currentTarget.value)
+  }
+  const handleMouseDown = (evento: MouseEvent<HTMLButtonElement>) => {
+    if (buscarAoSair) evento.preventDefault()
   }
 
   return (
@@ -98,6 +103,7 @@ export function FormFieldEol<
                   aria-label={rotuloAcao}
                   className="absolute top-1/2 left-1 z-10 size-8 -translate-y-1/2 text-muted-foreground hover:bg-transparent"
                   disabled={readOnly || isLoading}
+                  onMouseDown={handleMouseDown}
                   onClick={() => {
                     if (readOnly) return
                     onSearch?.(field.value)
@@ -130,6 +136,11 @@ export function FormFieldEol<
                   onChange?.(valor)
                 }}
                 onKeyDown={handleKeyDown}
+                onBlur={() => {
+                  field.onBlur()
+                  if (readOnly || !buscarAoSair || !field.value) return
+                  onSearch?.(field.value)
+                }}
               />
               {buscaInterna ? null : (
                 <Button
@@ -138,6 +149,7 @@ export function FormFieldEol<
                   aria-label={rotuloAcao}
                   className="h-10 w-10 shrink-0 rounded-sm p-1.5!"
                   disabled={readOnly || isLoading}
+                  onMouseDown={handleMouseDown}
                   onClick={() => {
                     if (readOnly) return
                     onSearch?.(field.value)

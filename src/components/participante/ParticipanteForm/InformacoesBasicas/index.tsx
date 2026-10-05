@@ -1,10 +1,11 @@
 import { useMemo } from 'react'
-import type { Control } from 'react-hook-form'
+import { useWatch, type Control } from 'react-hook-form'
 import type { FormValues } from '../schema'
 
 import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { FormField } from '@/components/ui/form-field'
 import { FormFieldEol } from '@/components/ui/form-field-eol'
+import { formatarDataBr } from '@/lib/formatarPeriodo'
 import type { Dre } from '@/services/dre/types'
 import type { OpcaoChoice, PoloElegivel } from '@/services/inscricao/types'
 
@@ -47,6 +48,7 @@ export function InformacoesBasicas({
   aoMudarGrupo,
   aoMudarDre,
 }: Readonly<InformacoesBasicasProps>) {
+  const dataNascimento = useWatch({ control, name: 'dataNascimento' })
   const rotuloTipoEstudante = useMemo(
     () =>
       tiposEstudante.find((opcao) => opcao.value === tipoEstudante)?.label ??
@@ -109,6 +111,7 @@ export function InformacoesBasicas({
             }
             placeholder="Código EOL"
             buscaInterna
+            buscarAoSair
             isLoading={consultandoCodigoEol}
             onSearch={onBuscarCodigoEol}
             onChange={aoMudarCodigoEol}
@@ -149,6 +152,7 @@ export function InformacoesBasicas({
             }
             placeholder="DD/MM/AAAA"
             readOnly
+            valorExibicao={formatarDataBr(dataNascimento)}
           />
           <FormField
             control={control}

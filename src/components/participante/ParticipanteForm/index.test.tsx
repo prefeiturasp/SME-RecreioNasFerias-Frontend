@@ -422,6 +422,7 @@ describe('ParticipanteForm', () => {
     )
 
     await waitFor(() => {
+      expect(obterParticipanteEolMock).toHaveBeenCalledTimes(1)
       expect(obterParticipanteEolMock).toHaveBeenCalledWith(
         '123456',
         expect.anything(),
@@ -431,7 +432,7 @@ describe('ParticipanteForm', () => {
       ).toHaveValue('ANNA JULIA ARAUJO SA')
     })
     expect(screen.getByLabelText(/data de nascimento/i)).toHaveValue(
-      '2013-10-16',
+      '16/10/2013',
     )
     expect(screen.getByLabelText(/nome completo do responsável/i)).toHaveValue(
       'SAMARA LIMA ARAUJO',
@@ -451,6 +452,32 @@ describe('ParticipanteForm', () => {
     expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue('ana@email.com')
     expect(screen.getByRole('textbox', { name: /\bcpf\b/i })).toHaveValue('123')
     expect(screen.getByLabelText(/\bdre\b/i)).toHaveTextContent('DRE Butantã')
+  })
+
+  it('consulta o código EOL ao sair do campo', async () => {
+    const usuario = userEvent.setup()
+    obterParticipanteEolMock.mockResolvedValue(participanteEolExemplo)
+    renderFormulario()
+
+    await escolherGrupo(usuario, 'Berçário I')
+    const codigoEol = screen.getByRole('textbox', { name: /código eol/i })
+    await usuario.click(codigoEol)
+    await usuario.tab()
+    expect(obterParticipanteEolMock).not.toHaveBeenCalled()
+
+    await usuario.type(codigoEol, '123456')
+    await usuario.tab()
+
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText(/nome completo do\(a\) participante/i),
+      ).toHaveValue('ANNA JULIA ARAUJO SA')
+    })
+    expect(obterParticipanteEolMock).toHaveBeenCalledTimes(1)
+    expect(obterParticipanteEolMock).toHaveBeenCalledWith(
+      '123456',
+      expect.anything(),
+    )
   })
 
   it('exibe o detalhe quando a consulta do código EOL falha', async () => {
