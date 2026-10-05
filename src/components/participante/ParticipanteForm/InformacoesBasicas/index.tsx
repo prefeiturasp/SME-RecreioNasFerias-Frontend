@@ -20,7 +20,9 @@ type InformacoesBasicasProps = {
   tiposEstudante: OpcaoChoice[]
   grupos: OpcaoChoice[]
   erro?: unknown
+  consultandoCodigoEol?: boolean
   onBuscarCodigoEol?: (codigoEol: string) => void
+  aoMudarCodigoEol?: (codigoEol: string) => void
   onBuscarCpf?: (cpf: string) => void
   aoMudarGrupo?: (valor: string) => void
   aoMudarDre?: (valor: string) => void
@@ -38,7 +40,9 @@ export function InformacoesBasicas({
   tiposEstudante,
   grupos,
   erro,
+  consultandoCodigoEol = false,
   onBuscarCodigoEol,
+  aoMudarCodigoEol,
   onBuscarCpf,
   aoMudarGrupo,
   aoMudarDre,
@@ -105,7 +109,9 @@ export function InformacoesBasicas({
             }
             placeholder="Código EOL"
             buscaInterna
+            isLoading={consultandoCodigoEol}
             onSearch={onBuscarCodigoEol}
+            onChange={aoMudarCodigoEol}
           />
           <FormFieldEol
             control={control}
