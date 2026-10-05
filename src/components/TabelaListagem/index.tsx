@@ -150,15 +150,16 @@ export function TabelaListagem<T>({
   renderizarBarraSelecao,
   mensagemVazia = 'Sem dados',
 }: Readonly<TabelaListagemProps<T>>) {
-  const [colunaOrdenacao, setColunaOrdenacao] = useState(
-    colunaOrdenacaoInicial ?? colunas[0]?.id ?? '',
+  const [colunaOrdenacao, setColunaOrdenacao] = useState<string | undefined>(
+    colunaOrdenacaoInicial,
   )
   const [direcaoOrdenacao, setDirecaoOrdenacao] =
     useState<DirecaoOrdenacao>('asc')
 
   const itensOrdenados = useMemo(() => {
-    const definicaoColuna =
-      colunas.find((coluna) => coluna.id === colunaOrdenacao) ?? colunas[0]
+    const definicaoColuna = colunas.find(
+      (coluna) => coluna.id === colunaOrdenacao,
+    )
 
     if (!definicaoColuna) {
       return itens

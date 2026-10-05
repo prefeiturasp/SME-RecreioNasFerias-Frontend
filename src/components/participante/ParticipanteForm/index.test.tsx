@@ -101,7 +101,7 @@ async function escolherGrupo(
   usuario: ReturnType<typeof userEvent.setup>,
   rotulo: string,
 ) {
-  await usuario.click(await screen.findByLabelText(/grupo/i))
+  await usuario.click(await screen.findByLabelText(/agrupamento/i))
   await usuario.click(
     await screen.findByRole('option', { name: new RegExp(`^${rotulo}$`) }),
   )
@@ -142,11 +142,13 @@ describe('ParticipanteForm', () => {
     })
 
     expect(basicas).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByLabelText(/grupo/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/agrupamento/i)).toBeInTheDocument()
     expect(
       screen.queryByLabelText(/tipo de estudante/i),
     ).not.toBeInTheDocument()
-    expect(screen.queryByRole('textbox', { name: /código eol/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('textbox', { name: /código eol/i }),
+    ).not.toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: /informações por grupo/i }),
     ).not.toBeInTheDocument()
@@ -403,14 +405,18 @@ describe('ParticipanteForm', () => {
     expect(screen.getByLabelText(/tipo de estudante/i)).toHaveTextContent(
       'Selecione o tipo de estudante',
     )
-    expect(screen.queryByRole('textbox', { name: /código eol/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('textbox', { name: /código eol/i }),
+    ).not.toBeInTheDocument()
 
     await usuario.click(screen.getByLabelText(/tipo de estudante/i))
     await usuario.click(
       screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
     )
 
-    expect(screen.getByRole('textbox', { name: /código eol/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('textbox', { name: /código eol/i }),
+    ).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: /informações por grupo/i }),
     ).not.toBeInTheDocument()
@@ -428,7 +434,9 @@ describe('ParticipanteForm', () => {
     await usuario.click(
       screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
     )
-    expect(screen.getByRole('textbox', { name: /código eol/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('textbox', { name: /código eol/i }),
+    ).toBeInTheDocument()
 
     await escolherGrupo(usuario, 'Berçário I')
 
@@ -441,7 +449,9 @@ describe('ParticipanteForm', () => {
     expect(screen.getByLabelText(/tipo de estudante/i)).toHaveTextContent(
       'Selecione o tipo de estudante',
     )
-    expect(screen.queryByRole('textbox', { name: /código eol/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('textbox', { name: /código eol/i }),
+    ).not.toBeInTheDocument()
   })
 
   it('salva o rascunho incompleto e recusa e-mail inválido', async () => {
