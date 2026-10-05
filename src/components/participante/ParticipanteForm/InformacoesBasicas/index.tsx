@@ -58,7 +58,7 @@ export function InformacoesBasicas({
         name="grupo"
         label={
           <>
-            <span className="text-destructive">*</span> Grupo
+            <span className="text-destructive">*</span> Agrupamento
           </>
         }
         type="select"
