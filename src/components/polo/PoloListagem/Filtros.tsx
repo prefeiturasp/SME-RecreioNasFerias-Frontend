@@ -12,20 +12,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import type { Dre } from '@/services/dre/types'
+import { usePoloParceiroStore } from '@/stores/filtroPolosParceirosStore'
+import { useShallow } from 'zustand/react/shallow'
 
-type FiltrosProps = {
-  valores: FiltrosPolo
-  onChange: (valores: FiltrosPolo) => void
-  onFiltrar: () => void
-  onLimpar: () => void
-}
-
-export function Filtros({
-  valores,
-  onChange,
-  onFiltrar,
-  onLimpar,
-}: Readonly<FiltrosProps>) {
+export function Filtros() {
   const {
     data: dres,
     isLoading: carregandoDres,
@@ -38,8 +28,18 @@ export function Filtros({
     isError: erroTiposEscola,
   } = useGetTiposEscola()
 
+  const { filtros, definirFiltros, aplicarFiltros, limparFiltros } =
+    usePoloParceiroStore(
+      useShallow((estado) => ({
+        filtros: estado.filtros,
+        definirFiltros: estado.definirFiltros,
+        aplicarFiltros: estado.aplicarFiltros,
+        limparFiltros: estado.limparFiltros,
+      })),
+    )
+
   function atualizarCampo(campo: keyof FiltrosPolo, valor: string) {
-    onChange({ ...valores, [campo]: valor })
+    definirFiltros({ ...filtros, [campo]: valor })
   }
 
   return (
@@ -50,7 +50,7 @@ export function Filtros({
             Filtrar por DRE
           </Label>
           <Select
-            value={valores.dre_codigo_eol}
+            value={filtros.dre_codigo_eol}
             onValueChange={(valor) => atualizarCampo('dre_codigo_eol', valor)}
           >
             <SelectTrigger
@@ -90,7 +90,7 @@ export function Filtros({
           </Label>
 
           <Select
-            value={valores.tipo_ue}
+            value={filtros.tipo_ue}
             onValueChange={(valor) => atualizarCampo('tipo_ue', valor)}
           >
             <SelectTrigger
@@ -133,17 +133,17 @@ export function Filtros({
             type="search"
             placeholder="Digite nome do Polo ou da OSC"
             className="h-10! rounded-sm border-input-border-muted"
-            value={valores.busca}
+            value={filtros.busca}
             onChange={(evento) => atualizarCampo('busca', evento.target.value)}
           />
         </div>
       </div>
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onLimpar}>
+        <Button type="button" variant="outline" onClick={limparFiltros}>
           Limpar Filtros
         </Button>
-        <Button type="button" variant="default" onClick={onFiltrar}>
+        <Button type="button" variant="default" onClick={aplicarFiltros}>
           Filtrar
         </Button>
       </div>
