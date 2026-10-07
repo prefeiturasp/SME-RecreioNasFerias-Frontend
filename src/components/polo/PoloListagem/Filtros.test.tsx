@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
-import type { FiltrosPolo } from '@/constants/filtroPolos'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { FILTROS_POLO_INICIAIS } from '@/constants/filtroPolos'
+import { usePoloParceiroStore } from '@/stores/filtroPolosParceirosStore'
 import { Filtros } from './Filtros'
 
 const { useGetDresMock, useGetTiposEscolaMock } = vi.hoisted(() => ({
@@ -19,29 +20,8 @@ const dres = [
 
 const tiposEscola = [{ codigo: 1, descricao_sigla: 'EMEF' }]
 
-const valoresIniciais: FiltrosPolo = {
-  busca: '',
-  dre_codigo_eol: '',
-  tipo_ue: '',
-}
-
-function renderFiltros(
-  sobrescritas: Partial<{
-    valores: FiltrosPolo
-    onChange: (valores: FiltrosPolo) => void
-    onFiltrar: () => void
-    onLimpar: () => void
-  }> = {},
-) {
-  return render(
-    <Filtros
-      valores={valoresIniciais}
-      onChange={vi.fn()}
-      onFiltrar={vi.fn()}
-      onLimpar={vi.fn()}
-      {...sobrescritas}
-    />,
-  )
+function renderFiltros() {
+  return render(<Filtros />)
 }
 
 vi.mock('@/hooks/useGetDres', () => ({
@@ -54,6 +34,7 @@ vi.mock('@/hooks/useGetTiposEscola', () => ({
 
 describe('Filtros de polos', () => {
   beforeEach(() => {
+    usePoloParceiroStore.getState().limparFiltros()
     useGetDresMock.mockReturnValue({
       data: dres,
       isLoading: false,
@@ -90,29 +71,31 @@ describe('Filtros de polos', () => {
 
   it('notifica alterações nos campos e os comandos do filtro', async () => {
     const usuario = userEvent.setup()
-    const onChange = vi.fn()
-    const onFiltrar = vi.fn()
-    const onLimpar = vi.fn()
-    renderFiltros({ onChange, onFiltrar, onLimpar })
+    renderFiltros()
 
     await usuario.type(screen.getByLabelText(/filtrar por nome/i), 'Polo Teste')
-    expect(onChange).toHaveBeenLastCalledWith({
-      ...valoresIniciais,
-      busca: 'e',
+    expect(usePoloParceiroStore.getState().filtros).toEqual({
+      ...FILTROS_POLO_INICIAIS,
+      busca: 'Polo Teste',
     })
 
     await usuario.click(screen.getByLabelText(/filtrar por dre/i))
     await usuario.click(await screen.findByRole('option', { name: /butanta/i }))
-    expect(onChange).toHaveBeenLastCalledWith({
-      ...valoresIniciais,
+    expect(usePoloParceiroStore.getState().filtros).toEqual({
+      busca: 'Polo Teste',
       dre_codigo_eol: '108100',
+      tipo_ue: '',
     })
 
     await usuario.click(screen.getByRole('button', { name: 'Filtrar' }))
     await usuario.click(screen.getByRole('button', { name: 'Limpar Filtros' }))
 
-    expect(onFiltrar).toHaveBeenCalledOnce()
-    expect(onLimpar).toHaveBeenCalledOnce()
+    expect(usePoloParceiroStore.getState().filtrosAplicados).toEqual(
+      FILTROS_POLO_INICIAIS,
+    )
+    expect(usePoloParceiroStore.getState().filtros).toEqual(
+      FILTROS_POLO_INICIAIS,
+    )
   })
 
   it('exibe a opção de carregamento das DREs', async () => {
