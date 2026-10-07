@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { grupoExigeEstudanteDaRede, TIPO_ESTUDANTE_REDE } from './constantes'
@@ -12,23 +12,40 @@ import { BlocoTexto } from '@/components/BlocoTexto'
 import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
 import { useGetDres } from '@/hooks/useGetDres'
+import { useGetParticipanteEol } from '@/hooks/useGetParticipanteEol'
 import { useGetPolosElegiveis } from '@/hooks/useGetPolosElegiveis'
 import { useGetValoresChoices } from '@/hooks/useGetValoresChoices'
 import { usePostInscricao } from '@/hooks/usePostInscricao'
 import { useToast } from '@/hooks/useToast'
 
+const CAMPOS_DO_PARTICIPANTE_VAZIOS = {
+  nomeCompleto: '',
+  dataNascimento: '',
+  nomeResponsavel: '',
+  nomeSocialResponsavel: '',
+  cep: '',
+  logradouro: '',
+  numero: '',
+  complemento: '',
+  bairro: '',
+  cidade: '',
+  telefone1: '',
+  telefone2: '',
+  email: '',
+}
+
 type ParticipanteFormProps = {
-  onBuscarCodigoEol?: (codigoEol: string) => void
   onBuscarCpf?: (cpf: string) => void
 }
 
-export function ParticipanteForm({
-  onBuscarCodigoEol,
-  onBuscarCpf,
-}: ParticipanteFormProps = {}) {
+export function ParticipanteForm({ onBuscarCpf }: ParticipanteFormProps = {}) {
   const navigate = useNavigate()
   const { showToast } = useToast()
   const cadastroMutation = usePostInscricao()
+  const consultaParticipante = useGetParticipanteEol()
+  const [codigoEolSincronizado, setCodigoEolSincronizado] = useState<
+    string | null
+  >(null)
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -87,6 +104,58 @@ export function ParticipanteForm({
     form.setValue('polo', '')
   }
 
+  function limparCamposDoParticipante(codigoEol = form.getValues('codigoEol')) {
+    form.reset({
+      ...form.getValues(),
+      ...CAMPOS_DO_PARTICIPANTE_VAZIOS,
+      codigoEol,
+    })
+    setCodigoEolSincronizado(null)
+  }
+
+  function consultarParticipante(codigoEol: string) {
+    consultaParticipante.mutate(codigoEol, {
+      onSuccess: (participante) => {
+        form.reset({
+          ...form.getValues(),
+          codigoEol: participante.codigo_eol,
+          nomeCompleto: participante.nome_participante,
+          dataNascimento: participante.data_nascimento,
+          nomeResponsavel: participante.responsavel_nome,
+          nomeSocialResponsavel: participante.responsavel_nome_social,
+          cep: participante.cep,
+          logradouro: participante.logradouro,
+          numero: participante.numero,
+          complemento: participante.complemento,
+          bairro: participante.bairro,
+          cidade: participante.cidade,
+          telefone1: participante.telefone_contato_1,
+          telefone2: participante.telefone_contato_2,
+          email: participante.email,
+        })
+        setCodigoEolSincronizado(participante.codigo_eol)
+      },
+      onError: () => {
+        limparCamposDoParticipante()
+      },
+    })
+  }
+
+  function aoMudarCodigoEol(valor: string) {
+    const codigoAlteradoAposConsulta =
+      codigoEolSincronizado !== null && valor !== codigoEolSincronizado
+
+    if (codigoAlteradoAposConsulta) {
+      limparCamposDoParticipante(valor)
+      consultaParticipante.reset()
+      return
+    }
+
+    if (consultaParticipante.isError) {
+      consultaParticipante.reset()
+    }
+  }
+
   function salvar(dados: FormValues) {
     if (cadastroMutation.isError) {
       cadastroMutation.reset()
@@ -138,12 +207,15 @@ export function ParticipanteForm({
               tiposEstudante={tiposEstudante}
               grupos={grupos}
               erro={
+                consultaParticipante.error ??
                 cadastroMutation.error ??
                 dresQuery.error ??
                 polosQuery.error ??
                 choicesQuery.error
               }
-              onBuscarCodigoEol={onBuscarCodigoEol}
+              consultandoCodigoEol={consultaParticipante.isPending}
+              onBuscarCodigoEol={consultarParticipante}
+              aoMudarCodigoEol={aoMudarCodigoEol}
               onBuscarCpf={onBuscarCpf}
               aoMudarGrupo={aoMudarGrupo}
               aoMudarDre={aoMudarDre}
