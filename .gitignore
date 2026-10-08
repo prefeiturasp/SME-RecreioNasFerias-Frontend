@@ -21,6 +21,7 @@ coverage
 
 # Editor directories and files
 .vscode/
+.vscode/*
 .idea
 .DS_Store
 Thumbs.db
@@ -38,5 +39,3 @@ test-results
 playwright-report
 
 _material
-
-.vscode/*
