@@ -4,16 +4,15 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { queryClient } from '@/lib/queryClient'
+import { useDefinicaoPoloStore } from '@/stores/filtroDefinicaoPolosStore'
 import { DefinicaoPolosConteudo } from './index'
 
 vi.mock('@/components/definicaoPolo/DefinicaoPolosListagem', () => ({
   DefinicaoPolosListagem: ({
-    filtros,
     onVisualizarPolo,
     onAlterarEdicaoPolo,
     onAlterarTipoPolo,
   }: {
-    filtros?: { gestao?: string }
     onVisualizarPolo: (definicaoUuid: string) => void
     onAlterarEdicaoPolo: (idsPolos: string[]) => void
     onAlterarTipoPolo: (
@@ -23,7 +22,7 @@ vi.mock('@/components/definicaoPolo/DefinicaoPolosListagem', () => ({
     <div>
       <div>Listagem de definição de polos</div>
       <span data-testid="filtros-aplicados-gestao">
-        {filtros?.gestao ?? ''}
+        {useDefinicaoPoloStore((estado) => estado.filtrosAplicados.gestao)}
       </span>
       <button type="button" onClick={() => onVisualizarPolo('def-1')}>
         Simular visualizar
@@ -159,6 +158,7 @@ async function esperarConteudoPronto() {
 
 describe('DefinicaoPolosConteudo', () => {
   beforeEach(() => {
+    useDefinicaoPoloStore.getState().limparFiltros()
     navegarMock.mockReset()
     vincularEmMassaMock.mockReset()
     alterarTipoEmMassaMock.mockReset()

@@ -196,14 +196,14 @@ describe('PaginaPolosParceiros', () => {
     await usuario.click(screen.getByRole('button', { name: /^filtrar$/i }))
 
     await waitFor(() => {
-      expect(listarPolosMock).toHaveBeenLastCalledWith(
-        '',
-        '108100',
-        '',
-        1,
-        10,
-        'parceira',
-      )
+      expect(listarPolosMock).toHaveBeenLastCalledWith({
+        busca: '',
+        dre_codigo_eol: '108100',
+        tipo_ue: '',
+        pagina: 1,
+        page_size: 10,
+        gestao: 'parceira',
+      })
     })
   })
 
@@ -225,14 +225,14 @@ describe('PaginaPolosParceiros', () => {
     expect(screen.getByLabelText(/filtrar por tipo de ue/i)).toHaveValue('')
 
     await waitFor(() => {
-      expect(listarPolosMock).toHaveBeenLastCalledWith(
-        '',
-        '',
-        '',
-        1,
-        10,
-        'parceira',
-      )
+      expect(listarPolosMock).toHaveBeenLastCalledWith({
+        busca: '',
+        dre_codigo_eol: '',
+        tipo_ue: '',
+        pagina: 1,
+        page_size: 10,
+        gestao: 'parceira',
+      })
     })
   })
 

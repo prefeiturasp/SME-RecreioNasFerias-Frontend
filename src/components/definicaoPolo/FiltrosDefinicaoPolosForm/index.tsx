@@ -12,34 +12,33 @@ import {
   type FiltrosListagemDefinicaoPolos,
 } from '@/services/definicaoPolo/types'
 import { CampoFiltroSelect } from './CampoFiltroSelect'
-
-type FiltrosDefinicaoPolosFormProps = {
-  valores: FiltrosListagemDefinicaoPolos
-  onChange: (filtros: FiltrosListagemDefinicaoPolos) => void
-  onFiltrar: () => void
-  onLimpar: () => void
-}
+import { useDefinicaoPoloStore } from '@/stores/filtroDefinicaoPolosStore'
+import { useShallow } from 'zustand/react/shallow'
 
 const OPCOES_GESTAO = [
   { valor: 'direta', rotulo: 'Direta' },
   { valor: 'parceira', rotulo: 'Parceira' },
 ] as const
 
-export function FiltrosDefinicaoPolosForm({
-  valores,
-  onChange,
-  onFiltrar,
-  onLimpar,
-}: Readonly<FiltrosDefinicaoPolosFormProps>) {
+export function FiltrosDefinicaoPolosForm() {
   const dresQuery = useGetDres()
   const tiposEscolaQuery = useGetTiposEscola()
   const edicoesQuery = useGetEdicoesPrograma()
+  const { filtros, definirFiltros, aplicarFiltros, limparFiltros } =
+    useDefinicaoPoloStore(
+      useShallow((estado) => ({
+        filtros: estado.filtros,
+        definirFiltros: estado.definirFiltros,
+        aplicarFiltros: estado.aplicarFiltros,
+        limparFiltros: estado.limparFiltros,
+      })),
+    )
 
   function atualizarCampo(
     campo: keyof FiltrosListagemDefinicaoPolos,
     valor: string,
   ) {
-    onChange({ ...valores, [campo]: valor })
+    definirFiltros({ ...filtros, [campo]: valor })
   }
 
   return (
@@ -50,8 +49,8 @@ export function FiltrosDefinicaoPolosForm({
             id="filtro-dre"
             rotulo="Filtrar por DRE"
             placeholder="Selecione a DRE"
-            valor={valores.dre}
-            onValorChange={(valor) => atualizarCampo('dre', valor)}
+            valor={filtros.dre_codigos_eol}
+            onValorChange={(valor) => atualizarCampo('dre_codigos_eol', valor)}
           >
             {dresQuery.isLoading && (
               <SelectItem value="loading" disabled>
@@ -76,8 +75,8 @@ export function FiltrosDefinicaoPolosForm({
             id="filtro-tipo-ue"
             rotulo="Filtrar por Tipo de UE"
             placeholder="Selecione o Tipo de UE"
-            valor={valores.tipoUe}
-            onValorChange={(valor) => atualizarCampo('tipoUe', valor)}
+            valor={filtros.tipo_ue}
+            onValorChange={(valor) => atualizarCampo('tipo_ue', valor)}
           >
             {tiposEscolaQuery.isLoading && (
               <SelectItem value="loading" disabled>
@@ -107,9 +106,9 @@ export function FiltrosDefinicaoPolosForm({
               type="search"
               placeholder="Digite o Nome da UE ou Código EOL"
               className="h-10! rounded-sm border-input-border-muted"
-              value={valores.nomeUeOuCodigoEol}
+              value={filtros.busca}
               onChange={(evento) =>
-                atualizarCampo('nomeUeOuCodigoEol', evento.target.value)
+                atualizarCampo('busca', evento.target.value)
               }
             />
           </div>
@@ -124,7 +123,7 @@ export function FiltrosDefinicaoPolosForm({
                 ? 'Carregando...'
                 : 'Selecione o Nome da Edição'
             }
-            valor={valores.edicao}
+            valor={filtros.edicao}
             onValorChange={(valor) => atualizarCampo('edicao', valor)}
           >
             {edicoesQuery.isLoading && (
@@ -150,8 +149,8 @@ export function FiltrosDefinicaoPolosForm({
             id="filtro-tipo-polo"
             rotulo="Tipo de Polo"
             placeholder="Selecione o Tipo de Polo"
-            valor={valores.tipoPolo}
-            onValorChange={(valor) => atualizarCampo('tipoPolo', valor)}
+            valor={filtros.tipo_polo}
+            onValorChange={(valor) => atualizarCampo('tipo_polo', valor)}
           >
             {OPCOES_TIPO_POLO.map((tipoPolo) => (
               <SelectItem key={tipoPolo.valor} value={tipoPolo.valor}>
@@ -164,7 +163,7 @@ export function FiltrosDefinicaoPolosForm({
             id="filtro-gestao"
             rotulo="Gestão"
             placeholder="Selecione a Gestão"
-            valor={valores.gestao}
+            valor={filtros.gestao}
             onValorChange={(valor) => atualizarCampo('gestao', valor)}
           >
             {OPCOES_GESTAO.map((gestao) => (
@@ -176,10 +175,10 @@ export function FiltrosDefinicaoPolosForm({
         </div>
 
         <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onLimpar}>
+          <Button type="button" variant="outline" onClick={limparFiltros}>
             Limpar Filtros
           </Button>
-          <Button type="button" onClick={onFiltrar}>
+          <Button type="button" onClick={aplicarFiltros}>
             Filtrar
           </Button>
         </div>
