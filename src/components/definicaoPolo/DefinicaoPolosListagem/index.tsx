@@ -7,15 +7,15 @@ import { ChevronDownIcon } from '@/components/icons'
 import { TabelaListagem } from '@/components/TabelaListagem'
 import type { DefinicaoColuna } from '@/components/TabelaListagem/types'
 import { Button } from '@/components/ui/button'
-import { OPCOES_ITENS_POR_PAGINA } from '@/constants/paginacao'
 import { useGetDefinicoesPolo } from '@/hooks/useGetDefinicoesPolo'
 import { useToast } from '@/hooks/useToast'
 import {
-  FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
   type DefinicaoPoloApi,
   type FiltrosListagemDefinicaoPolos,
   type PoloParaAlterarTipo,
 } from '@/services/definicaoPolo/types'
+import { useDefinicaoPoloStore } from '@/stores/filtroDefinicaoPolosStore'
+import { useShallow } from 'zustand/react/shallow'
 
 const TOAST_ERRO_LISTAGEM_ID = 'erro-listagem-definicoes-polos'
 
@@ -101,38 +101,30 @@ type DefinicaoPolosListagemProps = {
 }
 
 export function DefinicaoPolosListagem({
-  filtros = FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
   chaveResetSelecao = 0,
   onVisualizarPolo,
   onAlterarEdicaoPolo,
   onAlterarTipoPolo,
 }: Readonly<DefinicaoPolosListagemProps>) {
   const { showToast } = useToast()
-  const [paginaAtual, setPaginaAtual] = useState(1)
-  const [itensPorPagina, setItensPorPagina] = useState<number>(
-    OPCOES_ITENS_POR_PAGINA[0],
-  )
   const [polosSelecionados, setPolosSelecionados] = useState<Set<string>>(
     () => new Set(),
   )
 
-  const listagemQuery = useGetDefinicoesPolo({
-    busca: filtros.nomeUeOuCodigoEol,
-    dre_codigos_eol: filtros.dre,
-    tipo_ue: filtros.tipoUe,
-    edicao: filtros.edicao,
-    gestao: filtros.gestao,
-    tipo_polo: filtros.tipoPolo,
-    page: paginaAtual,
-    page_size: itensPorPagina,
-  })
+  const { paginaAtual, setPaginaAtual, itensPorPagina, setItensPorPagina } =
+    useDefinicaoPoloStore(
+      useShallow((estado) => ({
+        paginaAtual: estado.paginaAtual,
+        setPaginaAtual: estado.setPaginaAtual,
+        itensPorPagina: estado.itensPorPagina,
+        setItensPorPagina: estado.setItensPorPagina,
+      })),
+    )
+
+  const listagemQuery = useGetDefinicoesPolo()
 
   const polos = listagemQuery.data?.results ?? []
   const totalRegistros = listagemQuery.data?.count ?? 0
-
-  useEffect(() => {
-    setPaginaAtual(1)
-  }, [filtros])
 
   useEffect(() => {
     setPolosSelecionados(new Set())
@@ -153,6 +145,7 @@ export function DefinicaoPolosListagem({
     listagemQuery.isSuccess,
     paginaAtual,
     totalPaginas,
+    setPaginaAtual,
   ])
 
   useEffect(() => {

@@ -81,3 +81,20 @@ export type PoloElegivel = {
   dre_codigo_eol: string
   dre_nome: string
 }
+
+export type ParticipanteEol = {
+  codigo_eol: string
+  nome_participante: string
+  data_nascimento: string
+  responsavel_nome: string
+  responsavel_nome_social: string
+  cep: string
+  logradouro: string
+  numero: string
+  complemento: string
+  bairro: string
+  cidade: string
+  telefone_contato_1: string
+  telefone_contato_2: string
+  email: string
+}

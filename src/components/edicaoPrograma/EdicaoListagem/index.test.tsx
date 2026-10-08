@@ -39,6 +39,8 @@ function criarEdicao(
     quantidade_atendimento_efetivo: 0,
     quantidade_passeios: 0,
     quantidade_apresentacoes: 0,
+    status: 'aberta',
+    status_label: 'Aberta',
     ...sobrescritas,
   }
 }
@@ -121,6 +123,20 @@ describe('EdicaoListagem', () => {
     expect(screen.queryByText(/sem dados/i)).not.toBeInTheDocument()
   })
 
+  it('preserva a ordem das edições retornada pela API', async () => {
+    listarEdicoesProgramaMock.mockResolvedValue([
+      criarEdicao({ uuid: '1', nome: 'Março 2026' }),
+      criarEdicao({ uuid: '2', nome: 'Janeiro 2026' }),
+    ])
+
+    renderEdicaoListagem()
+
+    const linhas = await screen.findAllByRole('row')
+
+    expect(linhas[1]).toHaveTextContent('Março 2026')
+    expect(linhas[2]).toHaveTextContent('Janeiro 2026')
+  })
+
   it('pagina no cliente sem nova requisição', async () => {
     const usuario = userEvent.setup()
     const edicoes = Array.from({ length: 11 }, (_, indice) =>
@@ -167,9 +183,9 @@ describe('EdicaoListagem', () => {
       screen.getByRole('button', { name: /ordenar por nome da edição/i }),
     )
 
-    expect(await screen.findByText('Edição 11')).toBeInTheDocument()
+    expect(await screen.findByText('Edição 01')).toBeInTheDocument()
     expect(screen.getByText('Edição 10')).toBeInTheDocument()
-    expect(screen.queryByText('Edição 01')).not.toBeInTheDocument()
+    expect(screen.queryByText('Edição 11')).not.toBeInTheDocument()
   })
 
   it('altera itens por página no cliente sem nova requisição', async () => {

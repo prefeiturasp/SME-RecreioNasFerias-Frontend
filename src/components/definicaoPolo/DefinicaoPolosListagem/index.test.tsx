@@ -4,11 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type {
   DefinicaoPoloApi,
-  FiltrosListagemDefinicaoPolos,
   ListagemDefinicoesPoloPaginada,
   PoloParaAlterarTipo,
 } from '@/services/definicaoPolo/types'
 import { FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS } from '@/services/definicaoPolo/types'
+import { useDefinicaoPoloStore } from '@/stores/filtroDefinicaoPolosStore'
 import { DefinicaoPolosListagem } from './index'
 
 const { listarDefinicoesPoloMock, toastMock } = vi.hoisted(() => ({
@@ -98,7 +98,6 @@ function renderDefinicaoPolosListagem(
     onVisualizarPolo: (definicaoUuid: string | null, poloUuid: string) => void
     onAlterarEdicaoPolo: (idsPolos: string[]) => void
     onAlterarTipoPolo: (polos: PoloParaAlterarTipo[]) => void
-    filtros: FiltrosListagemDefinicaoPolos
   }> = {},
 ) {
   const queryClient = new QueryClient({
@@ -111,7 +110,6 @@ function renderDefinicaoPolosListagem(
   return render(
     <QueryClientProvider client={queryClient}>
       <DefinicaoPolosListagem
-        filtros={props.filtros}
         onVisualizarPolo={props.onVisualizarPolo ?? vi.fn()}
         onAlterarEdicaoPolo={props.onAlterarEdicaoPolo ?? vi.fn()}
         onAlterarTipoPolo={props.onAlterarTipoPolo ?? vi.fn()}
@@ -122,6 +120,7 @@ function renderDefinicaoPolosListagem(
 
 describe('DefinicaoPolosListagem', () => {
   beforeEach(() => {
+    useDefinicaoPoloStore.getState().limparFiltros()
     toastMock.mockReset()
     listarDefinicoesPoloMock.mockResolvedValue(
       criarListagemPaginada([poloDiretaApi, poloParceiraApi]),
@@ -158,15 +157,18 @@ describe('DefinicaoPolosListagem', () => {
   it('envia os filtros e a paginação aplicados para a API', async () => {
     const filtros = {
       ...FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
-      dre: '108100',
-      tipoUe: 'CEI DIRET',
-      nomeUeOuCodigoEol: '400496',
+      dre_codigos_eol: '108100',
+      tipo_ue: 'CEI DIRET',
+      busca: '400496',
       edicao: 'ed-1',
-      tipoPolo: 'pendente',
+      tipo_polo: 'pendente',
       gestao: 'direta',
     }
 
-    renderDefinicaoPolosListagem({ filtros })
+    useDefinicaoPoloStore.getState().definirFiltros(filtros)
+    useDefinicaoPoloStore.getState().aplicarFiltros()
+
+    renderDefinicaoPolosListagem()
 
     await screen.findByRole('table')
 

@@ -13,7 +13,10 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { ValoresChoicesInscricao } from '@/services/inscricao/types'
+import type {
+  ParticipanteEol,
+  ValoresChoicesInscricao,
+} from '@/services/inscricao/types'
 import { TIPO_ESTUDANTE_REDE } from './constantes'
 import { ParticipanteForm } from './index'
 
@@ -40,17 +43,53 @@ const valoresChoicesExemplo: ValoresChoicesInscricao = {
   ],
 }
 
+const participanteEolVazio: ParticipanteEol = {
+  codigo_eol: '',
+  nome_participante: '',
+  data_nascimento: '',
+  responsavel_nome: '',
+  responsavel_nome_social: '',
+  cep: '',
+  logradouro: '',
+  numero: '',
+  complemento: '',
+  bairro: '',
+  cidade: '',
+  telefone_contato_1: '',
+  telefone_contato_2: '',
+  email: '',
+}
+
+const participanteEolExemplo: ParticipanteEol = {
+  codigo_eol: '123456',
+  nome_participante: 'ANNA JULIA ARAUJO SA',
+  data_nascimento: '2013-10-16',
+  responsavel_nome: 'SAMARA LIMA ARAUJO',
+  responsavel_nome_social: '',
+  cep: '08411-010',
+  logradouro: 'DA PASSAGEM FUNDA',
+  numero: '72',
+  complemento: '',
+  bairro: 'VILA SANTA CRUZ ZONA LESTE',
+  cidade: 'SAO PAULO',
+  telefone_contato_1: '11988887777',
+  telefone_contato_2: '',
+  email: 'ana@email.com',
+}
+
 const {
   listarDresMock,
   listarPolosElegiveisMock,
   listarValoresChoicesMock,
   cadastrarInscricaoMock,
+  obterParticipanteEolMock,
   showToastMock,
 } = vi.hoisted(() => ({
   listarDresMock: vi.fn(),
   listarPolosElegiveisMock: vi.fn(),
   listarValoresChoicesMock: vi.fn(),
   cadastrarInscricaoMock: vi.fn(),
+  obterParticipanteEolMock: vi.fn(),
   showToastMock: vi.fn(),
 }))
 
@@ -68,6 +107,10 @@ vi.mock('@/services/inscricao/listarValoresChoices', () => ({
 
 vi.mock('@/services/inscricao/cadastrarInscricao', () => ({
   cadastrarInscricao: cadastrarInscricaoMock,
+}))
+
+vi.mock('@/services/inscricao/obterParticipanteEol', () => ({
+  obterParticipanteEol: obterParticipanteEolMock,
 }))
 
 vi.mock('@/hooks/useToast', () => ({
@@ -101,7 +144,7 @@ async function escolherGrupo(
   usuario: ReturnType<typeof userEvent.setup>,
   rotulo: string,
 ) {
-  await usuario.click(await screen.findByLabelText(/grupo/i))
+  await usuario.click(await screen.findByLabelText(/agrupamento/i))
   await usuario.click(
     await screen.findByRole('option', { name: new RegExp(`^${rotulo}$`) }),
   )
@@ -113,10 +156,12 @@ describe('ParticipanteForm', () => {
     listarPolosElegiveisMock.mockReset()
     listarValoresChoicesMock.mockReset()
     cadastrarInscricaoMock.mockReset()
+    obterParticipanteEolMock.mockReset()
     showToastMock.mockReset()
     listarDresMock.mockResolvedValue([])
     listarPolosElegiveisMock.mockResolvedValue([])
     listarValoresChoicesMock.mockResolvedValue(valoresChoicesExemplo)
+    obterParticipanteEolMock.mockResolvedValue(participanteEolVazio)
     cadastrarInscricaoMock.mockResolvedValue({
       status: 'RASCUNHO',
       status_label: 'Rascunho',
@@ -142,11 +187,13 @@ describe('ParticipanteForm', () => {
     })
 
     expect(basicas).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByLabelText(/grupo/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/agrupamento/i)).toBeInTheDocument()
     expect(
       screen.queryByLabelText(/tipo de estudante/i),
     ).not.toBeInTheDocument()
-    expect(screen.queryByRole('textbox', { name: /código eol/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('textbox', { name: /código eol/i }),
+    ).not.toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: /informações por grupo/i }),
     ).not.toBeInTheDocument()
@@ -184,7 +231,12 @@ describe('ParticipanteForm', () => {
     const codigoEol = screen.getByRole('textbox', { name: /código eol/i })
     expect(codigoEol).not.toHaveAttribute('readonly')
     expect(codigoEol).toHaveAttribute('placeholder', 'Código EOL')
-    expect(codigoEol).toHaveClass('pl-9')
+    expect(codigoEol).not.toHaveClass('pl-9')
+    expect(codigoEol.parentElement).toHaveClass(
+      'overflow-hidden',
+      'rounded-sm',
+      'border',
+    )
     expect(
       screen.getByRole('button', { name: /consultar código eol/i }),
     ).toBeEnabled()
@@ -350,22 +402,172 @@ describe('ParticipanteForm', () => {
     })
   })
 
-  it('repassa o valor digitado para a busca informada', async () => {
+  it('preenche os campos com o retorno da consulta EOL', async () => {
     const usuario = userEvent.setup()
-    const onBuscarCodigoEol = vi.fn()
-    const onBuscarCpf = vi.fn()
-    renderFormulario({ onBuscarCodigoEol, onBuscarCpf })
+    obterParticipanteEolMock.mockResolvedValue(participanteEolExemplo)
+    listarDresMock.mockResolvedValue([
+      {
+        codigo_dre: '108100',
+        nome_dre: 'DRE Butantã',
+        sigla_dre: 'BT',
+      },
+    ])
+    renderFormulario()
 
     await escolherGrupo(usuario, 'Berçário I')
+    await usuario.type(screen.getByRole('textbox', { name: /\bcpf\b/i }), '123')
+    await usuario.click(screen.getByLabelText(/\bdre\b/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: 'DRE Butantã' }),
+    )
     await usuario.type(
       screen.getByRole('textbox', { name: /código eol/i }),
-      '1234567',
+      '123456',
     )
     await usuario.click(
       screen.getByRole('button', { name: /consultar código eol/i }),
     )
-    expect(onBuscarCodigoEol).toHaveBeenCalledWith('1234567')
 
+    await waitFor(() => {
+      expect(obterParticipanteEolMock).toHaveBeenCalledTimes(1)
+      expect(obterParticipanteEolMock).toHaveBeenCalledWith(
+        '123456',
+        expect.anything(),
+      )
+      expect(
+        screen.getByLabelText(/nome completo do\(a\) participante/i),
+      ).toHaveValue('ANNA JULIA ARAUJO SA')
+    })
+    expect(screen.getByLabelText(/data de nascimento/i)).toHaveValue(
+      '16/10/2013',
+    )
+    expect(screen.getByLabelText(/nome completo do responsável/i)).toHaveValue(
+      'SAMARA LIMA ARAUJO',
+    )
+    expect(screen.getByLabelText(/\bcep\b/i)).toHaveValue('08411-010')
+    expect(screen.getByLabelText(/\blogradouro\b/i)).toHaveValue(
+      'DA PASSAGEM FUNDA',
+    )
+    expect(screen.getByLabelText(/\bnúmero\b/i)).toHaveValue('72')
+    expect(screen.getByLabelText(/\bbairro\b/i)).toHaveValue(
+      'VILA SANTA CRUZ ZONA LESTE',
+    )
+    expect(screen.getByLabelText(/\bcidade\b/i)).toHaveValue('SAO PAULO')
+    expect(
+      screen.getByLabelText(/telefone de contato\/emergência 1/i),
+    ).toHaveValue('11988887777')
+    expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue('ana@email.com')
+    expect(screen.getByRole('textbox', { name: /\bcpf\b/i })).toHaveValue('123')
+    expect(screen.getByLabelText(/\bdre\b/i)).toHaveTextContent('DRE Butantã')
+  })
+
+  it('consulta o código EOL ao sair do campo', async () => {
+    const usuario = userEvent.setup()
+    obterParticipanteEolMock.mockResolvedValue(participanteEolExemplo)
+    renderFormulario()
+
+    await escolherGrupo(usuario, 'Berçário I')
+    const codigoEol = screen.getByRole('textbox', { name: /código eol/i })
+    await usuario.click(codigoEol)
+    await usuario.tab()
+    expect(obterParticipanteEolMock).not.toHaveBeenCalled()
+
+    await usuario.type(codigoEol, '123456')
+    await usuario.tab()
+
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText(/nome completo do\(a\) participante/i),
+      ).toHaveValue('ANNA JULIA ARAUJO SA')
+    })
+    expect(obterParticipanteEolMock).toHaveBeenCalledTimes(1)
+    expect(obterParticipanteEolMock).toHaveBeenCalledWith(
+      '123456',
+      expect.anything(),
+    )
+  })
+
+  it('exibe o detalhe quando a consulta do código EOL falha', async () => {
+    const usuario = userEvent.setup()
+    obterParticipanteEolMock
+      .mockResolvedValueOnce(participanteEolExemplo)
+      .mockRejectedValueOnce({
+        response: {
+          data: {
+            detalhe:
+              'Código EOL não encontrado. Verifique o número digitado e tente novamente.',
+          },
+        },
+      })
+    renderFormulario()
+
+    await escolherGrupo(usuario, 'Berçário I')
+    const codigoEol = screen.getByRole('textbox', { name: /código eol/i })
+    await usuario.type(codigoEol, '123456')
+    const consultar = screen.getByRole('button', {
+      name: /consultar código eol/i,
+    })
+    await usuario.click(consultar)
+
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText(/nome completo do\(a\) participante/i),
+      ).toHaveValue('ANNA JULIA ARAUJO SA')
+    })
+
+    await usuario.click(consultar)
+
+    expect(
+      await screen.findByText(
+        'Código EOL não encontrado. Verifique o número digitado e tente novamente.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByLabelText(/nome completo do\(a\) participante/i),
+    ).toHaveValue('')
+    expect(screen.getByLabelText(/data de nascimento/i)).toHaveValue('')
+    expect(screen.getByLabelText(/\bcep\b/i)).toHaveValue('')
+    expect(codigoEol).toHaveValue('123456')
+  })
+
+  it('limpa os dados do participante quando o código EOL deixa de corresponder à consulta', async () => {
+    const usuario = userEvent.setup()
+    obterParticipanteEolMock.mockResolvedValue(participanteEolExemplo)
+    renderFormulario()
+
+    await escolherGrupo(usuario, 'Berçário I')
+    const codigoEol = screen.getByRole('textbox', { name: /código eol/i })
+    await usuario.type(codigoEol, '123456')
+    await usuario.click(
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    )
+
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText(/nome completo do\(a\) participante/i),
+      ).toHaveValue('ANNA JULIA ARAUJO SA')
+    })
+
+    await usuario.type(codigoEol, '7')
+
+    expect(
+      screen.getByLabelText(/nome completo do\(a\) participante/i),
+    ).toHaveValue('')
+    expect(screen.getByLabelText(/data de nascimento/i)).toHaveValue('')
+    expect(screen.getByLabelText(/nome completo do responsável/i)).toHaveValue(
+      '',
+    )
+    expect(screen.getByLabelText(/\bcep\b/i)).toHaveValue('')
+    expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue('')
+    expect(codigoEol).toHaveValue('1234567')
+  })
+
+  it('repassa o CPF digitado para a busca informada', async () => {
+    const usuario = userEvent.setup()
+    const onBuscarCpf = vi.fn()
+    renderFormulario({ onBuscarCpf })
+
+    await escolherGrupo(usuario, 'Berçário I')
     await usuario.type(screen.getByRole('textbox', { name: /\bcpf\b/i }), '123')
     await usuario.click(screen.getByRole('button', { name: /consultar cpf/i }))
     expect(onBuscarCpf).toHaveBeenCalledWith('123')
@@ -403,14 +605,18 @@ describe('ParticipanteForm', () => {
     expect(screen.getByLabelText(/tipo de estudante/i)).toHaveTextContent(
       'Selecione o tipo de estudante',
     )
-    expect(screen.queryByRole('textbox', { name: /código eol/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('textbox', { name: /código eol/i }),
+    ).not.toBeInTheDocument()
 
     await usuario.click(screen.getByLabelText(/tipo de estudante/i))
     await usuario.click(
       screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
     )
 
-    expect(screen.getByRole('textbox', { name: /código eol/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('textbox', { name: /código eol/i }),
+    ).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: /informações por grupo/i }),
     ).not.toBeInTheDocument()
@@ -428,7 +634,9 @@ describe('ParticipanteForm', () => {
     await usuario.click(
       screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
     )
-    expect(screen.getByRole('textbox', { name: /código eol/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('textbox', { name: /código eol/i }),
+    ).toBeInTheDocument()
 
     await escolherGrupo(usuario, 'Berçário I')
 
@@ -441,7 +649,9 @@ describe('ParticipanteForm', () => {
     expect(screen.getByLabelText(/tipo de estudante/i)).toHaveTextContent(
       'Selecione o tipo de estudante',
     )
-    expect(screen.queryByRole('textbox', { name: /código eol/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('textbox', { name: /código eol/i }),
+    ).not.toBeInTheDocument()
   })
 
   it('salva o rascunho incompleto e recusa e-mail inválido', async () => {

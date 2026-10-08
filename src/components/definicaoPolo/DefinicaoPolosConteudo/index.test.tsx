@@ -9,6 +9,7 @@ import type {
   DefinicaoPolo,
   ResultadoAlterarTipoEmMassa,
 } from '@/services/definicaoPolo/types'
+import { useDefinicaoPoloStore } from '@/stores/filtroDefinicaoPolosStore'
 import { DefinicaoPolosConteudo } from './index'
 
 const { modalCallbacks } = vi.hoisted(() => ({
@@ -52,7 +53,6 @@ vi.mock('@/components/definicaoPolo/ModalAlterarSelecao', async (importOriginal)
 
 vi.mock('@/components/definicaoPolo/DefinicaoPolosListagem', () => ({
   DefinicaoPolosListagem: ({
-    filtros,
     onVisualizarPolo,
     onAlterarEdicaoPolo,
     onAlterarTipoPolo,
@@ -67,7 +67,7 @@ vi.mock('@/components/definicaoPolo/DefinicaoPolosListagem', () => ({
     <div>
       <div>Listagem de definição de polos</div>
       <span data-testid="filtros-aplicados-gestao">
-        {filtros?.gestao ?? ''}
+        {useDefinicaoPoloStore((estado) => estado.filtrosAplicados.gestao)}
       </span>
       <button type="button" onClick={() => onVisualizarPolo('def-1', 'polo-1')}>
         Simular visualizar
@@ -209,6 +209,7 @@ async function esperarConteudoPronto() {
 
 describe('DefinicaoPolosConteudo', () => {
   beforeEach(() => {
+    useDefinicaoPoloStore.getState().limparFiltros()
     navegarMock.mockReset()
     vincularEmMassaMock.mockReset()
     alterarTipoEmMassaMock.mockReset()

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import type { AxiosError } from 'axios'
 import { Link } from 'react-router-dom'
 import { iconeLapisEditar } from '@/assets'
@@ -6,19 +6,16 @@ import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 import { TabelaListagem } from '@/components/TabelaListagem'
 import type { DefinicaoColuna } from '@/components/TabelaListagem/types'
 import { Button } from '@/components/ui/button'
-import { OPCOES_ITENS_POR_PAGINA } from '@/constants/paginacao'
 import { useGetPolos } from '@/hooks/useGetPolos'
+import type { FiltrosPolo } from '@/constants/filtroPolos'
 import type { PoloListagemItem } from '@/services/polo/types'
+import { usePoloParceiroStore } from '@/stores/filtroPolosParceirosStore'
 import { Filtros } from './Filtros'
-import {
-  FILTROS_POLO_INICIAIS,
-  type FiltrosPolo,
-} from '@/constants/filtroPolos'
 import { CollapsibleFilter } from '@/components/CollapsibleFilter'
 import { IconeFiltro } from '@/components/icons'
 import { useToast } from '@/hooks/useToast'
+import { useShallow } from 'zustand/react/shallow'
 
-const GESTAO_PARCEIRA = 'parceira'
 const TOAST_ERRO_LISTAGEM_ID = 'erro-listagem-polos-parceiros'
 type ErroApi = AxiosError<{ detalhe: string }>
 
@@ -67,42 +64,27 @@ function existemFiltrosAplicados(filtros: FiltrosPolo) {
 
 export function PoloListagem() {
   const { showToast } = useToast()
-  const [filtros, setFiltros] = useState<FiltrosPolo>(FILTROS_POLO_INICIAIS)
-  const [filtrosAplicados, setFiltrosAplicados] = useState<FiltrosPolo>(
-    FILTROS_POLO_INICIAIS,
-  )
-  const [paginaAtual, setPaginaAtual] = useState(1)
-  const [itensPorPagina, setItensPorPagina] = useState<number>(
-    OPCOES_ITENS_POR_PAGINA[0],
-  )
 
   const {
-    data: listagemPolos,
-    isPending,
-    isError,
-    error,
-  } = useGetPolos(
-    filtrosAplicados.busca,
-    filtrosAplicados.dre_codigo_eol,
-    filtrosAplicados.tipo_ue,
+    filtrosAplicados,
     paginaAtual,
     itensPorPagina,
-    GESTAO_PARCEIRA,
+    setPaginaAtual,
+    setItensPorPagina,
+  } = usePoloParceiroStore(
+    useShallow((estado) => ({
+      filtrosAplicados: estado.filtrosAplicados,
+      paginaAtual: estado.paginaAtual,
+      itensPorPagina: estado.itensPorPagina,
+      setPaginaAtual: estado.setPaginaAtual,
+      setItensPorPagina: estado.setItensPorPagina,
+    })),
   )
+
+  const { data: listagemPolos, isPending, isError, error } = useGetPolos()
 
   function mudarItensPorPagina(novoTamanho: number) {
     setItensPorPagina(novoTamanho)
-    setPaginaAtual(1)
-  }
-
-  function aplicarFiltros() {
-    setFiltrosAplicados(filtros)
-    setPaginaAtual(1)
-  }
-
-  function limparFiltros() {
-    setFiltros(FILTROS_POLO_INICIAIS)
-    setFiltrosAplicados(FILTROS_POLO_INICIAIS)
     setPaginaAtual(1)
   }
 
@@ -124,12 +106,7 @@ export function PoloListagem() {
   return (
     <div className="flex flex-col gap-4 bg-white p-4">
       <CollapsibleFilter icon={<IconeFiltro />} title="Filtrar Polos">
-        <Filtros
-          valores={filtros}
-          onChange={setFiltros}
-          onFiltrar={aplicarFiltros}
-          onLimpar={limparFiltros}
-        />
+        <Filtros />
       </CollapsibleFilter>
 
       {isPending && <IndicadorCarregamento mensagem="Carregando polos..." />}

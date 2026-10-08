@@ -1,29 +1,31 @@
 import { useQuery } from '@tanstack/react-query'
 import { listarPolos } from '@/services/polo/listarPolos'
 import type { ListagemPolosPaginada } from '@/services/polo/types'
+import { usePoloParceiroStore } from '@/stores/filtroPolosParceirosStore'
+import { useShallow } from 'zustand/react/shallow'
 
-export function useGetPolos(
-  busca?: string,
-  dre_codigo_eol?: string,
-  tipo_ue?: string,
-  page = 1,
-  page_size = 10,
-  gestao?: string,
-  enabled = true,
-) {
+export function useGetPolos() {
+  const { filtrosAplicados, paginaAtual, itensPorPagina, gestao } =
+    usePoloParceiroStore(
+      useShallow((estado) => ({
+        filtrosAplicados: estado.filtrosAplicados,
+        paginaAtual: estado.paginaAtual,
+        itensPorPagina: estado.itensPorPagina,
+        gestao: estado.gestao,
+      })),
+    )
+
+  const parametrosComPaginacao = {
+    ...filtrosAplicados,
+    pagina: paginaAtual,
+    page_size: itensPorPagina,
+    gestao: gestao,
+  }
+
   return useQuery<ListagemPolosPaginada, Error>({
-    queryKey: [
-      'polos',
-      busca,
-      dre_codigo_eol,
-      tipo_ue,
-      page,
-      page_size,
-      gestao,
-    ],
-    queryFn: () =>
-      listarPolos(busca, dre_codigo_eol, tipo_ue, page, page_size, gestao),
-    enabled,
+    queryKey: ['polos', parametrosComPaginacao],
+    queryFn: () => listarPolos(parametrosComPaginacao),
+    enabled: true,
   })
 }
 
