@@ -98,8 +98,14 @@ export function DefinicaoPolosConteudo() {
     setPolosParaAlterarTipoPolo(polos)
   }
 
-  function visualizarDefinicao(definicaoUuid: string) {
-    navigate(`/definicoes-polo/${definicaoUuid}`)
+  function visualizarPolo(
+    definicaoUuid: string | null,
+    poloUuid: string,
+  ) {
+    const rota = definicaoUuid
+      ? `/definicoes-polo/${definicaoUuid}`
+      : `/definicoes-polo/polo/${poloUuid}`
+    void navigate(rota)
   }
 
   function confirmarAlteracaoEdicao(edicaoDestino: string) {
@@ -197,7 +203,7 @@ export function DefinicaoPolosConteudo() {
       <DefinicaoPolosListagem
         filtros={filtrosAplicados}
         chaveResetSelecao={chaveResetSelecao}
-        onVisualizarPolo={visualizarDefinicao}
+        onVisualizarPolo={visualizarPolo}
         onAlterarEdicaoPolo={abrirModalAlterarEdicao}
         onAlterarTipoPolo={abrirModalAlterarTipoPolo}
       />
