@@ -107,10 +107,17 @@ export function DefinicaoPoloForm({
     })
   }, [atualizacaoMutation.error, showToast])
 
-  function onSubmit(data: FormValues) {
-    const detalhe = definicaoQuery.data
-    if (!detalhe) return
+  if (definicaoQuery.isPending) {
+    return <IndicadorCarregamento mensagem="Carregando definição do polo..." />
+  }
 
+  if (!definicaoQuery.data) {
+    return null
+  }
+
+  const detalhe = definicaoQuery.data
+
+  function onSubmit(data: FormValues) {
     if (atualizacaoMutation.isError) {
       dismissToast(TOAST_ERRO_ATUALIZACAO_ID)
       atualizacaoMutation.reset()
@@ -134,7 +141,7 @@ export function DefinicaoPoloForm({
             description: 'Definição do polo atualizada com sucesso!',
             duration: 3000,
           })
-          navigate(ROTA_DEFINICOES_POLO, {
+          void navigate(ROTA_DEFINICOES_POLO, {
             state: { definicaoAtualizada: true },
           })
         },
@@ -146,15 +153,7 @@ export function DefinicaoPoloForm({
     void form.handleSubmit(onSubmit)(event)
   }
 
-  if (definicaoQuery.isPending) {
-    return <IndicadorCarregamento mensagem="Carregando definição do polo..." />
-  }
-
-  if (!definicaoQuery.data) {
-    return null
-  }
-
-  const { polo, resultado_final_de_inscritos } = definicaoQuery.data
+  const { polo, resultado_final_de_inscritos } = detalhe
 
   return (
     <form
