@@ -17,7 +17,7 @@ export function useGetPolos() {
 
   const parametrosComPaginacao = {
     ...filtrosAplicados,
-    pagina: paginaAtual,
+    page: paginaAtual,
     page_size: itensPorPagina,
     gestao: gestao,
   }

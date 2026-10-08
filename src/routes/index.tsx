@@ -41,6 +41,14 @@ export function RotasAplicacao() {
         }
       />
       <Route
+        path="/definicoes-polo/polo/:poloUuid"
+        element={
+          <RotaProtegida>
+            <PaginaDetalhamentoDefinicaoPolo />
+          </RotaProtegida>
+        }
+      />
+      <Route
         path="/definicoes-polo/:idDefinicao"
         element={
           <RotaProtegida>

@@ -92,7 +92,10 @@ const COLUNAS = [
 type DefinicaoPolosListagemProps = {
   filtros?: FiltrosListagemDefinicaoPolos
   chaveResetSelecao?: number
-  onVisualizarPolo?: (definicaoUuid: string) => void
+  onVisualizarPolo?: (
+    definicaoUuid: string | null,
+    poloUuid: string,
+  ) => void
   onAlterarEdicaoPolo: (idsPolos: string[]) => void
   onAlterarTipoPolo: (polos: PoloParaAlterarTipo[]) => void
 }
@@ -202,8 +205,6 @@ export function DefinicaoPolosListagem({
         />
       )}
       renderizarAcoes={(polo) => {
-        const podeVisualizar = Boolean(polo.definicao_uuid)
-
         return (
           <div className="inline-flex items-center justify-center gap-2">
             <Button
@@ -212,11 +213,9 @@ export function DefinicaoPolosListagem({
               size="icon-sm"
               className="text-brand-dark"
               aria-label={`Visualizar polo ${polo.nome_polo}`}
-              disabled={!podeVisualizar}
-              onClick={() => {
-                if (!polo.definicao_uuid) return
-                onVisualizarPolo?.(polo.definicao_uuid)
-              }}
+              onClick={() =>
+                onVisualizarPolo?.(polo.definicao_uuid, polo.polo_uuid)
+              }
             >
               <img
                 src={iconeOlho}

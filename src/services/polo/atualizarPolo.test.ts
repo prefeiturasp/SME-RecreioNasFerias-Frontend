@@ -60,6 +60,10 @@ const payloadEsperado = {
 const respostaAtualizacaoExemplo: PoloDetalhado = {
   uuid: uuidPolo,
   ...payloadEsperado,
+  ponto_focal_nome: '',
+  ponto_focal_telefone: '',
+  ponto_focal_email: '',
+  endereco_completo: 'Rua Exemplo, 100, Centro',
   ativo: true,
   criado_em: '2026-08-27T11:28:47.128Z',
   atualizado_em: '2026-08-27T11:28:47.128Z',

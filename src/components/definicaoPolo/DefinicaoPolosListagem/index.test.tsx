@@ -95,7 +95,7 @@ function criarListagemPaginada(
 
 function renderDefinicaoPolosListagem(
   props: Partial<{
-    onVisualizarPolo: (definicaoUuid: string) => void
+    onVisualizarPolo: (definicaoUuid: string | null, poloUuid: string) => void
     onAlterarEdicaoPolo: (idsPolos: string[]) => void
     onAlterarTipoPolo: (polos: PoloParaAlterarTipo[]) => void
   }> = {},
@@ -390,7 +390,7 @@ describe('DefinicaoPolosListagem', () => {
     expect(onAlterarEdicaoPolo).toHaveBeenCalledWith(['1'])
   })
 
-  it('chama visualizar com definicao_uuid e desabilita o olho sem definição', async () => {
+  it('chama visualizar com definicao_uuid e polo_uuid, mesmo sem definição', async () => {
     const usuario = userEvent.setup()
     const onVisualizarPolo = vi.fn()
     const onAlterarEdicaoPolo = vi.fn()
@@ -402,20 +402,19 @@ describe('DefinicaoPolosListagem', () => {
 
     await screen.findByRole('table')
 
-    const botaoSemDefinicao = screen.getByRole('button', {
-      name: /visualizar polo cei diret aloysio/i,
-    })
-    expect(botaoSemDefinicao).toBeDisabled()
-
-    await usuario.click(botaoSemDefinicao)
-    expect(onVisualizarPolo).not.toHaveBeenCalled()
+    await usuario.click(
+      screen.getByRole('button', {
+        name: /visualizar polo cei diret aloysio/i,
+      }),
+    )
+    expect(onVisualizarPolo).toHaveBeenLastCalledWith(null, '1')
 
     await usuario.click(
       screen.getByRole('button', {
         name: /visualizar polo emef amorim lima/i,
       }),
     )
-    expect(onVisualizarPolo).toHaveBeenCalledWith('def-2')
+    expect(onVisualizarPolo).toHaveBeenLastCalledWith('def-2', '2')
 
     await usuario.click(
       screen.getByRole('button', {
@@ -448,6 +447,7 @@ describe('DefinicaoPolosListagem', () => {
   })
 
   it('exibe valores padrão para tipo e nome da edição ausentes', async () => {
+    const usuario = userEvent.setup()
     listarDefinicoesPoloMock.mockResolvedValue(
       criarListagemPaginada([
         {
@@ -457,14 +457,65 @@ describe('DefinicaoPolosListagem', () => {
           nome_edicao: null,
           tipo_polo_edicao: null,
         },
+        {
+          ...poloParceiraApi,
+          polo_uuid: '4',
+          nome_polo: 'CEI COM VALORES EM BRANCO',
+          nome_edicao: '   ',
+          tipo_polo_edicao: '   ',
+          tipo_polo_edicao_label: '   ',
+        },
       ]),
     )
 
     renderDefinicaoPolosListagem()
 
     expect(await screen.findByRole('table')).toBeInTheDocument()
-    expect(screen.getByText('Pendente')).toBeInTheDocument()
-    expect(screen.getByText('-')).toBeInTheDocument()
+    expect(screen.getAllByText('Pendente')).toHaveLength(2)
+    expect(screen.getAllByText('-')).toHaveLength(2)
+
+    await usuario.click(
+      screen.getByRole('button', { name: /ordenar por nome da edição/i }),
+    )
+    await usuario.click(
+      screen.getByRole('button', { name: /ordenar por tipo de polo/i }),
+    )
+  })
+
+  it('ordena os valores de DRE e tipo de UE', async () => {
+    const usuario = userEvent.setup()
+
+    renderDefinicaoPolosListagem()
+    await screen.findByRole('table')
+
+    await usuario.click(screen.getByRole('button', { name: /ordenar por dre/i }))
+    await usuario.click(
+      screen.getByRole('button', { name: /ordenar por tipo de ue/i }),
+    )
+
+    expect(screen.getByRole('table')).toBeInTheDocument()
+  })
+
+  it('volta para a última página disponível se o total diminuir', async () => {
+    listarDefinicoesPoloMock.mockImplementation(
+      ({ page }: { page: number }) =>
+        Promise.resolve(
+          page === 1
+            ? criarListagemPaginada([poloDiretaApi], 25)
+            : criarListagemPaginada([poloDiretaApi], 1),
+        ),
+    )
+    const usuario = userEvent.setup()
+
+    renderDefinicaoPolosListagem()
+    await screen.findByRole('table')
+
+    await usuario.click(screen.getByRole('button', { name: /página 2/i }))
+    await waitFor(() => {
+      expect(listarDefinicoesPoloMock).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 1, page_size: 10 }),
+      )
+    })
   })
 
   it('exibe o erro da listagem em um toast', async () => {

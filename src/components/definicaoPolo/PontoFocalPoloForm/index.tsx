@@ -1,99 +1,77 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { AxiosError } from 'axios'
-import { useEffect, useMemo, type SubmitEvent } from 'react'
-import { useForm, useWatch } from 'react-hook-form'
+import { useEffect, type SubmitEvent } from 'react'
+import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
-import type { FormValues } from './schema'
-import formSchema from './schema'
+import {
+  pontoFocalSchema,
+  type PontoFocalFormValues,
+} from '../DefinicaoPoloForm/schema'
 
 import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
 import { FormField } from '@/components/ui/form-field'
 import { FormFieldLeitura } from '@/components/ui/form-field-leitura'
-import { useGetDefinicaoPolo } from '@/hooks/useGetDefinicaoPolo'
-import { usePutDefinicaoPolo } from '@/hooks/usePutDefinicaoPolo'
+import { useGetPolo } from '@/hooks/useGetPolo'
+import { usePatchPontoFocalPolo } from '@/hooks/usePatchPontoFocalPolo'
 import { useToast } from '@/hooks/useToast'
-import { calcularTotalInscritos } from '@/utils/calcularTotalInscritos'
+import type { GestaoPolo } from '@/services/polo/types'
 import {
   aplicarMascaraCep,
   aplicarMascaraTelefone,
 } from '@/utils/mascarasEntrada'
-import { HistoricoDefinicaoPolo } from '../HistoricoDefinicaoPolo'
 
 const ROTA_DEFINICOES_POLO = '/definicoes-polo'
-const TOAST_ERRO_CARREGAMENTO_ID = 'erro-carregamento-definicao-polo'
-const TOAST_ERRO_ATUALIZACAO_ID = 'erro-atualizacao-definicao-polo'
-const TOAST_SUCESSO_ATUALIZACAO_ID = 'sucesso-atualizacao-definicao-polo'
+const TOAST_ERRO_CARREGAMENTO_ID = 'erro-carregamento-polo-sem-definicao'
+const TOAST_ERRO_ATUALIZACAO_ID = 'erro-atualizacao-ponto-focal-polo'
+const TOAST_SUCESSO_ATUALIZACAO_ID = 'sucesso-atualizacao-ponto-focal-polo'
 
 type ErroApi = AxiosError<{ detalhe: string }>
 
-type DefinicaoPoloFormProps = {
-  definicaoUuid: string
-  poloUuid?: string
+function rotuloGestao(gestao: GestaoPolo) {
+  return gestao === 'direta' ? 'Direta' : 'Parceira'
 }
 
-function rotuloGestao(gestao: string) {
-  if (gestao === 'direta') return 'Direta'
-  if (gestao === 'parceira') return 'Parceira'
-  return gestao
-}
-
-export function DefinicaoPoloForm({
-  definicaoUuid,
+export function PontoFocalPoloForm({
   poloUuid,
-}: Readonly<DefinicaoPoloFormProps>) {
+}: Readonly<{ poloUuid: string }>) {
   const navigate = useNavigate()
   const { dismissToast, showToast } = useToast()
+  const poloQuery = useGetPolo(poloUuid)
+  const atualizacaoMutation = usePatchPontoFocalPolo(poloUuid)
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<PontoFocalFormValues>({
+    resolver: zodResolver(pontoFocalSchema),
     defaultValues: {
-      projecaoInscritos: '',
       pontoFocalNome: '',
       pontoFocalTelefone: '',
       pontoFocalEmail: '',
     },
   })
 
-  const definicaoQuery = useGetDefinicaoPolo(definicaoUuid)
-  const atualizacaoMutation = usePutDefinicaoPolo(definicaoUuid)
-
   useEffect(() => {
-    if (!definicaoQuery.data) return
-
-    const definicao = definicaoQuery.data
+    if (!poloQuery.data) return
 
     form.reset({
-      projecaoInscritos: String(definicao.projecao_inscritos),
-      pontoFocalNome: definicao.ponto_focal_nome,
-      pontoFocalTelefone: definicao.ponto_focal_telefone
-        ? aplicarMascaraTelefone(definicao.ponto_focal_telefone)
+      pontoFocalNome: poloQuery.data.ponto_focal_nome,
+      pontoFocalTelefone: poloQuery.data.ponto_focal_telefone
+        ? aplicarMascaraTelefone(poloQuery.data.ponto_focal_telefone)
         : '',
-      pontoFocalEmail: definicao.ponto_focal_email,
+      pontoFocalEmail: poloQuery.data.ponto_focal_email,
     })
-  }, [definicaoQuery.data, form])
+  }, [form, poloQuery.data])
 
   useEffect(() => {
-    if (!definicaoQuery.isError) return
+    if (!poloQuery.isError) return
 
     showToast({
       id: TOAST_ERRO_CARREGAMENTO_ID,
       variant: 'destructive',
-      title: 'Erro ao carregar definição do polo',
-      description: (definicaoQuery.error as ErroApi).response?.data.detalhe,
+      title: 'Erro ao carregar polo',
+      description: (poloQuery.error as ErroApi).response?.data.detalhe,
     })
-  }, [definicaoQuery.error, definicaoQuery.isError, showToast])
-
-  const salvando = atualizacaoMutation.isPending
-  const projecaoInscritos = useWatch({
-    control: form.control,
-    name: 'projecaoInscritos',
-  })
-  const totalInscritos = useMemo(
-    () => calcularTotalInscritos(Number(projecaoInscritos)),
-    [projecaoInscritos],
-  )
+  }, [poloQuery.error, poloQuery.isError, showToast])
 
   useEffect(() => {
     if (!atualizacaoMutation.error) return
@@ -101,23 +79,15 @@ export function DefinicaoPoloForm({
     showToast({
       id: TOAST_ERRO_ATUALIZACAO_ID,
       variant: 'destructive',
-      title: 'Erro ao salvar definição do polo',
+      title: 'Erro ao salvar ponto focal',
       description: (atualizacaoMutation.error as ErroApi).response?.data
         .detalhe,
     })
   }, [atualizacaoMutation.error, showToast])
 
-  if (definicaoQuery.isPending) {
-    return <IndicadorCarregamento mensagem="Carregando definição do polo..." />
-  }
+  function onSubmit(dados: PontoFocalFormValues) {
+    if (!poloQuery.data) return
 
-  if (!definicaoQuery.data) {
-    return null
-  }
-
-  const detalhe = definicaoQuery.data
-
-  function onSubmit(data: FormValues) {
     if (atualizacaoMutation.isError) {
       dismissToast(TOAST_ERRO_ATUALIZACAO_ID)
       atualizacaoMutation.reset()
@@ -125,20 +95,16 @@ export function DefinicaoPoloForm({
 
     atualizacaoMutation.mutate(
       {
-        polo: detalhe.polo.uuid,
-        edicao: detalhe.edicao.uuid,
-        tipo: detalhe.tipo,
-        projecao_inscritos: Number(data.projecaoInscritos),
-        ponto_focal_nome: data.pontoFocalNome,
-        ponto_focal_telefone: data.pontoFocalTelefone,
-        ponto_focal_email: data.pontoFocalEmail,
+        ponto_focal_nome: dados.pontoFocalNome,
+        ponto_focal_telefone: dados.pontoFocalTelefone,
+        ponto_focal_email: dados.pontoFocalEmail,
       },
       {
         onSuccess: () => {
           showToast({
             id: TOAST_SUCESSO_ATUALIZACAO_ID,
             variant: 'success',
-            description: 'Definição do polo atualizada com sucesso!',
+            description: 'Ponto focal do polo atualizado com sucesso!',
             duration: 3000,
           })
           void navigate(ROTA_DEFINICOES_POLO, {
@@ -153,77 +119,96 @@ export function DefinicaoPoloForm({
     void form.handleSubmit(onSubmit)(event)
   }
 
-  const { polo, resultado_final_de_inscritos } = detalhe
+  if (poloQuery.isPending) {
+    return <IndicadorCarregamento mensagem="Carregando polo..." />
+  }
+
+  if (!poloQuery.data) {
+    return null
+  }
+
+  const polo = poloQuery.data
 
   return (
     <form
       noValidate
-      aria-label="Formulário de detalhamento do polo"
+      aria-label="Formulário de ponto focal do polo"
       onSubmit={handleFormSubmit}
       className="rounded-sm bg-background p-8 shadow-card max-md:p-4"
     >
       <FieldGroup className="gap-8">
         <section
-          aria-labelledby="secao-informacoes-gerais"
+          aria-labelledby="secao-informacoes-gerais-polo"
           className="grid gap-y-5.5"
         >
-          <h4 id="secao-informacoes-gerais" className="font-bold text-primary">
+          <h4
+            id="secao-informacoes-gerais-polo"
+            className="font-bold text-primary"
+          >
             Informações Gerais
           </h4>
-
           <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
             <FormFieldLeitura
-              id="gestao"
+              id="gestaoPolo"
               label="Tipo de Gestão"
               value={rotuloGestao(polo.gestao)}
             />
             <FormFieldLeitura
-              id="codigoEol"
+              id="codigoEolPolo"
               label="Código EOL"
               value={polo.codigo_eol}
             />
             <FormFieldLeitura
-              id="nomeUnidade"
+              id="nomeUnidadePolo"
               label="Nome da Unidade"
               value={polo.nome_polo}
             />
           </div>
-
           <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
             <FormFieldLeitura
-              id="tipoUnidade"
+              id="tipoUnidadePolo"
               label="Tipo de Unidade"
               value={polo.tipo_ue}
             />
-            <FormFieldLeitura id="dre" label="DRE" value={polo.dre_nome} />
+            <FormFieldLeitura
+              id="drePolo"
+              label="DRE"
+              value={polo.dre_nome}
+            />
           </div>
         </section>
 
-        <section aria-labelledby="secao-endereco" className="grid gap-y-5.5">
-          <h4 id="secao-endereco" className="font-bold text-primary">
+        <section
+          aria-labelledby="secao-endereco-polo"
+          className="grid gap-y-5.5"
+        >
+          <h4 id="secao-endereco-polo" className="font-bold text-primary">
             Endereço
           </h4>
           <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
             <FormFieldLeitura
-              id="cep"
+              id="cepPolo"
               label="CEP"
               value={aplicarMascaraCep(polo.cep)}
             />
             <FormFieldLeitura
-              id="endereco"
+              id="enderecoPolo"
               label="Endereço"
               value={polo.endereco_completo}
             />
           </div>
         </section>
 
-        <section aria-labelledby="secao-contato" className="grid gap-y-5.5">
-          <h4 id="secao-contato" className="font-bold text-primary">
+        <section
+          aria-labelledby="secao-contato-polo"
+          className="grid gap-y-5.5"
+        >
+          <h4 id="secao-contato-polo" className="font-bold text-primary">
             Informações de contato
           </h4>
           <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
             <FormFieldLeitura
-              id="nomeDiretorGestor"
+              id="gestorPolo"
               label="Nome do Diretor/Gestor"
               value={polo.nome_gestor}
             />
@@ -240,8 +225,11 @@ export function DefinicaoPoloForm({
           </div>
         </section>
 
-        <section aria-labelledby="secao-ponto-focal" className="grid gap-y-5.5">
-          <h4 id="secao-ponto-focal" className="font-bold text-primary">
+        <section
+          aria-labelledby="secao-ponto-focal-polo"
+          className="grid gap-y-5.5"
+        >
+          <h4 id="secao-ponto-focal-polo" className="font-bold text-primary">
             Ponto focal
           </h4>
           <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
@@ -269,34 +257,6 @@ export function DefinicaoPoloForm({
           </div>
         </section>
 
-        <section aria-labelledby="secao-capacidade" className="grid gap-y-5.5">
-          <h4 id="secao-capacidade" className="font-bold text-primary">
-            Capacidade
-          </h4>
-          <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-3">
-            <FormField
-              control={form.control}
-              name="projecaoInscritos"
-              label="Projeção de inscritos"
-              type="number"
-              placeholder="Insira a projeção de inscritos"
-              inputMode="numeric"
-            />
-            <FormFieldLeitura
-              id="totalInscritos"
-              label="Total de Inscritos"
-              value={String(totalInscritos)}
-            />
-            <FormFieldLeitura
-              id="resultadoRealInscritos"
-              label="Resultado final de inscritos"
-              value={String(resultado_final_de_inscritos)}
-            />
-          </div>
-        </section>
-
-        {poloUuid && <HistoricoDefinicaoPolo poloUuid={poloUuid} />}
-
         <div className="flex flex-wrap items-center justify-end gap-2 max-md:flex-col-reverse max-md:[&>button]:w-full">
           <Button
             type="button"
@@ -309,9 +269,9 @@ export function DefinicaoPoloForm({
           <Button
             type="submit"
             className="h-9.5 rounded-sm bg-brand-dark px-4 font-bold text-background hover:bg-brand-dark-hover disabled:bg-button-primary-disabled-bg disabled:opacity-100"
-            disabled={salvando}
+            disabled={atualizacaoMutation.isPending}
           >
-            {salvando ? 'Salvando...' : 'Salvar'}
+            {atualizacaoMutation.isPending ? 'Salvando...' : 'Salvar'}
           </Button>
         </div>
       </FieldGroup>

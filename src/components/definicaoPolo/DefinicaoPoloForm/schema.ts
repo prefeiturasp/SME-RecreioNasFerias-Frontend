@@ -1,11 +1,6 @@
 import { z } from 'zod'
 
-const formSchema = z.object({
-  projecaoInscritos: z
-    .string()
-    .trim()
-    .min(1, 'Projeção de inscritos é obrigatória')
-    .regex(/^\d+$/, 'Informe uma projeção de inscritos válida.'),
+const pontoFocalFields = {
   pontoFocalNome: z.string(),
   pontoFocalTelefone: z
     .string()
@@ -24,8 +19,20 @@ const formSchema = z.object({
         z.email({ error: 'Digite um e-mail válido para o ponto focal.' }),
       ]),
     ),
+}
+
+export const pontoFocalSchema = z.object(pontoFocalFields)
+
+const formSchema = z.object({
+  projecaoInscritos: z
+    .string()
+    .trim()
+    .min(1, 'Projeção de inscritos é obrigatória')
+    .regex(/^\d+$/, 'Informe uma projeção de inscritos válida.'),
+  ...pontoFocalFields,
 })
 
 export type FormValues = z.infer<typeof formSchema>
+export type PontoFocalFormValues = z.infer<typeof pontoFocalSchema>
 
 export default formSchema
