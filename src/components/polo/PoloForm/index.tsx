@@ -25,6 +25,11 @@ const TIPO_POLO_PADRAO = 'pendente' as const
 const GESTAO_POLO_PADRAO = 'parceira' as const
 const TOAST_ERRO_CADASTRO_ID = 'erro-cadastro-polo-parceiro'
 const TOAST_EOL_NAO_ENCONTRADO_ID = 'eol-nao-encontrado'
+const ERRO_POLO_NAO_PARCEIRO = {
+  response: {
+    data: { detalhe: 'Este formulário permite editar apenas polos parceiros.' },
+  },
+}
 const MENSAGEM_EOL_NAO_ENCONTRADO =
   'EOL não encontrado. Favor entrar em contato com a DRE'
 const CAMPOS_DA_UNIDADE_VAZIOS = {
@@ -91,7 +96,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
   const atualizacaoMutation = usePutPolo(poloId)
 
   useEffect(() => {
-    if (!poloQuery.data) return
+    if (!poloQuery.data || poloQuery.data.gestao !== GESTAO_POLO_PADRAO) return
 
     setCodigoEolSincronizado(poloQuery.data.codigo_eol)
     setEmailRetornado(poloQuery.data.email)
@@ -229,13 +234,13 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
 
     cadastroMutation.mutate(data, {
       onSuccess: () => {
-        navigate(ROTA_POLOS_PARCEIROS, { state: { poloCadastrado: true } })
+        void navigate(ROTA_POLOS_PARCEIROS, { state: { poloCadastrado: true } })
       },
     })
   }
 
   function handleFormSubmit(event: SubmitEvent<HTMLFormElement>) {
-    form.handleSubmit(onSubmit)(event)
+    void form.handleSubmit(onSubmit)(event)
   }
 
   function confirmarEdicao() {
@@ -245,7 +250,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
     atualizacaoMutation.mutate(dadosEdicaoPendente, {
       onSuccess: () => {
         setDadosEdicaoPendente(null)
-        navigate(ROTA_POLOS_PARCEIROS, { state: { poloAtualizado: true } })
+        void navigate(ROTA_POLOS_PARCEIROS, { state: { poloAtualizado: true } })
       },
     })
   }
@@ -256,6 +261,10 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
 
   if (poloId && !poloQuery.data) {
     return <AlertaErroApi erro={poloQuery.error} />
+  }
+
+  if (poloId && poloQuery.data?.gestao !== GESTAO_POLO_PADRAO) {
+    return <AlertaErroApi erro={ERRO_POLO_NAO_PARCEIRO} />
   }
 
   return (
