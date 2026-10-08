@@ -96,7 +96,7 @@ export function PoloForm({ poloId }: Readonly<PoloFormProps>) {
   const atualizacaoMutation = usePutPolo(poloId)
 
   useEffect(() => {
-    if (!poloQuery.data || poloQuery.data.gestao !== GESTAO_POLO_PADRAO) return
+    if (poloQuery.data?.gestao !== GESTAO_POLO_PADRAO) return
 
     setCodigoEolSincronizado(poloQuery.data.codigo_eol)
     setEmailRetornado(poloQuery.data.email)
