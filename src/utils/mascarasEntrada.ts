@@ -33,3 +33,21 @@ export function aplicarMascaraTelefone(valor: string): string {
 
   return `(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`
 }
+
+export function aplicarMascaraCpf(valor: string): string {
+  const digitos = extrairDigitos(valor).slice(0, 11)
+
+  if (digitos.length <= 3) {
+    return digitos
+  }
+
+  if (digitos.length <= 6) {
+    return `${digitos.slice(0, 3)}.${digitos.slice(3)}`
+  }
+
+  if (digitos.length <= 9) {
+    return `${digitos.slice(0, 3)}.${digitos.slice(3, 6)}.${digitos.slice(6)}`
+  }
+
+  return `${digitos.slice(0, 3)}.${digitos.slice(3, 6)}.${digitos.slice(6, 9)}-${digitos.slice(9)}`
+}

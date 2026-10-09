@@ -1,19 +1,18 @@
-import IconeSetaVoltar from '@/assets/icone-seta-voltar.png'
-import { Cabecalho } from '@/components/Cabecalho'
-import { MapaVisual } from '@/components/MapaVisual'
-import { MenuLateral } from '@/components/MenuLateral'
-import { ParticipanteForm } from '@/components/participante/ParticipanteForm'
-import { Button } from '@/components/ui/button'
 import { useNavigate } from 'react-router-dom'
+import { MenuLateral } from '../../components/MenuLateral'
+import { Cabecalho } from '../../components/Cabecalho'
+import { MapaVisual } from '../../components/MapaVisual'
+import { Button } from '@/components/ui/button'
+import IconeSetaVoltar from '@/assets/icone-seta-voltar.png'
+import { InscricoesParticipantesConteudo } from '@/components/participante/InscricoesParticipantesconteudo'
 
 const NIVEIS_MAPA_VISUAL = [
   { rotulo: 'Início', caminho: '/inicio' },
   { rotulo: 'Inscrições' },
   { rotulo: 'Inscrições de Participantes' },
-  { rotulo: 'Cadastrar Participante' },
 ] as const
 
-export default function PaginaCadastrarParticipante() {
+export default function PaginaInscricaoParticipantes() {
   const navigate = useNavigate()
 
   return (
@@ -26,7 +25,7 @@ export default function PaginaCadastrarParticipante() {
           <section>
             <div className="mt-8 mb-4 flex flex-wrap items-center justify-between gap-4 max-md:flex-col max-md:items-stretch">
               <h3 className="text-xl leading-tight font-bold">
-                Cadastrar Participante
+                Inscrições de Participantes
               </h3>
               <div className="flex flex-wrap items-center justify-end gap-2.5 max-md:flex-col max-md:items-stretch max-md:[&>button]:w-full">
                 <Button
@@ -34,13 +33,24 @@ export default function PaginaCadastrarParticipante() {
                   variant="outline"
                   aria-label="Voltar para o início"
                   className="h-9.5 rounded-sm border-brand-dark px-4 font-bold text-brand-dark hover:bg-accent hover:text-brand-dark"
-                  onClick={() => navigate('/inscricoes-participantes')}
+                  onClick={() => navigate('/inicio')}
                 >
                   <img src={IconeSetaVoltar} alt="" aria-hidden="true" /> Voltar
                 </Button>
+
+                <Button
+                  type="button"
+                  variant="default"
+                  aria-label="Cadastrar Participante"
+                  className="h-9.5 rounded-sm border-brand-dark px-4 font-bold text-white hover:bg-accent hover:text-brand-dark"
+                  onClick={() => navigate('/inscricoes-participantes/cadastro')}
+                >
+                  Cadastrar Participante
+                </Button>
               </div>
             </div>
-            <ParticipanteForm />
+
+            <InscricoesParticipantesConteudo />
           </section>
         </div>
       </section>
