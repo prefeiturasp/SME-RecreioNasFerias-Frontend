@@ -5,7 +5,7 @@ import React from 'react'
 
 import { useGetPolosOficiais } from './useGetPolosOficiais'
 import { listarPolosOficiais } from '@/services/inscricao/listarPolosOficiais'
-import type { PoloOficial } from '@/services/inscricao/types'
+import type { PoloElegivel } from '@/services/inscricao/types'
 
 // Mock do serviço de listagem de polos oficiais
 vi.mock('@/services/inscricao/listarPolosOficiais', () => ({
@@ -34,10 +34,10 @@ describe('useGetPolosOficiais', () => {
   })
 
   it('deve buscar os polos oficiais com sucesso', async () => {
-    const polosMock: PoloOficial[] = [
+    const polosMock: PoloElegivel[] = [
       { uuid: '1', nome_polo: 'Polo Central' },
       { uuid: '2', nome_polo: 'Polo Norte' },
-    ] as PoloOficial[]
+    ] as PoloElegivel[]
 
     vi.mocked(listarPolosOficiais).mockResolvedValueOnce(polosMock)
 

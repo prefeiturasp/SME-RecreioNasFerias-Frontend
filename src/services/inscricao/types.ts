@@ -103,8 +103,6 @@ export type PoloElegivel = {
   dre_nome: string
 }
 
-export type PoloOficial = PoloElegivel
-
 export type ParticipanteEol = {
   codigo_eol: string
   nome_participante: string

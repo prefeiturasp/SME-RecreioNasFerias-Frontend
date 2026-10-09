@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { api } from '../api/http'
 import { listarPolosOficiais } from './listarPolosOficiais'
-import type { PoloOficial } from './types'
+import type { PoloElegivel } from './types'
 
 // Mock do módulo da API para interceptar as chamadas HTTP
 vi.mock('../api/http', () => ({
@@ -17,10 +17,10 @@ describe('listarPolosOficiais', () => {
 
   it('deve retornar a lista de polos oficiais com sucesso e passar os parâmetros corretos', async () => {
     // Dados mockados que a API deve retornar
-    const polosMock: PoloOficial[] = [
+    const polosMock: PoloElegivel[] = [
       { uuid: 'edas-1234', nome_polo: 'Polo Centro' },
       { uuid: 'aedf-1234', nome_polo: 'Polo Norte' },
-    ] as PoloOficial[]
+    ] as PoloElegivel[]
 
     // Configura o mock do Axios/HTTP para resolver com os dados mockados
     vi.mocked(api.get).mockResolvedValueOnce({ data: polosMock })

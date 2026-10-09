@@ -1,8 +1,8 @@
 import { api } from '../api/http'
-import type { PoloOficial } from './types'
+import type { PoloElegivel } from './types'
 
-export async function listarPolosOficiais(): Promise<PoloOficial[]> {
-  const { data } = await api.get<PoloOficial[]>(
+export async function listarPolosOficiais(): Promise<PoloElegivel[]> {
+  const { data } = await api.get<PoloElegivel[]>(
     '/api/v1/inscricoes/polos-oficiais/',
     {
       params: {
