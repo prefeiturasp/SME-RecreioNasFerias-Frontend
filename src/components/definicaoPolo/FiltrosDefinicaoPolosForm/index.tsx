@@ -11,7 +11,7 @@ import {
   OPCOES_TIPO_POLO,
   type FiltrosListagemDefinicaoPolos,
 } from '@/services/definicaoPolo/types'
-import { CampoFiltroSelect } from './CampoFiltroSelect'
+import { CampoFiltroSelect } from '../../CampoFiltroSelect'
 import { useDefinicaoPoloStore } from '@/stores/filtroDefinicaoPolosStore'
 import { useShallow } from 'zustand/react/shallow'
 

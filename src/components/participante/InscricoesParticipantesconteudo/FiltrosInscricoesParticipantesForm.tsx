@@ -1,6 +1,6 @@
 import { CollapsibleFilter } from '@/components/CollapsibleFilter'
 import { IconeFiltro } from '@/components/icons'
-import { CampoFiltroSelect } from '../../definicaoPolo/FiltrosDefinicaoPolosForm/CampoFiltroSelect'
+import { CampoFiltroSelect } from '../../CampoFiltroSelect'
 import { type FiltrosIncricoesParticipantes } from '@/services/inscricao/types'
 import { SelectItem } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
@@ -10,7 +10,7 @@ import { useInscricoesParticipantesStore } from '@/stores/filtroInscricoesPartic
 import { useShallow } from 'zustand/react/shallow'
 import { useGetValoresChoices } from '@/hooks/useGetValoresChoices'
 import { useMemo } from 'react'
-import { CampoFiltroCombobox } from '@/components/participante/CampoFiltroCombobox'
+import { CampoFiltroCombobox } from '@/components/CampoFiltroCombobox/CampoFiltroCombobox'
 import { aplicarMascaraCpf, extrairDigitos } from '@/utils/mascarasEntrada'
 import { useGetPolosOficiais } from '@/hooks/useGetPolosOficiais'
 
