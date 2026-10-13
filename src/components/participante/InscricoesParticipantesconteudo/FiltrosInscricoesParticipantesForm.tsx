@@ -10,7 +10,7 @@ import { useInscricoesParticipantesStore } from '@/stores/filtroInscricoesPartic
 import { useShallow } from 'zustand/react/shallow'
 import { useGetValoresChoices } from '@/hooks/useGetValoresChoices'
 import { useMemo } from 'react'
-import { CampoFiltroCombobox } from '@/components/CampoFiltroCombobox/CampoFiltroCombobox'
+import { CampoFiltroCombobox } from '@/components/CampoFiltroCombobox'
 import { aplicarMascaraCpf, extrairDigitos } from '@/utils/mascarasEntrada'
 import { useGetPolosOficiais } from '@/hooks/useGetPolosOficiais'
 

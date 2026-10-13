@@ -1,10 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import {
-  CampoFiltroCombobox,
-  type OpcaoFiltroCombobox,
-} from './CampoFiltroCombobox'
+import { CampoFiltroCombobox, type OpcaoFiltroCombobox } from '.'
 
 const opcoesMock: OpcaoFiltroCombobox[] = [
   { value: 'sp', label: 'São Paulo' },
