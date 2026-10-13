@@ -12,11 +12,13 @@ import { BlocoTexto } from '@/components/BlocoTexto'
 import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
 import { useGetDres } from '@/hooks/useGetDres'
+import { useGetParticipanteCpf } from '@/hooks/useGetParticipanteCpf'
 import { useGetParticipanteEol } from '@/hooks/useGetParticipanteEol'
 import { useGetPolosElegiveis } from '@/hooks/useGetPolosElegiveis'
 import { useGetValoresChoices } from '@/hooks/useGetValoresChoices'
 import { usePostInscricao } from '@/hooks/usePostInscricao'
 import { useToast } from '@/hooks/useToast'
+import type { ParticipanteEol } from '@/services/inscricao/types'
 
 const CAMPOS_DO_PARTICIPANTE_VAZIOS = {
   nomeCompleto: '',
@@ -34,18 +36,16 @@ const CAMPOS_DO_PARTICIPANTE_VAZIOS = {
   email: '',
 }
 
-type ParticipanteFormProps = {
-  onBuscarCpf?: (cpf: string) => void
-}
-
-export function ParticipanteForm({ onBuscarCpf }: ParticipanteFormProps = {}) {
+export function ParticipanteForm() {
   const navigate = useNavigate()
   const { showToast } = useToast()
   const cadastroMutation = usePostInscricao()
   const consultaParticipante = useGetParticipanteEol()
+  const consultaCpf = useGetParticipanteCpf()
   const [codigoEolSincronizado, setCodigoEolSincronizado] = useState<
     string | null
   >(null)
+  const [cpfSincronizado, setCpfSincronizado] = useState<string | null>(null)
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -104,39 +104,63 @@ export function ParticipanteForm({ onBuscarCpf }: ParticipanteFormProps = {}) {
     form.setValue('polo', '')
   }
 
-  function limparCamposDoParticipante(codigoEol = form.getValues('codigoEol')) {
+  function limparCamposDoParticipante(
+    codigoEol = form.getValues('codigoEol'),
+    cpf = form.getValues('cpf'),
+  ) {
     form.reset({
       ...form.getValues(),
       ...CAMPOS_DO_PARTICIPANTE_VAZIOS,
       codigoEol,
+      cpf,
     })
     setCodigoEolSincronizado(null)
+    setCpfSincronizado(null)
+  }
+
+  function preencherComParticipante(participante: ParticipanteEol) {
+    form.reset({
+      ...form.getValues(),
+      codigoEol: participante.codigo_eol,
+      nomeCompleto: participante.nome_participante,
+      dataNascimento: participante.data_nascimento,
+      nomeResponsavel: participante.responsavel_nome,
+      nomeSocialResponsavel: participante.responsavel_nome_social,
+      cep: participante.cep,
+      logradouro: participante.logradouro,
+      numero: participante.numero,
+      complemento: participante.complemento,
+      bairro: participante.bairro,
+      cidade: participante.cidade,
+      telefone1: participante.telefone_contato_1,
+      telefone2: participante.telefone_contato_2,
+      email: participante.email,
+    })
+    setCodigoEolSincronizado(participante.codigo_eol)
   }
 
   function consultarParticipante(codigoEol: string) {
+    consultaCpf.reset()
     consultaParticipante.mutate(codigoEol, {
       onSuccess: (participante) => {
-        form.reset({
-          ...form.getValues(),
-          codigoEol: participante.codigo_eol,
-          nomeCompleto: participante.nome_participante,
-          dataNascimento: participante.data_nascimento,
-          nomeResponsavel: participante.responsavel_nome,
-          nomeSocialResponsavel: participante.responsavel_nome_social,
-          cep: participante.cep,
-          logradouro: participante.logradouro,
-          numero: participante.numero,
-          complemento: participante.complemento,
-          bairro: participante.bairro,
-          cidade: participante.cidade,
-          telefone1: participante.telefone_contato_1,
-          telefone2: participante.telefone_contato_2,
-          email: participante.email,
-        })
-        setCodigoEolSincronizado(participante.codigo_eol)
+        preencherComParticipante(participante)
+        setCpfSincronizado(null)
       },
       onError: () => {
         limparCamposDoParticipante()
+      },
+    })
+  }
+
+  function consultarPorCpf(cpf: string) {
+    consultaParticipante.reset()
+    consultaCpf.mutate(cpf, {
+      onSuccess: (participante) => {
+        preencherComParticipante(participante)
+        setCpfSincronizado(cpf)
+      },
+      onError: () => {
+        limparCamposDoParticipante(form.getValues('codigoEol'), cpf)
       },
     })
   }
@@ -153,6 +177,21 @@ export function ParticipanteForm({ onBuscarCpf }: ParticipanteFormProps = {}) {
 
     if (consultaParticipante.isError) {
       consultaParticipante.reset()
+    }
+  }
+
+  function aoMudarCpf(valor: string) {
+    const cpfAlteradoAposConsulta =
+      cpfSincronizado !== null && valor !== cpfSincronizado
+
+    if (cpfAlteradoAposConsulta) {
+      limparCamposDoParticipante('', valor)
+      consultaCpf.reset()
+      return
+    }
+
+    if (consultaCpf.isError) {
+      consultaCpf.reset()
     }
   }
 
@@ -207,6 +246,7 @@ export function ParticipanteForm({ onBuscarCpf }: ParticipanteFormProps = {}) {
               tiposEstudante={tiposEstudante}
               grupos={grupos}
               erro={
+                consultaCpf.error ??
                 consultaParticipante.error ??
                 cadastroMutation.error ??
                 dresQuery.error ??
@@ -214,9 +254,11 @@ export function ParticipanteForm({ onBuscarCpf }: ParticipanteFormProps = {}) {
                 choicesQuery.error
               }
               consultandoCodigoEol={consultaParticipante.isPending}
+              consultandoCpf={consultaCpf.isPending}
               onBuscarCodigoEol={consultarParticipante}
               aoMudarCodigoEol={aoMudarCodigoEol}
-              onBuscarCpf={onBuscarCpf}
+              onBuscarCpf={consultarPorCpf}
+              aoMudarCpf={aoMudarCpf}
               aoMudarGrupo={aoMudarGrupo}
               aoMudarDre={aoMudarDre}
             />

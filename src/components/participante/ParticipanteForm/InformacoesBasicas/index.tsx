@@ -8,6 +8,7 @@ import { FormFieldEol } from '@/components/ui/form-field-eol'
 import { formatarDataBr } from '@/lib/formatarPeriodo'
 import type { Dre } from '@/services/dre/types'
 import type { OpcaoChoice, PoloElegivel } from '@/services/inscricao/types'
+import { aplicarMascaraCpf } from '@/utils/mascarasEntrada'
 
 type InformacoesBasicasProps = {
   control: Control<FormValues>
@@ -22,9 +23,11 @@ type InformacoesBasicasProps = {
   grupos: OpcaoChoice[]
   erro?: unknown
   consultandoCodigoEol?: boolean
+  consultandoCpf?: boolean
   onBuscarCodigoEol?: (codigoEol: string) => void
   aoMudarCodigoEol?: (codigoEol: string) => void
   onBuscarCpf?: (cpf: string) => void
+  aoMudarCpf?: (cpf: string) => void
   aoMudarGrupo?: (valor: string) => void
   aoMudarDre?: (valor: string) => void
 }
@@ -42,9 +45,11 @@ export function InformacoesBasicas({
   grupos,
   erro,
   consultandoCodigoEol = false,
+  consultandoCpf = false,
   onBuscarCodigoEol,
   aoMudarCodigoEol,
   onBuscarCpf,
+  aoMudarCpf,
   aoMudarGrupo,
   aoMudarDre,
 }: Readonly<InformacoesBasicasProps>) {
@@ -121,14 +126,19 @@ export function InformacoesBasicas({
             name="cpf"
             label={
               <>
-                <span className="text-destructive">*</span> CPF
+                <span className="text-destructive">*</span> Consultar por CPF do
+                responsável
               </>
             }
             placeholder="Digite o CPF"
-            buscaInterna
+            buscarAoSair
             maxLength={11}
-            rotuloBusca="CPF"
+            maxLengthExibicao={14}
+            rotuloBusca="CPF do responsável"
+            formatarExibicao={aplicarMascaraCpf}
+            isLoading={consultandoCpf}
             onSearch={onBuscarCpf}
+            onChange={aoMudarCpf}
           />
           <FormField
             control={control}
@@ -295,7 +305,11 @@ export function InformacoesBasicas({
               value: polo.uuid,
               label: polo.nome_polo,
             }))}
-            placeholder="Selecione o Polo"
+            placeholder={
+              dreCodigoEol
+                ? 'Selecione o Polo'
+                : 'É necessário selecionar o DRE primeiro'
+            }
           />
         </>
       ) : null}

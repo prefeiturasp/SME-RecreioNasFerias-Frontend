@@ -1,5 +1,3 @@
-import type { ComponentProps } from 'react'
-
 class ObservadorTamanho {
   observe() {}
   unobserve() {}
@@ -83,6 +81,7 @@ const {
   listarValoresChoicesMock,
   cadastrarInscricaoMock,
   obterParticipanteEolMock,
+  obterParticipanteCpfMock,
   showToastMock,
 } = vi.hoisted(() => ({
   listarDresMock: vi.fn(),
@@ -90,6 +89,7 @@ const {
   listarValoresChoicesMock: vi.fn(),
   cadastrarInscricaoMock: vi.fn(),
   obterParticipanteEolMock: vi.fn(),
+  obterParticipanteCpfMock: vi.fn(),
   showToastMock: vi.fn(),
 }))
 
@@ -113,11 +113,15 @@ vi.mock('@/services/inscricao/obterParticipanteEol', () => ({
   obterParticipanteEol: obterParticipanteEolMock,
 }))
 
+vi.mock('@/services/inscricao/obterParticipanteCpf', () => ({
+  obterParticipanteCpf: obterParticipanteCpfMock,
+}))
+
 vi.mock('@/hooks/useToast', () => ({
   useToast: () => ({ showToast: showToastMock, dismissToast: vi.fn() }),
 }))
 
-function renderFormulario(props?: ComponentProps<typeof ParticipanteForm>) {
+function renderFormulario() {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -131,7 +135,7 @@ function renderFormulario(props?: ComponentProps<typeof ParticipanteForm>) {
         <Routes>
           <Route
             path="/inscricoes-participantes"
-            element={<ParticipanteForm {...props} />}
+            element={<ParticipanteForm />}
           />
           <Route path="/inicio" element={<div>Página Início</div>} />
         </Routes>
@@ -157,11 +161,13 @@ describe('ParticipanteForm', () => {
     listarValoresChoicesMock.mockReset()
     cadastrarInscricaoMock.mockReset()
     obterParticipanteEolMock.mockReset()
+    obterParticipanteCpfMock.mockReset()
     showToastMock.mockReset()
     listarDresMock.mockResolvedValue([])
     listarPolosElegiveisMock.mockResolvedValue([])
     listarValoresChoicesMock.mockResolvedValue(valoresChoicesExemplo)
     obterParticipanteEolMock.mockResolvedValue(participanteEolVazio)
+    obterParticipanteCpfMock.mockResolvedValue(participanteEolVazio)
     cadastrarInscricaoMock.mockResolvedValue({
       status: 'RASCUNHO',
       status_label: 'Rascunho',
@@ -244,11 +250,20 @@ describe('ParticipanteForm', () => {
       screen.getByRole('button', { name: /consultar código eol/i }),
     )
 
-    const cpf = screen.getByRole('textbox', { name: /\bcpf\b/i })
+    const cpf = screen.getByRole('textbox', { name: /cpf do responsável/i })
     expect(cpf).not.toHaveAttribute('readonly')
     expect(cpf).toHaveAttribute('placeholder', 'Digite o CPF')
-    expect(cpf).toHaveClass('pl-9')
-    expect(screen.getByRole('button', { name: /consultar cpf/i })).toBeEnabled()
+    expect(cpf).not.toHaveClass('pl-9')
+    expect(cpf.parentElement).toHaveClass(
+      'overflow-hidden',
+      'rounded-sm',
+      'border',
+    )
+    expect(
+      screen.getByRole('button', { name: /consultar cpf do responsável/i }),
+    ).toBeEnabled()
+    await usuario.type(cpf, '12345678901')
+    expect(cpf).toHaveValue('123.456.789-01')
     expect(
       screen.getByLabelText(/nome completo do\(a\) participante/i),
     ).toHaveAttribute('readonly')
@@ -415,7 +430,15 @@ describe('ParticipanteForm', () => {
     renderFormulario()
 
     await escolherGrupo(usuario, 'Berçário I')
-    await usuario.type(screen.getByRole('textbox', { name: /\bcpf\b/i }), '123')
+    const cpf = screen.getByRole('textbox', { name: /cpf do responsável/i })
+    await usuario.type(cpf, '123')
+    await usuario.tab()
+    await waitFor(() => {
+      expect(obterParticipanteCpfMock).toHaveBeenCalledWith(
+        '123',
+        expect.anything(),
+      )
+    })
     await usuario.click(screen.getByLabelText(/\bdre\b/i))
     await usuario.click(
       await screen.findByRole('option', { name: 'DRE Butantã' }),
@@ -457,7 +480,9 @@ describe('ParticipanteForm', () => {
       screen.getByLabelText(/telefone de contato\/emergência 1/i),
     ).toHaveValue('11988887777')
     expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue('ana@email.com')
-    expect(screen.getByRole('textbox', { name: /\bcpf\b/i })).toHaveValue('123')
+    expect(
+      screen.getByRole('textbox', { name: /cpf do responsável/i }),
+    ).toHaveValue('123')
     expect(screen.getByLabelText(/\bdre\b/i)).toHaveTextContent('DRE Butantã')
   })
 
@@ -562,15 +587,36 @@ describe('ParticipanteForm', () => {
     expect(codigoEol).toHaveValue('1234567')
   })
 
-  it('repassa o CPF digitado para a busca informada', async () => {
+  it('preenche os campos com o retorno da consulta pelo CPF do responsável', async () => {
     const usuario = userEvent.setup()
-    const onBuscarCpf = vi.fn()
-    renderFormulario({ onBuscarCpf })
+    obterParticipanteCpfMock.mockResolvedValue(participanteEolExemplo)
+    renderFormulario()
 
     await escolherGrupo(usuario, 'Berçário I')
-    await usuario.type(screen.getByRole('textbox', { name: /\bcpf\b/i }), '123')
-    await usuario.click(screen.getByRole('button', { name: /consultar cpf/i }))
-    expect(onBuscarCpf).toHaveBeenCalledWith('123')
+    const cpf = screen.getByRole('textbox', { name: /cpf do responsável/i })
+    await usuario.type(cpf, '12345678901')
+    await usuario.click(
+      screen.getByRole('button', { name: /consultar cpf do responsável/i }),
+    )
+
+    await waitFor(() => {
+      expect(obterParticipanteCpfMock).toHaveBeenCalledWith(
+        '12345678901',
+        expect.anything(),
+      )
+      expect(
+        screen.getByLabelText(/nome completo do\(a\) participante/i),
+      ).toHaveValue('ANNA JULIA ARAUJO SA')
+    })
+    expect(screen.getByRole('textbox', { name: /código eol/i })).toHaveValue(
+      '123456',
+    )
+    expect(cpf).toHaveValue('123.456.789-01')
+    expect(screen.getByLabelText(/data de nascimento/i)).toHaveValue(
+      '16/10/2013',
+    )
+    expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue('ana@email.com')
+    expect(screen.getByLabelText(/\be-mail\b/i)).not.toHaveAttribute('readonly')
   })
 
   it.each(['Berçário I', 'Berçário II', 'Mini Grupo I', 'Mini Grupo II'])(
