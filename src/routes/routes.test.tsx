@@ -368,7 +368,7 @@ describe('RotasAplicacao', () => {
       descricaoCargo: 'CARGO TESTE',
     })
 
-    renderRotas('/inscricoes-participantes')
+    renderRotas('/inscricoes-participantes/cadastro')
 
     const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
     expect(mapa).toHaveTextContent('Início')
@@ -383,4 +383,3 @@ describe('RotasAplicacao', () => {
     ).toBeInTheDocument()
   })
 })
-

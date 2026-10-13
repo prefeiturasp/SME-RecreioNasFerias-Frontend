@@ -63,6 +63,27 @@ export type Inscricao = {
   ativo: boolean
 }
 
+export type FiltrosIncricoesParticipantes = {
+  codigo_eol: string
+  cpf: string
+  grupo: string
+  nome_participante: string
+  polo: string
+  status: string
+  tipo_estudante: string
+}
+
+export const FILTROS_LISTAGEM_INSCRICOES_PARTICIPANTES_INICIAIS: FiltrosIncricoesParticipantes =
+  {
+    codigo_eol: '',
+    cpf: '',
+    grupo: '',
+    nome_participante: '',
+    polo: '',
+    status: '',
+    tipo_estudante: '',
+  }
+
 export type OpcaoChoice = {
   value: string
   label: string

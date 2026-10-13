@@ -83,6 +83,6 @@ describe('PaginaCadastrarParticipante', () => {
       screen.getByRole('button', { name: /voltar para o início/i }),
     )
 
-    expect(navegarMock).toHaveBeenCalledWith('/inicio')
+    expect(navegarMock).toHaveBeenCalledWith('/inscricoes-participantes')
   })
 })
