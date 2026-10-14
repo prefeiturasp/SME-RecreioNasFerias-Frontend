@@ -1,5 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+<<<<<<< HEAD
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
+=======
+import { useMemo, useRef, useState } from 'react'
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { grupoExigeEstudanteDaRede, TIPO_ESTUDANTE_REDE } from './constantes'
@@ -40,6 +44,7 @@ export function ParticipanteForm() {
   const navigate = useNavigate()
   const { showToast } = useToast()
   const cadastroMutation = usePostInscricao()
+<<<<<<< HEAD
   const buscaVigente = useRef<'codigoEol' | 'cpf' | null>(null)
   const [codigoEolConsulta, setCodigoEolConsulta] = useState<string>()
   const [cpfConsulta, setCpfConsulta] = useState<string>()
@@ -48,15 +53,23 @@ export function ParticipanteForm() {
   const [origemConsulta, setOrigemConsulta] = useState<
     'codigoEol' | 'cpf' | null
   >(null)
+=======
+  const consultaParticipante = useGetParticipanteEol()
+  const consultaCpf = useGetParticipanteCpf()
+  const buscaVigente = useRef<'codigoEol' | 'cpf' | null>(null)
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
   const [codigoEolSincronizado, setCodigoEolSincronizado] = useState<
     string | null
   >(null)
   const [cpfSincronizado, setCpfSincronizado] = useState<string | null>(null)
+<<<<<<< HEAD
   const eolAberto = useMemo(() => origemConsulta === 'cpf', [origemConsulta])
   const cpfAberto = useMemo(
     () => origemConsulta === 'codigoEol',
     [origemConsulta],
   )
+=======
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -129,6 +142,7 @@ export function ParticipanteForm() {
     setCpfSincronizado(null)
   }
 
+<<<<<<< HEAD
   function preencherComParticipante(
     participante: ParticipanteEol,
     cpf = form.getValues('cpf'),
@@ -143,6 +157,12 @@ export function ParticipanteForm() {
       ...form.getValues(),
       codigoEol,
       cpf,
+=======
+  function preencherComParticipante(participante: ParticipanteEol) {
+    form.reset({
+      ...form.getValues(),
+      codigoEol: participante.codigo_eol,
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
       nomeCompleto: participante.nome_participante,
       dataNascimento: participante.data_nascimento,
       nomeResponsavel: participante.responsavel_nome,
@@ -157,7 +177,11 @@ export function ParticipanteForm() {
       telefone2: participante.telefone_contato_2,
       email: participante.email,
     })
+<<<<<<< HEAD
     setCodigoEolSincronizado(codigoEol)
+=======
+    setCodigoEolSincronizado(participante.codigo_eol)
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
   }
 
   function consultaAindaVale(origem: 'codigoEol' | 'cpf', valor: string) {
@@ -165,6 +189,7 @@ export function ParticipanteForm() {
   }
 
   function consultarParticipante(codigoEol: string) {
+<<<<<<< HEAD
     if (!codigoEol) return
 
     buscaVigente.current = 'codigoEol'
@@ -198,6 +223,37 @@ export function ParticipanteForm() {
 
   function impedirBlurAntesDoClique(evento: MouseEvent<HTMLButtonElement>) {
     evento.preventDefault()
+=======
+    buscaVigente.current = 'codigoEol'
+    consultaCpf.reset()
+    consultaParticipante.mutate(codigoEol, {
+      onSuccess: (participante) => {
+        if (!consultaAindaVale('codigoEol', codigoEol)) return
+        preencherComParticipante(participante)
+        setCpfSincronizado(null)
+      },
+      onError: () => {
+        if (!consultaAindaVale('codigoEol', codigoEol)) return
+        limparCamposDoParticipante()
+      },
+    })
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
+  }
+
+  function consultarPorCpf(cpf: string) {
+    buscaVigente.current = 'cpf'
+    consultaParticipante.reset()
+    consultaCpf.mutate(cpf, {
+      onSuccess: (participante) => {
+        if (!consultaAindaVale('cpf', cpf)) return
+        preencherComParticipante(participante)
+        setCpfSincronizado(cpf)
+      },
+      onError: () => {
+        if (!consultaAindaVale('cpf', cpf)) return
+        limparCamposDoParticipante('', cpf)
+      },
+    })
   }
 
   function aoMudarCodigoEol(valor: string) {
@@ -224,6 +280,7 @@ export function ParticipanteForm() {
   }
 
   function aoMudarCpf(valor: string) {
+<<<<<<< HEAD
     if (origemConsulta === 'codigoEol') return
 
     if (valor) {
@@ -232,11 +289,14 @@ export function ParticipanteForm() {
       setOrigemConsulta(null)
     }
 
+=======
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
     const cpfAlteradoAposConsulta =
       cpfSincronizado !== null && valor !== cpfSincronizado
 
     if (cpfAlteradoAposConsulta) {
       limparCamposDoParticipante('', valor)
+<<<<<<< HEAD
       setCpfConsulta(undefined)
       return
     }
@@ -294,6 +354,17 @@ export function ParticipanteForm() {
     consultaCpf.isError,
   ])
 
+=======
+      consultaCpf.reset()
+      return
+    }
+
+    if (consultaCpf.isError) {
+      consultaCpf.reset()
+    }
+  }
+
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
   function salvar(dados: FormValues) {
     if (cadastroMutation.isError) {
       cadastroMutation.reset()
@@ -353,8 +424,13 @@ export function ParticipanteForm() {
                 polosQuery.error ??
                 choicesQuery.error
               }
+<<<<<<< HEAD
               consultandoCodigoEol={consultaParticipante.isFetching}
               consultandoCpf={consultaCpf.isFetching}
+=======
+              consultandoCodigoEol={consultaParticipante.isPending}
+              consultandoCpf={consultaCpf.isPending}
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
               onBuscarCodigoEol={consultarParticipante}
               aoMudarCodigoEol={aoMudarCodigoEol}
               onBuscarCpf={consultarPorCpf}

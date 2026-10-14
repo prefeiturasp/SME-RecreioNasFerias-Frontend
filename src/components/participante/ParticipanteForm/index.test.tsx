@@ -139,7 +139,11 @@ function renderFormulario() {
           />
           <Route
             path="/inscricoes-participantes"
+<<<<<<< HEAD
             element={<div>Listagem de inscrições</div>}
+=======
+            element={<ParticipanteForm />}
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
           />
           <Route path="/inicio" element={<div>Página Início</div>} />
         </Routes>
@@ -434,6 +438,18 @@ describe('ParticipanteForm', () => {
     renderFormulario()
 
     await escolherGrupo(usuario, 'Berçário I')
+<<<<<<< HEAD
+=======
+    const cpf = screen.getByRole('textbox', { name: /cpf do responsável/i })
+    await usuario.type(cpf, '123')
+    await usuario.tab()
+    await waitFor(() => {
+      expect(obterParticipanteCpfMock).toHaveBeenCalledWith(
+        '123',
+        expect.anything(),
+      )
+    })
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
     await usuario.click(screen.getByLabelText(/\bdre\b/i))
     await usuario.click(
       await screen.findByRole('option', { name: 'DRE Butantã' }),
@@ -474,7 +490,11 @@ describe('ParticipanteForm', () => {
     expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue('ana@email.com')
     expect(
       screen.getByRole('textbox', { name: /cpf do responsável/i }),
+<<<<<<< HEAD
     ).toHaveValue('')
+=======
+    ).toHaveValue('123')
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
     expect(screen.getByLabelText(/\bdre\b/i)).toHaveTextContent('DRE Butantã')
   })
 
@@ -589,7 +609,14 @@ describe('ParticipanteForm', () => {
     )
 
     await waitFor(() => {
+<<<<<<< HEAD
       expect(obterParticipanteCpfMock).toHaveBeenCalledWith('12345678901')
+=======
+      expect(obterParticipanteCpfMock).toHaveBeenCalledWith(
+        '12345678901',
+        expect.anything(),
+      )
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
       expect(
         screen.getByLabelText(/nome completo do\(a\) participante/i),
       ).toHaveValue('ANNA JULIA ARAUJO SA')
@@ -620,6 +647,7 @@ describe('ParticipanteForm', () => {
     expect(screen.getByLabelText(/polo de inscrição/i)).toBeDisabled()
   })
 
+<<<<<<< HEAD
   it('salva a inscrição preenchida pela consulta do CPF sem consultar de novo', async () => {
     const usuario = userEvent.setup()
     obterParticipanteCpfMock.mockResolvedValue(participanteEolExemplo)
@@ -682,6 +710,8 @@ describe('ParticipanteForm', () => {
     expect(cpf).toHaveValue('464.205.131-7')
   })
 
+=======
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
   it('consulta o CPF do responsável ao sair do campo', async () => {
     const usuario = userEvent.setup()
     obterParticipanteCpfMock.mockResolvedValue(participanteEolExemplo)
@@ -702,7 +732,14 @@ describe('ParticipanteForm', () => {
       ).toHaveValue('ANNA JULIA ARAUJO SA')
     })
     expect(obterParticipanteCpfMock).toHaveBeenCalledTimes(1)
+<<<<<<< HEAD
     expect(obterParticipanteCpfMock).toHaveBeenCalledWith('12345678901')
+=======
+    expect(obterParticipanteCpfMock).toHaveBeenCalledWith(
+      '12345678901',
+      expect.anything(),
+    )
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
     expect(screen.getByRole('textbox', { name: /código eol/i })).toHaveValue(
       '123456',
     )
@@ -782,6 +819,7 @@ describe('ParticipanteForm', () => {
     expect(cpf).toHaveValue('123.456.789-0')
   })
 
+<<<<<<< HEAD
   it('deixa o CPF aberto e sem consulta depois da busca pelo código EOL', async () => {
     const usuario = userEvent.setup()
     obterParticipanteEolMock.mockResolvedValue(participanteEolExemplo)
@@ -850,6 +888,9 @@ describe('ParticipanteForm', () => {
   })
 
   it('mantém o código EOL informado quando o retorno do CPF chega depois', async () => {
+=======
+  it('ignora o retorno do CPF quando a consulta do código EOL já preencheu os dados', async () => {
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
     const usuario = userEvent.setup()
     let concluirCpf: (participante: ParticipanteEol) => void = () => {}
     obterParticipanteCpfMock.mockImplementation(
@@ -858,6 +899,14 @@ describe('ParticipanteForm', () => {
           concluirCpf = resolve
         }),
     )
+<<<<<<< HEAD
+=======
+    obterParticipanteEolMock.mockResolvedValue({
+      ...participanteEolExemplo,
+      codigo_eol: '654321',
+      nome_participante: 'ALUNO DO EOL',
+    })
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
     renderFormulario()
 
     await escolherGrupo(usuario, 'Berçário I')
@@ -872,6 +921,7 @@ describe('ParticipanteForm', () => {
       expect(obterParticipanteCpfMock).toHaveBeenCalledTimes(1)
     })
 
+<<<<<<< HEAD
     const codigoEol = screen.getByRole('textbox', { name: /código eol/i })
     expect(
       screen.queryByRole('button', { name: /consultar código eol/i }),
@@ -879,6 +929,20 @@ describe('ParticipanteForm', () => {
     await usuario.type(codigoEol, '654321')
     await usuario.tab()
     expect(obterParticipanteEolMock).not.toHaveBeenCalled()
+=======
+    await usuario.type(
+      screen.getByRole('textbox', { name: /código eol/i }),
+      '654321',
+    )
+    await usuario.click(
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    )
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText(/nome completo do\(a\) participante/i),
+      ).toHaveValue('ALUNO DO EOL')
+    })
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
 
     await act(async () => {
       concluirCpf({
@@ -887,12 +951,21 @@ describe('ParticipanteForm', () => {
       })
     })
 
+<<<<<<< HEAD
     await waitFor(() => {
       expect(
         screen.getByLabelText(/nome completo do\(a\) participante/i),
       ).toHaveValue('ALUNO DO CPF')
     })
     expect(codigoEol).toHaveValue('654321')
+=======
+    expect(
+      screen.getByLabelText(/nome completo do\(a\) participante/i),
+    ).toHaveValue('ALUNO DO EOL')
+    expect(screen.getByRole('textbox', { name: /código eol/i })).toHaveValue(
+      '654321',
+    )
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
   })
 
   it('ignora o retorno do CPF quando o campo já foi alterado', async () => {
@@ -937,7 +1010,14 @@ describe('ParticipanteForm', () => {
     await usuario.type(cpf, '123')
     await usuario.tab()
     await waitFor(() => {
+<<<<<<< HEAD
       expect(obterParticipanteCpfMock).toHaveBeenCalledWith('123')
+=======
+      expect(obterParticipanteCpfMock).toHaveBeenCalledWith(
+        '123',
+        expect.anything(),
+      )
+>>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
     })
     await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
 
