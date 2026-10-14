@@ -41,7 +41,7 @@ const COLUNAS = [
   },
   {
     id: 'grupo',
-    rotulo: 'Grupo',
+    rotulo: 'Agrupamento',
     valorOrdenacao: (inscricao) => inscricao.grupo ?? '',
     renderizar: (inscricao) => inscricao.grupo_label ?? '-',
   },
