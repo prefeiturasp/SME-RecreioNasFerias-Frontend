@@ -35,6 +35,8 @@ function DatePicker({
   const [aberto, setAberto] = useState(false)
   const selecionada = value ? parse(value, 'yyyy-MM-dd', new Date()) : undefined
 
+  const anoAtual = new Date().getFullYear()
+
   return (
     <Popover
       open={aberto}
@@ -64,14 +66,17 @@ function DatePicker({
           <CalendarIcon className="size-4" aria-hidden="true" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-auto p-0">
+      <PopoverContent className="w-auto overflow-hidden p-0" align="start">
         <Calendar
           mode="single"
           locale={ptBR}
           selected={selecionada}
           defaultMonth={selecionada}
-          onSelect={(data) => {
-            onChange(data ? format(data, 'yyyy-MM-dd') : '')
+          captionLayout="dropdown"
+          startMonth={new Date(anoAtual - 20, 0)}
+          endMonth={new Date(anoAtual + 20, 11)}
+          onSelect={(date) => {
+            onChange(date ? format(date, 'yyyy-MM-dd') : '')
             setAberto(false)
           }}
         />
