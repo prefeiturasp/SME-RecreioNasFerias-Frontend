@@ -5,7 +5,7 @@ import React from 'react'
 
 import { useGetInscricoes } from './useGetInscricoes'
 import { listarInscricoes } from '@/services/inscricao/listarInscricoes'
-import { useInscricoesParticipantesStore } from '@/stores/filtroInscricoesParticipantesStore'
+import { useInscricoesParticipantesStore } from '@/stores/useInscricoesParticipantesStore'
 import type { InscricaoApi } from '@/services/inscricao/types'
 
 vi.mock('@/services/inscricao/listarInscricoes', () => ({

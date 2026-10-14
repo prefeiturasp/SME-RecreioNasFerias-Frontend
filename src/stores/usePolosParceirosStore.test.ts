@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react'
-import { usePoloParceiroStore } from './filtroPolosParceirosStore'
+import { usePoloParceiroStore } from './usePolosParceirosStore'
 import { FILTROS_POLO_INICIAIS } from '@/constants/filtroPolos'
 
 // Reseta a store antes de cada teste para garantir isolamento total

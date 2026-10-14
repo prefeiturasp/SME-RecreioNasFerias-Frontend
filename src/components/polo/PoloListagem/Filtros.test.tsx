@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { FILTROS_POLO_INICIAIS } from '@/constants/filtroPolos'
-import { usePoloParceiroStore } from '@/stores/filtroPolosParceirosStore'
+import { usePoloParceiroStore } from '@/stores/usePolosParceirosStore'
 import { Filtros } from './Filtros'
 
 const { useGetDresMock, useGetTiposEscolaMock } = vi.hoisted(() => ({

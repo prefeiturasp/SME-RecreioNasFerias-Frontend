@@ -14,7 +14,7 @@ import {
   type FiltrosListagemDefinicaoPolos,
   type PoloParaAlterarTipo,
 } from '@/services/definicaoPolo/types'
-import { useDefinicaoPoloStore } from '@/stores/filtroDefinicaoPolosStore'
+import { useDefinicaoPoloStore } from '@/stores/useDefinicaoPolosStore'
 import { useShallow } from 'zustand/react/shallow'
 
 const TOAST_ERRO_LISTAGEM_ID = 'erro-listagem-definicoes-polos'
@@ -92,10 +92,7 @@ const COLUNAS = [
 type DefinicaoPolosListagemProps = {
   filtros?: FiltrosListagemDefinicaoPolos
   chaveResetSelecao?: number
-  onVisualizarPolo?: (
-    definicaoUuid: string | null,
-    poloUuid: string,
-  ) => void
+  onVisualizarPolo?: (definicaoUuid: string | null, poloUuid: string) => void
   onAlterarEdicaoPolo: (idsPolos: string[]) => void
   onAlterarTipoPolo: (polos: PoloParaAlterarTipo[]) => void
 }

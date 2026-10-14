@@ -127,13 +127,16 @@ function renderFormulario(props?: ComponentProps<typeof ParticipanteForm>) {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={['/inscricoes-participantes']}>
+      <MemoryRouter initialEntries={['/inscricoes-participantes/cadastro']}>
         <Routes>
           <Route
-            path="/inscricoes-participantes"
+            path="/inscricoes-participantes/cadastro"
             element={<ParticipanteForm {...props} />}
           />
-          <Route path="/inicio" element={<div>Página Início</div>} />
+          <Route
+            path="/inscricoes-participantes"
+            element={<div>Inscrições de Participantes</div>}
+          />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>,
@@ -213,13 +216,13 @@ describe('ParticipanteForm', () => {
     ).toBeInTheDocument()
   })
 
-  it('navega para o início ao clicar em Cancelar', async () => {
+  it('navega para a listagem ao clicar em Cancelar', async () => {
     const usuario = userEvent.setup()
     renderFormulario()
 
     await usuario.click(screen.getByRole('button', { name: /cancelar/i }))
 
-    expect(screen.getByText(/página início/i)).toBeInTheDocument()
+    expect(screen.getByText(/inscrições de participantes/i)).toBeInTheDocument()
   })
 
   it('mostra o restante das informações básicas depois do grupo e do tipo', async () => {
