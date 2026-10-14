@@ -1,4 +1,3 @@
-import type { InscricaoApi } from '@/services/inscricao/types'
 import type { DefinicaoColuna } from '@/components/TabelaListagem/types'
 import useGetInscricoes from '@/hooks/useGetInscricoes'
 import { useInscricoesParticipantesStore } from '@/stores/filtroInscricoesParticipantesStore'
@@ -7,15 +6,7 @@ import { TabelaListagem } from '@/components/TabelaListagem'
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
 import { iconeLapisEditar } from '@/assets/'
-
-type InscricaoParticipanteListagem = InscricaoApi & {
-  id: string
-  uuid?: string
-  tipo_estudante_label: string
-  polo_nome: string
-  grupo_label: string
-  status_label: string
-}
+import type { InscricaoApi } from '@/services/inscricao/types'
 
 const COLUNAS = [
   {
@@ -60,7 +51,7 @@ const COLUNAS = [
     valorOrdenacao: (inscricao) => inscricao.status ?? '',
     renderizar: (inscricao) => inscricao.status_label ?? '-',
   },
-] as const satisfies readonly DefinicaoColuna<InscricaoParticipanteListagem>[]
+] as const satisfies readonly DefinicaoColuna<InscricaoApi>[]
 
 export function InscricoesParticipantesListagem() {
   const inscricoesQuery = useGetInscricoes()
@@ -76,15 +67,9 @@ export function InscricoesParticipantesListagem() {
     )
 
   const resposta = inscricoesQuery.data
-  const resultados = Array.isArray(resposta)
+  const inscricoes = Array.isArray(resposta)
     ? resposta
     : (resposta?.results ?? [])
-  const inscricoes: InscricaoParticipanteListagem[] = resultados.map(
-    (inscricao) => ({
-      ...inscricao,
-      id: inscricao.uuid,
-    }),
-  )
 
   const totalPaginas = Math.ceil(
     (Array.isArray(resposta) ? resposta.length : (resposta?.count ?? 0)) /
@@ -105,7 +90,7 @@ export function InscricoesParticipantesListagem() {
       <TabelaListagem
         itens={inscricoes}
         colunas={COLUNAS}
-        obterId={(item) => item.id}
+        obterId={(item) => item.uuid}
         colunaOrdenacaoInicial="nome_participante"
         modoPaginacao="servidor"
         paginaAtual={paginaAtual}
