@@ -20,6 +20,10 @@ import { usePostInscricao } from '@/hooks/usePostInscricao'
 import { useToast } from '@/hooks/useToast'
 import type { ParticipanteEol } from '@/services/inscricao/types'
 
+function impedirBlurAntesDoClique(evento: MouseEvent<HTMLButtonElement>) {
+  evento.preventDefault()
+}
+
 const CAMPOS_DO_PARTICIPANTE_VAZIOS = {
   nomeCompleto: '',
   dataNascimento: '',
@@ -194,10 +198,6 @@ export function ParticipanteForm() {
     }
 
     setCpfConsulta(cpf)
-  }
-
-  function impedirBlurAntesDoClique(evento: MouseEvent<HTMLButtonElement>) {
-    evento.preventDefault()
   }
 
   function aoMudarCodigoEol(valor: string) {
