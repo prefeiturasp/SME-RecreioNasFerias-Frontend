@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { listarInscricoes } from '@/services/inscricao/listarInscricoes'
-import { useInscricoesParticipantesStore } from '@/stores/filtroInscricoesParticipantesStore'
+import { useInscricoesParticipantesStore } from '@/stores/useInscricoesParticipantesStore'
 import { useShallow } from 'zustand/react/shallow'
 
 export function useGetInscricoes() {

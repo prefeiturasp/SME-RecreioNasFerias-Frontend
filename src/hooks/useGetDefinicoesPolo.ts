@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { listarDefinicoesPolo } from '@/services/definicaoPolo/listarDefinicoesPolo'
 import type { ListagemDefinicoesPoloPaginada } from '@/services/definicaoPolo/types'
-import { useDefinicaoPoloStore } from '@/stores/filtroDefinicaoPolosStore'
+import { useDefinicaoPoloStore } from '@/stores/useDefinicaoPolosStore'
 import { useShallow } from 'zustand/react/shallow'
 
 export function useGetDefinicoesPolo() {

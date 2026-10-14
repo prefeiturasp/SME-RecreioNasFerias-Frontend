@@ -1,6 +1,6 @@
 import type { DefinicaoColuna } from '@/components/TabelaListagem/types'
 import useGetInscricoes from '@/hooks/useGetInscricoes'
-import { useInscricoesParticipantesStore } from '@/stores/filtroInscricoesParticipantesStore'
+import { useInscricoesParticipantesStore } from '@/stores/useInscricoesParticipantesStore'
 import { useShallow } from 'zustand/react/shallow'
 import { TabelaListagem } from '@/components/TabelaListagem'
 import { Button } from '@/components/ui/button'
