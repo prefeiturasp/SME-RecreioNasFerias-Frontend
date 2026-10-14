@@ -84,6 +84,20 @@ export const FILTROS_LISTAGEM_INSCRICOES_PARTICIPANTES_INICIAIS: FiltrosIncricoe
     tipo_estudante: '',
   }
 
+export type InscricaoApi = Inscricao & {
+  grupo_label: string
+  status_label: string
+  polo_nome: string
+  tipo_estudante_label: string
+}
+
+export type InscricoesParticipantesPaginada = {
+  count: number
+  next: string | null
+  previous: string | null
+  results: InscricaoApi[]
+}
+
 export type OpcaoChoice = {
   value: string
   label: string
