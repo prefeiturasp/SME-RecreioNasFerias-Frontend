@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { grupoExigeEstudanteDaRede, TIPO_ESTUDANTE_REDE } from './constantes'
@@ -40,9 +40,11 @@ export function ParticipanteForm() {
   const navigate = useNavigate()
   const { showToast } = useToast()
   const cadastroMutation = usePostInscricao()
-  const consultaParticipante = useGetParticipanteEol()
-  const consultaCpf = useGetParticipanteCpf()
   const buscaVigente = useRef<'codigoEol' | 'cpf' | null>(null)
+  const [codigoEolConsulta, setCodigoEolConsulta] = useState<string>()
+  const [cpfConsulta, setCpfConsulta] = useState<string>()
+  const consultaParticipante = useGetParticipanteEol(codigoEolConsulta)
+  const consultaCpf = useGetParticipanteCpf(cpfConsulta)
   const [codigoEolSincronizado, setCodigoEolSincronizado] = useState<
     string | null
   >(null)
@@ -119,10 +121,14 @@ export function ParticipanteForm() {
     setCpfSincronizado(null)
   }
 
-  function preencherComParticipante(participante: ParticipanteEol) {
+  function preencherComParticipante(
+    participante: ParticipanteEol,
+    cpf = form.getValues('cpf'),
+  ) {
     form.reset({
       ...form.getValues(),
       codigoEol: participante.codigo_eol,
+      cpf,
       nomeCompleto: participante.nome_participante,
       dataNascimento: participante.data_nascimento,
       nomeResponsavel: participante.responsavel_nome,
@@ -145,35 +151,31 @@ export function ParticipanteForm() {
   }
 
   function consultarParticipante(codigoEol: string) {
+    if (!codigoEol) return
+
     buscaVigente.current = 'codigoEol'
-    consultaCpf.reset()
-    consultaParticipante.mutate(codigoEol, {
-      onSuccess: (participante) => {
-        if (!consultaAindaVale('codigoEol', codigoEol)) return
-        preencherComParticipante(participante)
-        setCpfSincronizado(null)
-      },
-      onError: () => {
-        if (!consultaAindaVale('codigoEol', codigoEol)) return
-        limparCamposDoParticipante()
-      },
-    })
+    setCpfConsulta(undefined)
+
+    if (codigoEol === codigoEolConsulta) {
+      void consultaParticipante.refetch().catch(() => undefined)
+      return
+    }
+
+    setCodigoEolConsulta(codigoEol)
   }
 
   function consultarPorCpf(cpf: string) {
+    if (!cpf) return
+
     buscaVigente.current = 'cpf'
-    consultaParticipante.reset()
-    consultaCpf.mutate(cpf, {
-      onSuccess: (participante) => {
-        if (!consultaAindaVale('cpf', cpf)) return
-        preencherComParticipante(participante)
-        setCpfSincronizado(cpf)
-      },
-      onError: () => {
-        if (!consultaAindaVale('cpf', cpf)) return
-        limparCamposDoParticipante('', cpf)
-      },
-    })
+    setCodigoEolConsulta(undefined)
+
+    if (cpf === cpfConsulta) {
+      void consultaCpf.refetch().catch(() => undefined)
+      return
+    }
+
+    setCpfConsulta(cpf)
   }
 
   function aoMudarCodigoEol(valor: string) {
@@ -181,13 +183,13 @@ export function ParticipanteForm() {
       codigoEolSincronizado !== null && valor !== codigoEolSincronizado
 
     if (codigoAlteradoAposConsulta) {
-      limparCamposDoParticipante(valor)
-      consultaParticipante.reset()
+      limparCamposDoParticipante(valor, '')
+      setCodigoEolConsulta(undefined)
       return
     }
 
-    if (consultaParticipante.isError) {
-      consultaParticipante.reset()
+    if (consultaParticipante.error) {
+      setCodigoEolConsulta(undefined)
     }
   }
 
@@ -197,14 +199,62 @@ export function ParticipanteForm() {
 
     if (cpfAlteradoAposConsulta) {
       limparCamposDoParticipante('', valor)
-      consultaCpf.reset()
+      setCpfConsulta(undefined)
       return
     }
 
-    if (consultaCpf.isError) {
-      consultaCpf.reset()
+    if (consultaCpf.error) {
+      setCpfConsulta(undefined)
     }
   }
+
+  useEffect(() => {
+    if (!codigoEolConsulta || buscaVigente.current !== 'codigoEol') return
+    if (consultaParticipante.isFetching) return
+    if (!consultaAindaVale('codigoEol', codigoEolConsulta)) return
+
+    if (consultaParticipante.isError) {
+      limparCamposDoParticipante(codigoEolConsulta, '')
+      return
+    }
+
+    if (!consultaParticipante.data) return
+
+    preencherComParticipante(consultaParticipante.data, '')
+    setCpfSincronizado(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- as funções só usam form e setters estáveis; incluí-las reexecutaria o efeito a cada render
+  }, [
+    codigoEolConsulta,
+    consultaParticipante.data,
+    consultaParticipante.dataUpdatedAt,
+    consultaParticipante.errorUpdatedAt,
+    consultaParticipante.isFetching,
+    consultaParticipante.isError,
+  ])
+
+  useEffect(() => {
+    if (!cpfConsulta || buscaVigente.current !== 'cpf') return
+    if (consultaCpf.isFetching) return
+    if (!consultaAindaVale('cpf', cpfConsulta)) return
+
+    if (consultaCpf.isError) {
+      limparCamposDoParticipante('', cpfConsulta)
+      return
+    }
+
+    if (!consultaCpf.data) return
+
+    preencherComParticipante(consultaCpf.data, cpfConsulta)
+    setCpfSincronizado(cpfConsulta)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- as funções só usam form e setters estáveis; incluí-las reexecutaria o efeito a cada render
+  }, [
+    cpfConsulta,
+    consultaCpf.data,
+    consultaCpf.dataUpdatedAt,
+    consultaCpf.errorUpdatedAt,
+    consultaCpf.isFetching,
+    consultaCpf.isError,
+  ])
 
   function salvar(dados: FormValues) {
     if (cadastroMutation.isError) {
@@ -264,8 +314,8 @@ export function ParticipanteForm() {
                 polosQuery.error ??
                 choicesQuery.error
               }
-              consultandoCodigoEol={consultaParticipante.isPending}
-              consultandoCpf={consultaCpf.isPending}
+              consultandoCodigoEol={consultaParticipante.isFetching}
+              consultandoCpf={consultaCpf.isFetching}
               onBuscarCodigoEol={consultarParticipante}
               aoMudarCodigoEol={aoMudarCodigoEol}
               onBuscarCpf={consultarPorCpf}

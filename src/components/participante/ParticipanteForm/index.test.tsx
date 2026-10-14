@@ -434,10 +434,7 @@ describe('ParticipanteForm', () => {
     await usuario.type(cpf, '123')
     await usuario.tab()
     await waitFor(() => {
-      expect(obterParticipanteCpfMock).toHaveBeenCalledWith(
-        '123',
-        expect.anything(),
-      )
+      expect(obterParticipanteCpfMock).toHaveBeenCalledWith('123')
     })
     await usuario.click(screen.getByLabelText(/\bdre\b/i))
     await usuario.click(
@@ -453,10 +450,7 @@ describe('ParticipanteForm', () => {
 
     await waitFor(() => {
       expect(obterParticipanteEolMock).toHaveBeenCalledTimes(1)
-      expect(obterParticipanteEolMock).toHaveBeenCalledWith(
-        '123456',
-        expect.anything(),
-      )
+      expect(obterParticipanteEolMock).toHaveBeenCalledWith('123456')
       expect(
         screen.getByLabelText(/nome completo do\(a\) participante/i),
       ).toHaveValue('ANNA JULIA ARAUJO SA')
@@ -482,7 +476,7 @@ describe('ParticipanteForm', () => {
     expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue('ana@email.com')
     expect(
       screen.getByRole('textbox', { name: /cpf do responsável/i }),
-    ).toHaveValue('123')
+    ).toHaveValue('')
     expect(screen.getByLabelText(/\bdre\b/i)).toHaveTextContent('DRE Butantã')
   })
 
@@ -506,10 +500,7 @@ describe('ParticipanteForm', () => {
       ).toHaveValue('ANNA JULIA ARAUJO SA')
     })
     expect(obterParticipanteEolMock).toHaveBeenCalledTimes(1)
-    expect(obterParticipanteEolMock).toHaveBeenCalledWith(
-      '123456',
-      expect.anything(),
-    )
+    expect(obterParticipanteEolMock).toHaveBeenCalledWith('123456')
   })
 
   it('exibe o detalhe quando a consulta do código EOL falha', async () => {
@@ -600,10 +591,7 @@ describe('ParticipanteForm', () => {
     )
 
     await waitFor(() => {
-      expect(obterParticipanteCpfMock).toHaveBeenCalledWith(
-        '12345678901',
-        expect.anything(),
-      )
+      expect(obterParticipanteCpfMock).toHaveBeenCalledWith('12345678901')
       expect(
         screen.getByLabelText(/nome completo do\(a\) participante/i),
       ).toHaveValue('ANNA JULIA ARAUJO SA')
@@ -654,10 +642,7 @@ describe('ParticipanteForm', () => {
       ).toHaveValue('ANNA JULIA ARAUJO SA')
     })
     expect(obterParticipanteCpfMock).toHaveBeenCalledTimes(1)
-    expect(obterParticipanteCpfMock).toHaveBeenCalledWith(
-      '12345678901',
-      expect.anything(),
-    )
+    expect(obterParticipanteCpfMock).toHaveBeenCalledWith('12345678901')
     expect(screen.getByRole('textbox', { name: /código eol/i })).toHaveValue(
       '123456',
     )
@@ -835,10 +820,7 @@ describe('ParticipanteForm', () => {
     await usuario.type(cpf, '123')
     await usuario.tab()
     await waitFor(() => {
-      expect(obterParticipanteCpfMock).toHaveBeenCalledWith(
-        '123',
-        expect.anything(),
-      )
+      expect(obterParticipanteCpfMock).toHaveBeenCalledWith('123')
     })
     await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
 
