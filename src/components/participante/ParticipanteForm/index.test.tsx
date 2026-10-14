@@ -139,9 +139,8 @@ function renderFormulario() {
           />
           <Route
             path="/inscricoes-participantes"
-            element={<div>Listagem de inscrições</div>}
+            element={<div>Inscrições de Participantes</div>}
           />
-          <Route path="/inicio" element={<div>Página Início</div>} />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>,
@@ -223,13 +222,13 @@ describe('ParticipanteForm', () => {
     ).toBeInTheDocument()
   })
 
-  it('navega para o início ao clicar em Cancelar', async () => {
+  it('navega para a listagem ao clicar em Cancelar', async () => {
     const usuario = userEvent.setup()
     renderFormulario()
 
     await usuario.click(screen.getByRole('button', { name: /cancelar/i }))
 
-    expect(screen.getByText(/página início/i)).toBeInTheDocument()
+    expect(screen.getByText(/inscrições de participantes/i)).toBeInTheDocument()
   })
 
   it('mostra o restante das informações básicas depois do grupo e do tipo', async () => {
@@ -649,7 +648,7 @@ describe('ParticipanteForm', () => {
         }),
         expect.anything(),
       )
-      expect(screen.getByText(/listagem de inscrições/i)).toBeInTheDocument()
+      expect(screen.getByText(/inscrições de participantes/i)).toBeInTheDocument()
     })
     expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
   })
@@ -1051,7 +1050,7 @@ describe('ParticipanteForm', () => {
         }),
         expect.anything(),
       )
-      expect(screen.getByText(/listagem de inscrições/i)).toBeInTheDocument()
+      expect(screen.getByText(/inscrições de participantes/i)).toBeInTheDocument()
     })
     expect(showToastMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -1075,7 +1074,7 @@ describe('ParticipanteForm', () => {
           description: 'Completa',
         }),
       )
-      expect(screen.getByText(/listagem de inscrições/i)).toBeInTheDocument()
+      expect(screen.getByText(/inscrições de participantes/i)).toBeInTheDocument()
     })
     expect(cadastrarInscricaoMock).toHaveBeenCalledTimes(2)
 

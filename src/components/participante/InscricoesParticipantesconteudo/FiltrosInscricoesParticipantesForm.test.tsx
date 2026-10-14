@@ -6,7 +6,7 @@ import { act } from '@testing-library/react'
 import { FiltrosInscricoesParticipantesForm } from './FiltrosInscricoesParticipantesForm'
 import { useGetValoresChoices } from '@/hooks/useGetValoresChoices'
 import { useGetPolosOficiais } from '@/hooks/useGetPolosOficiais'
-import { useInscricoesParticipantesStore } from '@/stores/filtroInscricoesParticipantesStore'
+import { useInscricoesParticipantesStore } from '@/stores/useInscricoesParticipantesStore'
 
 // Mock dos hooks customizados de requisição
 vi.mock('@/hooks/useGetValoresChoices', () => ({

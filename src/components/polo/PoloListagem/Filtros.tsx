@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import type { Dre } from '@/services/dre/types'
-import { usePoloParceiroStore } from '@/stores/filtroPolosParceirosStore'
+import { usePoloParceiroStore } from '@/stores/usePolosParceirosStore'
 import { useShallow } from 'zustand/react/shallow'
 
 export function Filtros() {

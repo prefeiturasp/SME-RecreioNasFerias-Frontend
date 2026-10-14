@@ -8,7 +8,7 @@ import type {
   PoloParaAlterarTipo,
 } from '@/services/definicaoPolo/types'
 import { FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS } from '@/services/definicaoPolo/types'
-import { useDefinicaoPoloStore } from '@/stores/filtroDefinicaoPolosStore'
+import { useDefinicaoPoloStore } from '@/stores/useDefinicaoPolosStore'
 import { DefinicaoPolosListagem } from './index'
 
 const { listarDefinicoesPoloMock, toastMock } = vi.hoisted(() => ({
@@ -488,7 +488,9 @@ describe('DefinicaoPolosListagem', () => {
     renderDefinicaoPolosListagem()
     await screen.findByRole('table')
 
-    await usuario.click(screen.getByRole('button', { name: /ordenar por dre/i }))
+    await usuario.click(
+      screen.getByRole('button', { name: /ordenar por dre/i }),
+    )
     await usuario.click(
       screen.getByRole('button', { name: /ordenar por tipo de ue/i }),
     )
@@ -497,13 +499,12 @@ describe('DefinicaoPolosListagem', () => {
   })
 
   it('volta para a última página disponível se o total diminuir', async () => {
-    listarDefinicoesPoloMock.mockImplementation(
-      ({ page }: { page: number }) =>
-        Promise.resolve(
-          page === 1
-            ? criarListagemPaginada([poloDiretaApi], 25)
-            : criarListagemPaginada([poloDiretaApi], 1),
-        ),
+    listarDefinicoesPoloMock.mockImplementation(({ page }: { page: number }) =>
+      Promise.resolve(
+        page === 1
+          ? criarListagemPaginada([poloDiretaApi], 25)
+          : criarListagemPaginada([poloDiretaApi], 1),
+      ),
     )
     const usuario = userEvent.setup()
 

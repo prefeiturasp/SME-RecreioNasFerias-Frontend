@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { listarPolos } from '@/services/polo/listarPolos'
 import type { ListagemPolosPaginada } from '@/services/polo/types'
-import { usePoloParceiroStore } from '@/stores/filtroPolosParceirosStore'
+import { usePoloParceiroStore } from '@/stores/usePolosParceirosStore'
 import { useShallow } from 'zustand/react/shallow'
 
 export function useGetPolos() {

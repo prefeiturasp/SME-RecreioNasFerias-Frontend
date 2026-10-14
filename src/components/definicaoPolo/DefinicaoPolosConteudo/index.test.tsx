@@ -9,7 +9,7 @@ import type {
   DefinicaoPolo,
   ResultadoAlterarTipoEmMassa,
 } from '@/services/definicaoPolo/types'
-import { useDefinicaoPoloStore } from '@/stores/filtroDefinicaoPolosStore'
+import { useDefinicaoPoloStore } from '@/stores/useDefinicaoPolosStore'
 import { DefinicaoPolosConteudo } from './index'
 
 const { modalCallbacks } = vi.hoisted(() => ({
@@ -27,29 +27,32 @@ const { modalCallbacks } = vi.hoisted(() => ({
   },
 }))
 
-vi.mock('@/components/definicaoPolo/ModalAlterarSelecao', async (importOriginal) => {
-  const actual =
-    await importOriginal<
-      typeof import('@/components/definicaoPolo/ModalAlterarSelecao')
-    >()
+vi.mock(
+  '@/components/definicaoPolo/ModalAlterarSelecao',
+  async (importOriginal) => {
+    const actual =
+      await importOriginal<
+        typeof import('@/components/definicaoPolo/ModalAlterarSelecao')
+      >()
 
-  return {
-    ...actual,
-    ModalAlterarSelecao: (
-      props: ComponentProps<typeof actual.ModalAlterarSelecao>,
-    ) => {
-      const callbacks =
-        props.titulo === 'Alterar Edição do Polo'
-          ? modalCallbacks.edicao
-          : modalCallbacks.tipo
-      callbacks.onFechar = props.onFechar
-      callbacks.onAlterar = props.onAlterar
-      callbacks.estaSalvando = props.estaSalvando ?? false
+    return {
+      ...actual,
+      ModalAlterarSelecao: (
+        props: ComponentProps<typeof actual.ModalAlterarSelecao>,
+      ) => {
+        const callbacks =
+          props.titulo === 'Alterar Edição do Polo'
+            ? modalCallbacks.edicao
+            : modalCallbacks.tipo
+        callbacks.onFechar = props.onFechar
+        callbacks.onAlterar = props.onAlterar
+        callbacks.estaSalvando = props.estaSalvando ?? false
 
-      return <actual.ModalAlterarSelecao {...props} />
-    },
-  }
-})
+        return <actual.ModalAlterarSelecao {...props} />
+      },
+    }
+  },
+)
 
 vi.mock('@/components/definicaoPolo/DefinicaoPolosListagem', () => ({
   DefinicaoPolosListagem: ({
@@ -510,9 +513,7 @@ describe('DefinicaoPolosConteudo', () => {
 
   it('ignora o fechamento dos modais enquanto as alterações estão pendentes', async () => {
     let concluirVinculo!: (resultado: DefinicaoPolo[]) => void
-    let concluirAlteracaoTipo!: (
-      resultado: ResultadoAlterarTipoEmMassa,
-    ) => void
+    let concluirAlteracaoTipo!: (resultado: ResultadoAlterarTipoEmMassa) => void
     vincularEmMassaMock.mockReturnValue(
       new Promise((resolve) => {
         concluirVinculo = resolve

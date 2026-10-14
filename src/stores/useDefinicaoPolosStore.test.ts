@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react'
-import { useDefinicaoPoloStore } from './filtroDefinicaoPolosStore'
+import { useDefinicaoPoloStore } from './useDefinicaoPolosStore'
 import { FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS } from '@/services/definicaoPolo/types'
 
 // Reseta a store antes de cada teste para garantir isolamento

@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS } from '@/services/definicaoPolo/types'
-import { useDefinicaoPoloStore } from '@/stores/filtroDefinicaoPolosStore'
+import { useDefinicaoPoloStore } from '@/stores/useDefinicaoPolosStore'
 import { FiltrosDefinicaoPolosForm } from './index'
 
 const { listarDresMock, listarTiposEscolaMock, listarEdicoesProgramaMock } =
