@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { InscricoesParticipantesConteudo } from './index'
-import { useGetInscricoes } from '@/hooks/useGetInscricoes'
+import useGetInscricoes from '@/hooks/useGetInscricoes'
 
 // Mock do hook useGetInscricoes para isolar o componente
 vi.mock('@/hooks/useGetInscricoes', () => ({
-  useGetInscricoes: vi.fn(),
+  default: vi.fn(),
 }))
 
 vi.mock('./FiltrosInscricoesParticipantesForm', () => ({

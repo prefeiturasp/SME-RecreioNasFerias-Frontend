@@ -6,7 +6,7 @@ import React from 'react'
 import { useGetInscricoes } from './useGetInscricoes'
 import { listarInscricoes } from '@/services/inscricao/listarInscricoes'
 import { useInscricoesParticipantesStore } from '@/stores/filtroInscricoesParticipantesStore'
-import type { Inscricao } from '@/services/inscricao/types'
+import type { InscricaoApi } from '@/services/inscricao/types'
 
 vi.mock('@/services/inscricao/listarInscricoes', () => ({
   listarInscricoes: vi.fn(),
@@ -38,7 +38,7 @@ describe('useGetInscricoes', () => {
   })
 
   it('deve buscar as inscrições com os filtros aplicados e paginação padrão', async () => {
-    const inscricoesMock: Inscricao[] = []
+    const inscricoesMock: InscricaoApi[] = []
     vi.mocked(listarInscricoes).mockResolvedValueOnce(inscricoesMock)
 
     const { result } = renderHook(() => useGetInscricoes(), {
@@ -58,7 +58,7 @@ describe('useGetInscricoes', () => {
   })
 
   it('deve atualizar a query quando os filtros aplicados ou a paginação na store mudarem', async () => {
-    const inscricoesMockPagina2: Inscricao[] = []
+    const inscricoesMockPagina2: InscricaoApi[] = []
     vi.mocked(listarInscricoes).mockResolvedValue(inscricoesMockPagina2)
 
     const { result } = renderHook(() => useGetInscricoes(), {
