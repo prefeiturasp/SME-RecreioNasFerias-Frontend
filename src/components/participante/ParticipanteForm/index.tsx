@@ -228,7 +228,7 @@ export function ParticipanteForm({ onBuscarCpf }: ParticipanteFormProps = {}) {
             type="button"
             variant="outline"
             className="h-9.5 rounded-sm border-brand-dark px-4 font-bold text-brand-dark hover:bg-accent hover:text-brand-dark"
-            onClick={() => navigate('/inicio')}
+            onClick={() => navigate('/inscricoes-participantes')}
           >
             Cancelar
           </Button>

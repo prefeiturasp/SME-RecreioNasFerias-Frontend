@@ -4,11 +4,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
 import { InscricoesParticipantesListagem } from './index'
 import useGetInscricoes from '@/hooks/useGetInscricoes'
-import { useInscricoesParticipantesStore } from '@/stores/filtroInscricoesParticipantesStore'
+import { useInscricoesParticipantesStore } from '@/stores/useInscricoesParticipantesStore'
 
 // Mock dos hooks e dependências
 vi.mock('@/hooks/useGetInscricoes')
-vi.mock('@/stores/filtroInscricoesParticipantesStore')
+vi.mock('@/stores/useInscricoesParticipantesStore')
 
 // Mock opcional para evitar problemas com ícones importados de assets
 vi.mock('@/assets/', () => ({

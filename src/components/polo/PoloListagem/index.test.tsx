@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PoloDetalhado } from '@/services/polo/types'
-import { usePoloParceiroStore } from '@/stores/filtroPolosParceirosStore'
+import { usePoloParceiroStore } from '@/stores/usePolosParceirosStore'
 import { PoloListagem } from './index'
 
 const { useGetPolosMock, toastMock } = vi.hoisted(() => ({

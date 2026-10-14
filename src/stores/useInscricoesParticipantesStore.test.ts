@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { act } from '@testing-library/react'
-import { useInscricoesParticipantesStore } from './filtroInscricoesParticipantesStore'
+import { useInscricoesParticipantesStore } from './useInscricoesParticipantesStore'
 import { FILTROS_LISTAGEM_INSCRICOES_PARTICIPANTES_INICIAIS } from '../services/inscricao/types'
 
 describe('useInscricoesParticipantesStore', () => {
