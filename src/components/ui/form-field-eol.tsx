@@ -112,15 +112,9 @@ export function FormFieldEol<
                   onChange?.(valor)
                 }}
                 onKeyDown={(evento) => {
-<<<<<<< HEAD
                   if (readOnly || !onSearch || evento.key !== 'Enter') return
                   evento.preventDefault()
                   onSearch(
-=======
-                  if (readOnly || evento.key !== 'Enter') return
-                  evento.preventDefault()
-                  onSearch?.(
->>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
                     extrairDigitos(evento.currentTarget.value).slice(
                       0,
                       maxLength,
@@ -137,7 +131,6 @@ export function FormFieldEol<
                   onSearch?.(valor)
                 }}
               />
-<<<<<<< HEAD
               {onSearch ? (
                 <Button
                   type="button"
@@ -158,26 +151,6 @@ export function FormFieldEol<
                   )}
                 </Button>
               ) : null}
-=======
-              <Button
-                type="button"
-                size="icon"
-                aria-label={rotuloAcao}
-                className="h-full! w-10! shrink-0 rounded-none! border-0! p-1.5!"
-                disabled={readOnly || isLoading}
-                onMouseDown={handleMouseDown}
-                onClick={() => {
-                  if (readOnly) return
-                  onSearch?.(digitos)
-                }}
-              >
-                {isLoading ? (
-                  <Spinner />
-                ) : (
-                  <SearchIcon className="size-5" aria-hidden="true" />
-                )}
-              </Button>
->>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
             </div>
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
           </Field>

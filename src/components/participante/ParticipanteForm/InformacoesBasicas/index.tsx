@@ -28,11 +28,8 @@ type InformacoesBasicasProps = {
   aoMudarCodigoEol?: (codigoEol: string) => void
   onBuscarCpf?: (cpf: string) => void
   aoMudarCpf?: (cpf: string) => void
-<<<<<<< HEAD
   eolAberto?: boolean
   cpfAberto?: boolean
-=======
->>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
   aoMudarGrupo?: (valor: string) => void
   aoMudarDre?: (valor: string) => void
 }
@@ -133,7 +130,6 @@ export function InformacoesBasicas({
             name="cpf"
             label={
               <>
-<<<<<<< HEAD
                 <span className="text-destructive">*</span>{' '}
                 {cpfAberto
                   ? 'CPF do responsável'
@@ -142,24 +138,12 @@ export function InformacoesBasicas({
             }
             placeholder="Digite o CPF"
             buscarAoSair={!cpfAberto}
-=======
-                <span className="text-destructive">*</span> Consultar por CPF do
-                responsável
-              </>
-            }
-            placeholder="Digite o CPF"
-            buscarAoSair
->>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
             maxLength={11}
             maxLengthExibicao={14}
             rotuloBusca="CPF do responsável"
             formatarExibicao={aplicarMascaraCpf}
             isLoading={consultandoCpf}
-<<<<<<< HEAD
             onSearch={cpfAberto ? undefined : onBuscarCpf}
-=======
-            onSearch={onBuscarCpf}
->>>>>>> d74c94eaccd1f5bb90a37aec09916769db4bb568
             onChange={aoMudarCpf}
           />
           <FormField
