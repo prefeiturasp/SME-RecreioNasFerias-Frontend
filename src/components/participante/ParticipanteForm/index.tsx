@@ -160,7 +160,7 @@ export function ParticipanteForm() {
         setCpfSincronizado(cpf)
       },
       onError: () => {
-        limparCamposDoParticipante(form.getValues('codigoEol'), cpf)
+        limparCamposDoParticipante('', cpf)
       },
     })
   }

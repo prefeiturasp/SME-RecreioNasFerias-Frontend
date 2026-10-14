@@ -617,6 +617,146 @@ describe('ParticipanteForm', () => {
     )
     expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue('ana@email.com')
     expect(screen.getByLabelText(/\be-mail\b/i)).not.toHaveAttribute('readonly')
+    expect(
+      screen.getByLabelText(/telefone de contato\/emergência 1/i),
+    ).toHaveValue('11988887777')
+    expect(
+      screen.getByLabelText(/telefone de contato\/emergência 1/i),
+    ).not.toHaveAttribute('readonly')
+    expect(
+      screen.getByLabelText(/telefone de contato\/emergência 2/i),
+    ).not.toHaveAttribute('readonly')
+    expect(
+      screen.getByLabelText(/nome completo do\(a\) participante/i),
+    ).toHaveAttribute('readonly')
+    expect(screen.getByLabelText(/\bcep\b/i)).toHaveAttribute('readonly')
+    expect(screen.getByLabelText(/\bdre\b/i)).toBeEnabled()
+    expect(screen.getByLabelText(/polo de inscrição/i)).toBeDisabled()
+  })
+
+  it('consulta o CPF do responsável ao sair do campo', async () => {
+    const usuario = userEvent.setup()
+    obterParticipanteCpfMock.mockResolvedValue(participanteEolExemplo)
+    renderFormulario()
+
+    await escolherGrupo(usuario, 'Berçário I')
+    const cpf = screen.getByRole('textbox', { name: /cpf do responsável/i })
+    await usuario.click(cpf)
+    await usuario.tab()
+    expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
+
+    await usuario.type(cpf, '12345678901')
+    await usuario.tab()
+
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText(/nome completo do\(a\) participante/i),
+      ).toHaveValue('ANNA JULIA ARAUJO SA')
+    })
+    expect(obterParticipanteCpfMock).toHaveBeenCalledTimes(1)
+    expect(obterParticipanteCpfMock).toHaveBeenCalledWith(
+      '12345678901',
+      expect.anything(),
+    )
+    expect(screen.getByRole('textbox', { name: /código eol/i })).toHaveValue(
+      '123456',
+    )
+  })
+
+  it('exibe o detalhe quando a consulta do CPF falha e limpa os demais campos', async () => {
+    const usuario = userEvent.setup()
+    obterParticipanteCpfMock
+      .mockResolvedValueOnce(participanteEolExemplo)
+      .mockRejectedValueOnce({
+        response: {
+          data: {
+            detalhe:
+              'CPF não encontrado. Verifique o número digitado e tente novamente.',
+          },
+        },
+      })
+    renderFormulario()
+
+    await escolherGrupo(usuario, 'Berçário I')
+    const cpf = screen.getByRole('textbox', { name: /cpf do responsável/i })
+    await usuario.type(cpf, '12345678901')
+    const consultar = screen.getByRole('button', {
+      name: /consultar cpf do responsável/i,
+    })
+    await usuario.click(consultar)
+
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText(/nome completo do\(a\) participante/i),
+      ).toHaveValue('ANNA JULIA ARAUJO SA')
+    })
+
+    await usuario.click(consultar)
+
+    expect(
+      await screen.findByText(
+        'CPF não encontrado. Verifique o número digitado e tente novamente.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByLabelText(/nome completo do\(a\) participante/i),
+    ).toHaveValue('')
+    expect(screen.getByLabelText(/data de nascimento/i)).toHaveValue('')
+    expect(screen.getByLabelText(/\bcep\b/i)).toHaveValue('')
+    expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue('')
+    expect(screen.getByRole('textbox', { name: /código eol/i })).toHaveValue('')
+    expect(cpf).toHaveValue('123.456.789-01')
+  })
+
+  it('limpa os dados do participante quando o CPF deixa de corresponder à consulta', async () => {
+    const usuario = userEvent.setup()
+    obterParticipanteCpfMock.mockResolvedValue(participanteEolExemplo)
+    renderFormulario()
+
+    await escolherGrupo(usuario, 'Berçário I')
+    const cpf = screen.getByRole('textbox', { name: /cpf do responsável/i })
+    await usuario.type(cpf, '12345678901')
+    await usuario.click(
+      screen.getByRole('button', { name: /consultar cpf do responsável/i }),
+    )
+
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText(/nome completo do\(a\) participante/i),
+      ).toHaveValue('ANNA JULIA ARAUJO SA')
+    })
+
+    await usuario.type(cpf, '{Backspace}')
+
+    expect(
+      screen.getByLabelText(/nome completo do\(a\) participante/i),
+    ).toHaveValue('')
+    expect(screen.getByLabelText(/data de nascimento/i)).toHaveValue('')
+    expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue('')
+    expect(screen.getByRole('textbox', { name: /código eol/i })).toHaveValue('')
+    expect(cpf).toHaveValue('123.456.789-0')
+  })
+
+  it('recusa CPF incompleto ao salvar', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await escolherGrupo(usuario, 'Berçário I')
+    const cpf = screen.getByRole('textbox', { name: /cpf do responsável/i })
+    await usuario.type(cpf, '123')
+    await usuario.tab()
+    await waitFor(() => {
+      expect(obterParticipanteCpfMock).toHaveBeenCalledWith(
+        '123',
+        expect.anything(),
+      )
+    })
+    await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
+
+    expect(
+      await screen.findByText('Informe um CPF válido.'),
+    ).toBeInTheDocument()
+    expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
   })
 
   it.each(['Berçário I', 'Berçário II', 'Mini Grupo I', 'Mini Grupo II'])(
