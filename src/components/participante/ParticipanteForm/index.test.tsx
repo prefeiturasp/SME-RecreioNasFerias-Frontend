@@ -131,11 +131,15 @@ function renderFormulario() {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={['/inscricoes-participantes']}>
+      <MemoryRouter initialEntries={['/inscricoes-participantes/cadastro']}>
         <Routes>
           <Route
-            path="/inscricoes-participantes"
+            path="/inscricoes-participantes/cadastro"
             element={<ParticipanteForm />}
+          />
+          <Route
+            path="/inscricoes-participantes"
+            element={<div>Listagem de inscrições</div>}
           />
           <Route path="/inicio" element={<div>Página Início</div>} />
         </Routes>
@@ -645,9 +649,9 @@ describe('ParticipanteForm', () => {
         }),
         expect.anything(),
       )
+      expect(screen.getByText(/listagem de inscrições/i)).toBeInTheDocument()
     })
     expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
-    expect(cpf).toHaveValue('123.456.789-01')
   })
 
   it('mantém o erro de CPF incompleto ao salvar depois da consulta', async () => {
@@ -1026,7 +1030,7 @@ describe('ParticipanteForm', () => {
 
   it('salva o rascunho incompleto e recusa e-mail inválido', async () => {
     const usuario = userEvent.setup()
-    renderFormulario()
+    const primeiraRenderizacao = renderFormulario()
 
     await usuario.click(
       screen.getByRole('button', { name: /salvar rascunho/i }),
@@ -1047,6 +1051,7 @@ describe('ParticipanteForm', () => {
         }),
         expect.anything(),
       )
+      expect(screen.getByText(/listagem de inscrições/i)).toBeInTheDocument()
     })
     expect(showToastMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -1055,11 +1060,13 @@ describe('ParticipanteForm', () => {
       }),
     )
 
+    primeiraRenderizacao.unmount()
     showToastMock.mockClear()
     cadastrarInscricaoMock.mockResolvedValueOnce({
       status: 'COMPLETA',
       status_label: 'Completa',
     })
+    const segundaRenderizacao = renderFormulario()
     await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
     await waitFor(() => {
       expect(showToastMock).toHaveBeenCalledWith(
@@ -1068,10 +1075,13 @@ describe('ParticipanteForm', () => {
           description: 'Completa',
         }),
       )
+      expect(screen.getByText(/listagem de inscrições/i)).toBeInTheDocument()
     })
     expect(cadastrarInscricaoMock).toHaveBeenCalledTimes(2)
 
+    segundaRenderizacao.unmount()
     showToastMock.mockClear()
+    renderFormulario()
     await escolherGrupo(usuario, 'Berçário I')
     await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'ana')
     await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
