@@ -28,6 +28,8 @@ type InformacoesBasicasProps = {
   aoMudarCodigoEol?: (codigoEol: string) => void
   onBuscarCpf?: (cpf: string) => void
   aoMudarCpf?: (cpf: string) => void
+  eolAberto?: boolean
+  cpfAberto?: boolean
   aoMudarGrupo?: (valor: string) => void
   aoMudarDre?: (valor: string) => void
 }
@@ -52,6 +54,8 @@ export function InformacoesBasicas({
   aoMudarCpf,
   aoMudarGrupo,
   aoMudarDre,
+  eolAberto = false,
+  cpfAberto = false,
 }: Readonly<InformacoesBasicasProps>) {
   const dataNascimento = useWatch({ control, name: 'dataNascimento' })
   const rotuloTipoEstudante = useMemo(
@@ -111,14 +115,14 @@ export function InformacoesBasicas({
             name="codigoEol"
             label={
               <>
-                <span className="text-destructive">*</span> Consultar por código
-                EOL
+                <span className="text-destructive">*</span>{' '}
+                {eolAberto ? 'Código EOL' : 'Consultar por código EOL'}
               </>
             }
             placeholder="Código EOL"
-            buscarAoSair
+            buscarAoSair={!eolAberto}
             isLoading={consultandoCodigoEol}
-            onSearch={onBuscarCodigoEol}
+            onSearch={eolAberto ? undefined : onBuscarCodigoEol}
             onChange={aoMudarCodigoEol}
           />
           <FormFieldEol
@@ -126,18 +130,20 @@ export function InformacoesBasicas({
             name="cpf"
             label={
               <>
-                <span className="text-destructive">*</span> Consultar por CPF do
-                responsável
+                <span className="text-destructive">*</span>{' '}
+                {cpfAberto
+                  ? 'CPF do responsável'
+                  : 'Consultar por CPF do responsável'}
               </>
             }
             placeholder="Digite o CPF"
-            buscarAoSair
+            buscarAoSair={!cpfAberto}
             maxLength={11}
             maxLengthExibicao={14}
             rotuloBusca="CPF do responsável"
             formatarExibicao={aplicarMascaraCpf}
             isLoading={consultandoCpf}
-            onSearch={onBuscarCpf}
+            onSearch={cpfAberto ? undefined : onBuscarCpf}
             onChange={aoMudarCpf}
           />
           <FormField

@@ -112,9 +112,9 @@ export function FormFieldEol<
                   onChange?.(valor)
                 }}
                 onKeyDown={(evento) => {
-                  if (readOnly || evento.key !== 'Enter') return
+                  if (readOnly || !onSearch || evento.key !== 'Enter') return
                   evento.preventDefault()
-                  onSearch?.(
+                  onSearch(
                     extrairDigitos(evento.currentTarget.value).slice(
                       0,
                       maxLength,
@@ -131,24 +131,26 @@ export function FormFieldEol<
                   onSearch?.(valor)
                 }}
               />
-              <Button
-                type="button"
-                size="icon"
-                aria-label={rotuloAcao}
-                className="h-full! w-10! shrink-0 rounded-none! border-0! p-1.5!"
-                disabled={readOnly || isLoading}
-                onMouseDown={handleMouseDown}
-                onClick={() => {
-                  if (readOnly) return
-                  onSearch?.(digitos)
-                }}
-              >
-                {isLoading ? (
-                  <Spinner />
-                ) : (
-                  <SearchIcon className="size-5" aria-hidden="true" />
-                )}
-              </Button>
+              {onSearch ? (
+                <Button
+                  type="button"
+                  size="icon"
+                  aria-label={rotuloAcao}
+                  className="h-full! w-10! shrink-0 rounded-none! border-0! p-1.5!"
+                  disabled={readOnly || isLoading}
+                  onMouseDown={handleMouseDown}
+                  onClick={() => {
+                    if (readOnly) return
+                    onSearch(digitos)
+                  }}
+                >
+                  {isLoading ? (
+                    <Spinner />
+                  ) : (
+                    <SearchIcon className="size-5" aria-hidden="true" />
+                  )}
+                </Button>
+              ) : null}
             </div>
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
           </Field>

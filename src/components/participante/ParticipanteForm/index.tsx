@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { grupoExigeEstudanteDaRede, TIPO_ESTUDANTE_REDE } from './constantes'
@@ -45,10 +45,18 @@ export function ParticipanteForm() {
   const [cpfConsulta, setCpfConsulta] = useState<string>()
   const consultaParticipante = useGetParticipanteEol(codigoEolConsulta)
   const consultaCpf = useGetParticipanteCpf(cpfConsulta)
+  const [origemConsulta, setOrigemConsulta] = useState<
+    'codigoEol' | 'cpf' | null
+  >(null)
   const [codigoEolSincronizado, setCodigoEolSincronizado] = useState<
     string | null
   >(null)
   const [cpfSincronizado, setCpfSincronizado] = useState<string | null>(null)
+  const eolAberto = useMemo(() => origemConsulta === 'cpf', [origemConsulta])
+  const cpfAberto = useMemo(
+    () => origemConsulta === 'codigoEol',
+    [origemConsulta],
+  )
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -125,9 +133,15 @@ export function ParticipanteForm() {
     participante: ParticipanteEol,
     cpf = form.getValues('cpf'),
   ) {
+    const codigoEolInformado = form.getValues('codigoEol')
+    const codigoEol =
+      origemConsulta === 'cpf' && codigoEolInformado
+        ? codigoEolInformado
+        : participante.codigo_eol
+
     form.reset({
       ...form.getValues(),
-      codigoEol: participante.codigo_eol,
+      codigoEol,
       cpf,
       nomeCompleto: participante.nome_participante,
       dataNascimento: participante.data_nascimento,
@@ -143,7 +157,7 @@ export function ParticipanteForm() {
       telefone2: participante.telefone_contato_2,
       email: participante.email,
     })
-    setCodigoEolSincronizado(participante.codigo_eol)
+    setCodigoEolSincronizado(codigoEol)
   }
 
   function consultaAindaVale(origem: 'codigoEol' | 'cpf', valor: string) {
@@ -157,7 +171,9 @@ export function ParticipanteForm() {
     setCpfConsulta(undefined)
 
     if (codigoEol === codigoEolConsulta) {
-      void consultaParticipante.refetch().catch(() => undefined)
+      if (consultaParticipante.fetchStatus !== 'fetching') {
+        void consultaParticipante.refetch().catch(() => undefined)
+      }
       return
     }
 
@@ -171,14 +187,28 @@ export function ParticipanteForm() {
     setCodigoEolConsulta(undefined)
 
     if (cpf === cpfConsulta) {
-      void consultaCpf.refetch().catch(() => undefined)
+      if (consultaCpf.fetchStatus !== 'fetching') {
+        void consultaCpf.refetch().catch(() => undefined)
+      }
       return
     }
 
     setCpfConsulta(cpf)
   }
 
+  function impedirBlurAntesDoClique(evento: MouseEvent<HTMLButtonElement>) {
+    evento.preventDefault()
+  }
+
   function aoMudarCodigoEol(valor: string) {
+    if (origemConsulta === 'cpf') return
+
+    if (valor) {
+      setOrigemConsulta('codigoEol')
+    } else if (origemConsulta === 'codigoEol') {
+      setOrigemConsulta(null)
+    }
+
     const codigoAlteradoAposConsulta =
       codigoEolSincronizado !== null && valor !== codigoEolSincronizado
 
@@ -194,6 +224,14 @@ export function ParticipanteForm() {
   }
 
   function aoMudarCpf(valor: string) {
+    if (origemConsulta === 'codigoEol') return
+
+    if (valor) {
+      setOrigemConsulta('cpf')
+    } else if (origemConsulta === 'cpf') {
+      setOrigemConsulta(null)
+    }
+
     const cpfAlteradoAposConsulta =
       cpfSincronizado !== null && valor !== cpfSincronizado
 
@@ -220,7 +258,7 @@ export function ParticipanteForm() {
 
     if (!consultaParticipante.data) return
 
-    preencherComParticipante(consultaParticipante.data, '')
+    preencherComParticipante(consultaParticipante.data, form.getValues('cpf'))
     setCpfSincronizado(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- as funções só usam form e setters estáveis; incluí-las reexecutaria o efeito a cada render
   }, [
@@ -322,6 +360,8 @@ export function ParticipanteForm() {
               aoMudarCpf={aoMudarCpf}
               aoMudarGrupo={aoMudarGrupo}
               aoMudarDre={aoMudarDre}
+              eolAberto={eolAberto}
+              cpfAberto={cpfAberto}
             />
           </SecaoFormulario>
         </div>
@@ -340,6 +380,7 @@ export function ParticipanteForm() {
             variant="outline"
             disabled={cadastroMutation.isPending}
             className="h-9.5 rounded-sm border-brand-dark px-4 font-bold text-brand-dark hover:bg-accent hover:text-brand-dark"
+            onMouseDown={impedirBlurAntesDoClique}
           >
             Salvar Rascunho
           </Button>
@@ -347,6 +388,7 @@ export function ParticipanteForm() {
             type="submit"
             disabled={cadastroMutation.isPending}
             className="h-9.5 rounded-sm bg-brand-dark px-4 font-bold text-background hover:bg-brand-dark-hover disabled:bg-button-primary-disabled-bg disabled:opacity-100"
+            onMouseDown={impedirBlurAntesDoClique}
           >
             Salvar
           </Button>
