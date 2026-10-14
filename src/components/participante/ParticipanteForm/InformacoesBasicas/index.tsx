@@ -8,6 +8,7 @@ import { FormFieldEol } from '@/components/ui/form-field-eol'
 import { formatarDataBr } from '@/lib/formatarPeriodo'
 import type { Dre } from '@/services/dre/types'
 import type { OpcaoChoice, PoloElegivel } from '@/services/inscricao/types'
+import { aplicarMascaraCpf } from '@/utils/mascarasEntrada'
 
 type InformacoesBasicasProps = {
   control: Control<FormValues>
@@ -22,9 +23,13 @@ type InformacoesBasicasProps = {
   grupos: OpcaoChoice[]
   erro?: unknown
   consultandoCodigoEol?: boolean
+  consultandoCpf?: boolean
   onBuscarCodigoEol?: (codigoEol: string) => void
   aoMudarCodigoEol?: (codigoEol: string) => void
   onBuscarCpf?: (cpf: string) => void
+  aoMudarCpf?: (cpf: string) => void
+  eolAberto?: boolean
+  cpfAberto?: boolean
   aoMudarGrupo?: (valor: string) => void
   aoMudarDre?: (valor: string) => void
 }
@@ -42,11 +47,15 @@ export function InformacoesBasicas({
   grupos,
   erro,
   consultandoCodigoEol = false,
+  consultandoCpf = false,
   onBuscarCodigoEol,
   aoMudarCodigoEol,
   onBuscarCpf,
+  aoMudarCpf,
   aoMudarGrupo,
   aoMudarDre,
+  eolAberto = false,
+  cpfAberto = false,
 }: Readonly<InformacoesBasicasProps>) {
   const dataNascimento = useWatch({ control, name: 'dataNascimento' })
   const rotuloTipoEstudante = useMemo(
@@ -106,14 +115,14 @@ export function InformacoesBasicas({
             name="codigoEol"
             label={
               <>
-                <span className="text-destructive">*</span> Consultar por código
-                EOL
+                <span className="text-destructive">*</span>{' '}
+                {eolAberto ? 'Código EOL' : 'Consultar por código EOL'}
               </>
             }
             placeholder="Código EOL"
-            buscarAoSair
+            buscarAoSair={!eolAberto}
             isLoading={consultandoCodigoEol}
-            onSearch={onBuscarCodigoEol}
+            onSearch={eolAberto ? undefined : onBuscarCodigoEol}
             onChange={aoMudarCodigoEol}
           />
           <FormFieldEol
@@ -121,14 +130,21 @@ export function InformacoesBasicas({
             name="cpf"
             label={
               <>
-                <span className="text-destructive">*</span> CPF
+                <span className="text-destructive">*</span>{' '}
+                {cpfAberto
+                  ? 'CPF do responsável'
+                  : 'Consultar por CPF do responsável'}
               </>
             }
             placeholder="Digite o CPF"
-            buscaInterna
+            buscarAoSair={!cpfAberto}
             maxLength={11}
-            rotuloBusca="CPF"
-            onSearch={onBuscarCpf}
+            maxLengthExibicao={14}
+            rotuloBusca="CPF do responsável"
+            formatarExibicao={aplicarMascaraCpf}
+            isLoading={consultandoCpf}
+            onSearch={cpfAberto ? undefined : onBuscarCpf}
+            onChange={aoMudarCpf}
           />
           <FormField
             control={control}
@@ -295,7 +311,11 @@ export function InformacoesBasicas({
               value: polo.uuid,
               label: polo.nome_polo,
             }))}
-            placeholder="Selecione o Polo"
+            placeholder={
+              dreCodigoEol
+                ? 'Selecione o Polo'
+                : 'É necessário selecionar o DRE primeiro'
+            }
           />
         </>
       ) : null}

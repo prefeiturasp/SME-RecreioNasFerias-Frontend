@@ -31,6 +31,16 @@ describe('ParticipanteForm schema', () => {
   it('rejeita CPF incompleto', () => {
     const resultado = formSchema.safeParse({ ...vazio, cpf: '123' })
     expect(resultado.success).toBe(false)
+    if (resultado.success) return
+    expect(resultado.error.issues.map((issue) => issue.message)).toContain(
+      'Informe um CPF válido.',
+    )
+  })
+
+  it('rejeita CPF com máscara', () => {
+    expect(
+      formSchema.safeParse({ ...vazio, cpf: '123.456.789-01' }).success,
+    ).toBe(false)
   })
 
   it('aceita CPF com 11 dígitos', () => {

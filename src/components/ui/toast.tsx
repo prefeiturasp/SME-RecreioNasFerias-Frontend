@@ -15,7 +15,7 @@ function ToastViewport({
     <ToastPrimitive.Viewport
       data-slot="toast-viewport"
       className={cn(
-        'fixed top-0 right-0 z-100 flex max-h-screen w-full flex-col gap-2 p-4 sm:max-w-md',
+        'fixed right-0 bottom-0 z-100 flex max-h-screen w-full flex-col-reverse gap-2 p-4 sm:max-w-md',
         className,
       )}
       {...props}
@@ -24,7 +24,7 @@ function ToastViewport({
 }
 
 const toastVariants = cva(
-  'group pointer-events-auto relative flex w-full items-start justify-between gap-4 overflow-hidden rounded-md border p-4 pr-8 shadow-lg transition-all data-[state=closed]:animate-out data-[state=open]:animate-in data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full',
+  'group pointer-events-auto relative flex w-full items-start justify-between gap-4 overflow-hidden rounded-md border p-4 pr-8 shadow-lg transition-all data-[state=closed]:animate-out data-[state=open]:animate-in data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-bottom-full',
   {
     variants: {
       variant: {
@@ -112,7 +112,7 @@ function ToastDescription({
   return (
     <ToastPrimitive.Description
       data-slot="toast-description"
-      className={cn('text-sm text-muted-foreground', className)}
+      className={cn('text-sm text-foreground', className)}
       {...props}
     />
   )

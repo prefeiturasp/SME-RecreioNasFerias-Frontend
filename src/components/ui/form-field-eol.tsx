@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { extrairDigitos } from '@/utils/mascarasEntrada'
 import { SearchIcon } from 'lucide-react'
-import React, { type KeyboardEvent, type MouseEvent, type ReactNode } from 'react'
+import React, { type MouseEvent, type ReactNode } from 'react'
 import {
   Controller,
   type Control,
@@ -25,10 +25,11 @@ export type FormFieldEolProps<
   isLoading?: boolean
   readOnly?: boolean
   labelClassName?: string
-  buscaInterna?: boolean
   buscarAoSair?: boolean
   maxLength?: number
+  maxLengthExibicao?: number
   rotuloBusca?: string
+  formatarExibicao?: (valor: string) => string
 }
 
 /**
@@ -58,20 +59,15 @@ export function FormFieldEol<
   isLoading = false,
   readOnly = false,
   labelClassName = 'font-bold',
-  buscaInterna = false,
   buscarAoSair = false,
   maxLength = 7,
+  maxLengthExibicao,
   rotuloBusca = 'código EOL',
+  formatarExibicao,
 }: Readonly<FormFieldEolProps<TFieldValues, TName>>): React.JSX.Element {
   const rotuloAcao = isLoading
     ? `Consultando ${rotuloBusca}`
     : `Consultar ${rotuloBusca}`
-  const handleKeyDown = (evento: KeyboardEvent<HTMLInputElement>) => {
-    if (readOnly || evento.key !== 'Enter') return
-
-    evento.preventDefault()
-    onSearch?.(evento.currentTarget.value)
-  }
   const handleMouseDown = (evento: MouseEvent<HTMLButtonElement>) => {
     if (buscarAoSair) evento.preventDefault()
   }
@@ -81,58 +77,31 @@ export function FormFieldEol<
       name={name}
       control={control}
       render={({ field, fieldState }) => {
-        let inputClassName =
-          'h-full! w-auto! min-w-0 flex-1 rounded-none! border-0! bg-transparent px-3 shadow-none focus-visible:border-transparent focus-visible:ring-0!'
-        if (readOnly) {
-          inputClassName =
-            'h-full! w-auto! min-w-0 flex-1 cursor-not-allowed rounded-none! border-0! bg-input-disabled-bg px-3 text-placeholder shadow-none focus-visible:border-transparent focus-visible:ring-0!'
-        } else if (buscaInterna) {
-          inputClassName = 'h-10 rounded-sm border-input-border-muted pl-9'
-        }
+        const digitos = String(field.value ?? '')
+        const valorExibido = formatarExibicao
+          ? formatarExibicao(digitos)
+          : digitos
+        const inputClassName = readOnly
+          ? 'h-full! w-auto! min-w-0 flex-1 cursor-not-allowed rounded-none! border-0! bg-input-disabled-bg px-3 text-placeholder shadow-none focus-visible:border-transparent focus-visible:ring-0!'
+          : 'h-full! w-auto! min-w-0 flex-1 rounded-none! border-0! bg-transparent px-3 shadow-none focus-visible:border-transparent focus-visible:ring-0!'
 
         return (
           <Field data-invalid={fieldState.invalid}>
             <FieldLabel htmlFor={String(name)} className={labelClassName}>
               {label}
             </FieldLabel>
-            <div
-              className={
-                buscaInterna
-                  ? 'relative'
-                  : 'flex h-10 overflow-hidden rounded-sm border border-input-border-muted focus-within:border-ring'
-              }
-            >
-              {buscaInterna ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label={rotuloAcao}
-                  className="absolute top-1/2 left-1 z-10 size-8 -translate-y-1/2 text-muted-foreground hover:bg-transparent"
-                  disabled={readOnly || isLoading}
-                  onMouseDown={handleMouseDown}
-                  onClick={() => {
-                    if (readOnly) return
-                    onSearch?.(field.value)
-                  }}
-                >
-                  {isLoading ? (
-                    <Spinner />
-                  ) : (
-                    <SearchIcon className="size-4" aria-hidden="true" />
-                  )}
-                </Button>
-              ) : null}
+            <div className="flex h-10 overflow-hidden rounded-sm border border-input-border-muted focus-within:border-ring">
               <Input
                 {...field}
                 id={String(name)}
                 inputMode="numeric"
-                maxLength={maxLength}
+                maxLength={maxLengthExibicao ?? maxLength}
                 placeholder={placeholder}
                 readOnly={readOnly}
                 aria-readonly={readOnly ? 'true' : undefined}
                 aria-invalid={fieldState.invalid}
                 className={inputClassName}
+                value={valorExibido}
                 onChange={(evento) => {
                   if (readOnly) return
                   const valor = extrairDigitos(evento.target.value).slice(
@@ -142,14 +111,27 @@ export function FormFieldEol<
                   field.onChange(valor)
                   onChange?.(valor)
                 }}
-                onKeyDown={handleKeyDown}
-                onBlur={() => {
+                onKeyDown={(evento) => {
+                  if (readOnly || !onSearch || evento.key !== 'Enter') return
+                  evento.preventDefault()
+                  onSearch(
+                    extrairDigitos(evento.currentTarget.value).slice(
+                      0,
+                      maxLength,
+                    ),
+                  )
+                }}
+                onBlur={(evento) => {
                   field.onBlur()
-                  if (readOnly || !buscarAoSair || !field.value) return
-                  onSearch?.(field.value)
+                  if (readOnly || !buscarAoSair) return
+                  const valor = extrairDigitos(
+                    evento.currentTarget.value,
+                  ).slice(0, maxLength)
+                  if (!valor) return
+                  onSearch?.(valor)
                 }}
               />
-              {buscaInterna ? null : (
+              {onSearch ? (
                 <Button
                   type="button"
                   size="icon"
@@ -159,7 +141,7 @@ export function FormFieldEol<
                   onMouseDown={handleMouseDown}
                   onClick={() => {
                     if (readOnly) return
-                    onSearch?.(field.value)
+                    onSearch(digitos)
                   }}
                 >
                   {isLoading ? (
@@ -168,7 +150,7 @@ export function FormFieldEol<
                     <SearchIcon className="size-5" aria-hidden="true" />
                   )}
                 </Button>
-              )}
+              ) : null}
             </div>
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
           </Field>
