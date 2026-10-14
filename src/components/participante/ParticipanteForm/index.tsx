@@ -56,8 +56,11 @@ export function ParticipanteForm() {
     string | null
   >(null)
   const [cpfSincronizado, setCpfSincronizado] = useState<string | null>(null)
-  const eolAberto = useMemo(() => origemConsulta === 'cpf', [origemConsulta])
-  const cpfAberto = useMemo(
+  const eolDesabilitado = useMemo(
+    () => origemConsulta === 'cpf',
+    [origemConsulta],
+  )
+  const cpfDesabilitado = useMemo(
     () => origemConsulta === 'codigoEol',
     [origemConsulta],
   )
@@ -137,10 +140,9 @@ export function ParticipanteForm() {
     participante: ParticipanteEol,
     cpf = form.getValues('cpf'),
   ) {
-    const codigoEolInformado = form.getValues('codigoEol')
     const codigoEol =
-      origemConsulta === 'cpf' && codigoEolInformado
-        ? codigoEolInformado
+      origemConsulta === 'cpf'
+        ? form.getValues('codigoEol')
         : participante.codigo_eol
 
     form.reset({
@@ -161,7 +163,7 @@ export function ParticipanteForm() {
       telefone2: participante.telefone_contato_2,
       email: participante.email,
     })
-    setCodigoEolSincronizado(codigoEol)
+    setCodigoEolSincronizado(origemConsulta === 'cpf' ? null : codigoEol)
   }
 
   function consultaAindaVale(origem: 'codigoEol' | 'cpf', valor: string) {
@@ -361,8 +363,8 @@ export function ParticipanteForm() {
               aoMudarCpf={aoMudarCpf}
               aoMudarGrupo={aoMudarGrupo}
               aoMudarDre={aoMudarDre}
-              eolAberto={eolAberto}
-              cpfAberto={cpfAberto}
+              eolDesabilitado={eolDesabilitado}
+              cpfDesabilitado={cpfDesabilitado}
             />
           </SecaoFormulario>
         </div>

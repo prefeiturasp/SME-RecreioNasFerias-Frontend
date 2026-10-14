@@ -593,9 +593,7 @@ describe('ParticipanteForm', () => {
         screen.getByLabelText(/nome completo do\(a\) participante/i),
       ).toHaveValue('ANNA JULIA ARAUJO SA')
     })
-    expect(screen.getByRole('textbox', { name: /código eol/i })).toHaveValue(
-      '123456',
-    )
+    expect(screen.getByRole('textbox', { name: /código eol/i })).toHaveValue('')
     expect(cpf).toHaveValue('123.456.789-01')
     expect(screen.getByLabelText(/data de nascimento/i)).toHaveValue(
       '16/10/2013',
@@ -643,7 +641,7 @@ describe('ParticipanteForm', () => {
       expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
         expect.objectContaining({
           cpf: '12345678901',
-          codigoEol: '123456',
+          codigoEol: '',
           nomeCompleto: 'ANNA JULIA ARAUJO SA',
         }),
         expect.anything(),
@@ -702,9 +700,7 @@ describe('ParticipanteForm', () => {
     })
     expect(obterParticipanteCpfMock).toHaveBeenCalledTimes(1)
     expect(obterParticipanteCpfMock).toHaveBeenCalledWith('12345678901')
-    expect(screen.getByRole('textbox', { name: /código eol/i })).toHaveValue(
-      '123456',
-    )
+    expect(screen.getByRole('textbox', { name: /código eol/i })).toHaveValue('')
   })
 
   it('exibe o detalhe quando a consulta do CPF falha e limpa os demais campos', async () => {
@@ -781,16 +777,22 @@ describe('ParticipanteForm', () => {
     expect(cpf).toHaveValue('123.456.789-0')
   })
 
-  it('deixa o CPF aberto e sem consulta depois da busca pelo código EOL', async () => {
+  it('desabilita o CPF ao informar o código EOL', async () => {
     const usuario = userEvent.setup()
     obterParticipanteEolMock.mockResolvedValue(participanteEolExemplo)
     renderFormulario()
 
     await escolherGrupo(usuario, 'Berçário I')
-    await usuario.type(
-      screen.getByRole('textbox', { name: /código eol/i }),
-      '123456',
-    )
+    const codigoEol = screen.getByRole('textbox', { name: /código eol/i })
+    await usuario.type(codigoEol, '123456')
+
+    const cpf = screen.getByRole('textbox', { name: /cpf do responsável/i })
+    const consultarCpf = screen.getByRole('button', {
+      name: /consultar cpf do responsável/i,
+    })
+    expect(cpf).toHaveAttribute('readonly')
+    expect(consultarCpf).toBeDisabled()
+
     await usuario.click(
       screen.getByRole('button', { name: /consultar código eol/i }),
     )
@@ -799,31 +801,32 @@ describe('ParticipanteForm', () => {
         screen.getByLabelText(/nome completo do\(a\) participante/i),
       ).toHaveValue('ANNA JULIA ARAUJO SA')
     })
-
-    const cpf = screen.getByRole('textbox', { name: /cpf do responsável/i })
-    expect(
-      screen.queryByRole('button', { name: /consultar cpf do responsável/i }),
-    ).not.toBeInTheDocument()
-    await usuario.type(cpf, '12345678901')
-    await usuario.tab()
-
+    expect(cpf).toHaveAttribute('readonly')
+    expect(cpf).toHaveValue('')
     expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
-    expect(cpf).toHaveValue('123.456.789-01')
-    expect(
-      screen.getByLabelText(/nome completo do\(a\) participante/i),
-    ).toHaveValue('ANNA JULIA ARAUJO SA')
+
+    await usuario.clear(codigoEol)
+
+    expect(cpf).not.toHaveAttribute('readonly')
+    expect(consultarCpf).toBeEnabled()
   })
 
-  it('deixa o código EOL aberto e sem consulta depois da busca pelo CPF', async () => {
+  it('desabilita o código EOL ao informar o CPF do responsável', async () => {
     const usuario = userEvent.setup()
     obterParticipanteCpfMock.mockResolvedValue(participanteEolExemplo)
     renderFormulario()
 
     await escolherGrupo(usuario, 'Berçário I')
-    await usuario.type(
-      screen.getByRole('textbox', { name: /cpf do responsável/i }),
-      '12345678901',
-    )
+    const cpf = screen.getByRole('textbox', { name: /cpf do responsável/i })
+    await usuario.type(cpf, '12345678901')
+
+    const codigoEol = screen.getByRole('textbox', { name: /código eol/i })
+    const consultarEol = screen.getByRole('button', {
+      name: /consultar código eol/i,
+    })
+    expect(codigoEol).toHaveAttribute('readonly')
+    expect(consultarEol).toBeDisabled()
+
     await usuario.click(
       screen.getByRole('button', { name: /consultar cpf do responsável/i }),
     )
@@ -832,23 +835,17 @@ describe('ParticipanteForm', () => {
         screen.getByLabelText(/nome completo do\(a\) participante/i),
       ).toHaveValue('ANNA JULIA ARAUJO SA')
     })
-
-    const codigoEol = screen.getByRole('textbox', { name: /código eol/i })
-    expect(
-      screen.queryByRole('button', { name: /consultar código eol/i }),
-    ).not.toBeInTheDocument()
-    expect(codigoEol).toHaveValue('123456')
-    await usuario.type(codigoEol, '7')
-    await usuario.tab()
-
+    expect(codigoEol).toHaveValue('')
+    expect(codigoEol).toHaveAttribute('readonly')
     expect(obterParticipanteEolMock).not.toHaveBeenCalled()
-    expect(codigoEol).toHaveValue('1234567')
-    expect(
-      screen.getByLabelText(/nome completo do\(a\) participante/i),
-    ).toHaveValue('ANNA JULIA ARAUJO SA')
+
+    await usuario.clear(cpf)
+
+    expect(codigoEol).not.toHaveAttribute('readonly')
+    expect(consultarEol).toBeEnabled()
   })
 
-  it('mantém o código EOL informado quando o retorno do CPF chega depois', async () => {
+  it('mantém o código EOL vazio quando a consulta do CPF responde', async () => {
     const usuario = userEvent.setup()
     let concluirCpf: (participante: ParticipanteEol) => void = () => {}
     obterParticipanteCpfMock.mockImplementation(
@@ -872,11 +869,10 @@ describe('ParticipanteForm', () => {
     })
 
     const codigoEol = screen.getByRole('textbox', { name: /código eol/i })
+    expect(codigoEol).toHaveAttribute('readonly')
     expect(
-      screen.queryByRole('button', { name: /consultar código eol/i }),
-    ).not.toBeInTheDocument()
-    await usuario.type(codigoEol, '654321')
-    await usuario.tab()
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    ).toBeDisabled()
     expect(obterParticipanteEolMock).not.toHaveBeenCalled()
 
     await act(async () => {
@@ -891,7 +887,8 @@ describe('ParticipanteForm', () => {
         screen.getByLabelText(/nome completo do\(a\) participante/i),
       ).toHaveValue('ALUNO DO CPF')
     })
-    expect(codigoEol).toHaveValue('654321')
+    expect(codigoEol).toHaveValue('')
+    expect(codigoEol).toHaveAttribute('readonly')
   })
 
   it('ignora o retorno do CPF quando o campo já foi alterado', async () => {
