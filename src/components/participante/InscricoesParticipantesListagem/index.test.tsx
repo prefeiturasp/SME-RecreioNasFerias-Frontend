@@ -227,7 +227,7 @@ describe('InscricoesParticipantesListagem', () => {
       'código eol',
       'cpf',
       'nome do participante',
-      'grupo',
+      'agrupamento',
       'status',
     ]) {
       await user.click(
