@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { grupoExigeEstudanteDaRede, TIPO_ESTUDANTE_REDE } from './constantes'
@@ -42,6 +42,7 @@ export function ParticipanteForm() {
   const cadastroMutation = usePostInscricao()
   const consultaParticipante = useGetParticipanteEol()
   const consultaCpf = useGetParticipanteCpf()
+  const buscaVigente = useRef<'codigoEol' | 'cpf' | null>(null)
   const [codigoEolSincronizado, setCodigoEolSincronizado] = useState<
     string | null
   >(null)
@@ -139,27 +140,37 @@ export function ParticipanteForm() {
     setCodigoEolSincronizado(participante.codigo_eol)
   }
 
+  function consultaAindaVale(origem: 'codigoEol' | 'cpf', valor: string) {
+    return buscaVigente.current === origem && form.getValues(origem) === valor
+  }
+
   function consultarParticipante(codigoEol: string) {
+    buscaVigente.current = 'codigoEol'
     consultaCpf.reset()
     consultaParticipante.mutate(codigoEol, {
       onSuccess: (participante) => {
+        if (!consultaAindaVale('codigoEol', codigoEol)) return
         preencherComParticipante(participante)
         setCpfSincronizado(null)
       },
       onError: () => {
+        if (!consultaAindaVale('codigoEol', codigoEol)) return
         limparCamposDoParticipante()
       },
     })
   }
 
   function consultarPorCpf(cpf: string) {
+    buscaVigente.current = 'cpf'
     consultaParticipante.reset()
     consultaCpf.mutate(cpf, {
       onSuccess: (participante) => {
+        if (!consultaAindaVale('cpf', cpf)) return
         preencherComParticipante(participante)
         setCpfSincronizado(cpf)
       },
       onError: () => {
+        if (!consultaAindaVale('cpf', cpf)) return
         limparCamposDoParticipante('', cpf)
       },
     })
