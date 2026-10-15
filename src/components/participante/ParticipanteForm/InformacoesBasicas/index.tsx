@@ -1,12 +1,14 @@
 import { useMemo } from 'react'
-import type { Control } from 'react-hook-form'
+import { useWatch, type Control } from 'react-hook-form'
 import type { FormValues } from '../schema'
 
 import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { FormField } from '@/components/ui/form-field'
 import { FormFieldEol } from '@/components/ui/form-field-eol'
+import { formatarDataBr } from '@/lib/formatarPeriodo'
 import type { Dre } from '@/services/dre/types'
 import type { OpcaoChoice, PoloElegivel } from '@/services/inscricao/types'
+import { aplicarMascaraCpf } from '@/utils/mascarasEntrada'
 
 type InformacoesBasicasProps = {
   control: Control<FormValues>
@@ -20,8 +22,14 @@ type InformacoesBasicasProps = {
   tiposEstudante: OpcaoChoice[]
   grupos: OpcaoChoice[]
   erro?: unknown
+  consultandoCodigoEol?: boolean
+  consultandoCpf?: boolean
   onBuscarCodigoEol?: (codigoEol: string) => void
+  aoMudarCodigoEol?: (codigoEol: string) => void
   onBuscarCpf?: (cpf: string) => void
+  aoMudarCpf?: (cpf: string) => void
+  eolDesabilitado?: boolean
+  cpfDesabilitado?: boolean
   aoMudarGrupo?: (valor: string) => void
   aoMudarDre?: (valor: string) => void
 }
@@ -38,11 +46,18 @@ export function InformacoesBasicas({
   tiposEstudante,
   grupos,
   erro,
+  consultandoCodigoEol = false,
+  consultandoCpf = false,
   onBuscarCodigoEol,
+  aoMudarCodigoEol,
   onBuscarCpf,
+  aoMudarCpf,
   aoMudarGrupo,
   aoMudarDre,
+  eolDesabilitado = false,
+  cpfDesabilitado = false,
 }: Readonly<InformacoesBasicasProps>) {
+  const dataNascimento = useWatch({ control, name: 'dataNascimento' })
   const rotuloTipoEstudante = useMemo(
     () =>
       tiposEstudante.find((opcao) => opcao.value === tipoEstudante)?.label ??
@@ -58,7 +73,7 @@ export function InformacoesBasicas({
         name="grupo"
         label={
           <>
-            <span className="text-destructive">*</span> Grupo
+            <span className="text-destructive">*</span> Agrupamento
           </>
         }
         type="select"
@@ -100,26 +115,36 @@ export function InformacoesBasicas({
             name="codigoEol"
             label={
               <>
-                <span className="text-destructive">*</span> Código EOL
+                <span className="text-destructive">*</span> Consultar por código
+                EOL
               </>
             }
             placeholder="Código EOL"
-            buscaInterna
+            buscarAoSair
+            readOnly={eolDesabilitado}
+            isLoading={consultandoCodigoEol}
             onSearch={onBuscarCodigoEol}
+            onChange={aoMudarCodigoEol}
           />
           <FormFieldEol
             control={control}
             name="cpf"
             label={
               <>
-                <span className="text-destructive">*</span> CPF
+                <span className="text-destructive">*</span> Consultar por CPF do
+                responsável
               </>
             }
             placeholder="Digite o CPF"
-            buscaInterna
+            buscarAoSair
+            readOnly={cpfDesabilitado}
             maxLength={11}
-            rotuloBusca="CPF"
+            maxLengthExibicao={14}
+            rotuloBusca="CPF do responsável"
+            formatarExibicao={aplicarMascaraCpf}
+            isLoading={consultandoCpf}
             onSearch={onBuscarCpf}
+            onChange={aoMudarCpf}
           />
           <FormField
             control={control}
@@ -143,6 +168,7 @@ export function InformacoesBasicas({
             }
             placeholder="DD/MM/AAAA"
             readOnly
+            valorExibicao={formatarDataBr(dataNascimento)}
           />
           <FormField
             control={control}
@@ -285,7 +311,11 @@ export function InformacoesBasicas({
               value: polo.uuid,
               label: polo.nome_polo,
             }))}
-            placeholder="Selecione o Polo"
+            placeholder={
+              dreCodigoEol
+                ? 'Selecione o Polo'
+                : 'É necessário selecionar o DRE primeiro'
+            }
           />
         </>
       ) : null}

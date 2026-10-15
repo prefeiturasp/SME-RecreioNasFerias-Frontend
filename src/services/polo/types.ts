@@ -1,6 +1,6 @@
 export type StatusPolo = 'ativo' | 'inativo'
 export type TipoPolo = 'pendente'
-export type GestaoPolo = 'parceira'
+export type GestaoPolo = 'parceira' | 'direta'
 
 export type Polo = {
   id: string
@@ -31,11 +31,20 @@ export type PoloDetalhado = {
   nome_gestor: string
   email: string
   telefone: string
+  ponto_focal_nome: string
+  ponto_focal_telefone: string
+  ponto_focal_email: string
   observacoes_gerais: string
+  endereco_completo: string
   ativo: boolean
   criado_em: string
   atualizado_em: string
 }
+
+export type DadosPontoFocalPolo = Pick<
+  PoloDetalhado,
+  'ponto_focal_nome' | 'ponto_focal_telefone' | 'ponto_focal_email'
+>
 
 export type PoloListagemItem = Omit<PoloDetalhado, 'gestao'> & {
   gestao: GestaoPolo | 'direta'

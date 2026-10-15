@@ -44,6 +44,12 @@ const COLUNAS = [
     valorOrdenacao: (edicao) => edicao.quantidade_atendimento_efetivo,
     renderizar: (edicao) => edicao.quantidade_atendimento_efetivo,
   },
+  {
+    id: 'status',
+    rotulo: 'Status',
+    valorOrdenacao: (edicao) => edicao.status,
+    renderizar: (edicao) => edicao.status_label,
+  },
 ] as const satisfies readonly DefinicaoColuna<EdicaoPrograma>[]
 
 export function EdicaoListagem() {
@@ -78,7 +84,6 @@ export function EdicaoListagem() {
       itens={edicoes}
       colunas={COLUNAS}
       obterId={(edicao) => edicao.uuid}
-      colunaOrdenacaoInicial="nome"
       paginaAtual={paginaAjustada}
       totalPaginas={totalPaginas}
       itensPorPagina={itensPorPagina}

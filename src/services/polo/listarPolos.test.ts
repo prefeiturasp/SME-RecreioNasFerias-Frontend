@@ -31,7 +31,11 @@ const polos: PoloDetalhado[] = [
     nome_gestor: 'Maria Silva',
     email: 'polo@osc.org.br',
     telefone: '11999999999',
+    ponto_focal_nome: '',
+    ponto_focal_telefone: '',
+    ponto_focal_email: '',
     observacoes_gerais: '',
+    endereco_completo: 'Rua Exemplo, 100, Centro',
     ativo: true,
     criado_em: '2026-08-27T11:28:47.128Z',
     atualizado_em: '2026-08-27T11:28:47.128Z',
@@ -53,25 +57,25 @@ describe('listarPolos', () => {
   it('lista polos sem filtros e retorna os dados da API', async () => {
     apiGetMock.mockResolvedValue({ data: listagemPaginada })
 
-    await expect(listarPolos()).resolves.toEqual(listagemPaginada)
+    await expect(listarPolos({})).resolves.toEqual(listagemPaginada)
 
     expect(apiGetMock).toHaveBeenCalledTimes(1)
     expect(apiGetMock).toHaveBeenCalledWith('/api/v1/polos/', {
-      params: {
-        busca: undefined,
-        dre_codigo_eol: undefined,
-        tipo_ue: undefined,
-        page: 1,
-        page_size: 10,
-        gestao: undefined,
-      },
+      params: {},
     })
   })
 
   it('envia os filtros informados para a API', async () => {
     apiGetMock.mockResolvedValue({ data: listagemPaginada })
 
-    await listarPolos('Polo Centro', '108100', 'EMEF', 2, 20, 'parceira')
+    await listarPolos({
+      busca: 'Polo Centro',
+      dre_codigo_eol: '108100',
+      tipo_ue: 'EMEF',
+      page: 2,
+      page_size: 20,
+      gestao: 'parceira',
+    })
 
     expect(apiGetMock).toHaveBeenCalledWith('/api/v1/polos/', {
       params: {
@@ -91,6 +95,6 @@ describe('listarPolos', () => {
     }
     apiGetMock.mockRejectedValue(erro)
 
-    await expect(listarPolos()).rejects.toBe(erro)
+    await expect(listarPolos({})).rejects.toBe(erro)
   })
 })

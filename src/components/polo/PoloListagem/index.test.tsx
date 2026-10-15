@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PoloDetalhado } from '@/services/polo/types'
+import { usePoloParceiroStore } from '@/stores/usePolosParceirosStore'
 import { PoloListagem } from './index'
 
 const { useGetPolosMock, toastMock } = vi.hoisted(() => ({
@@ -63,7 +64,11 @@ const polo: PoloDetalhado = {
   nome_gestor: 'Gestor Teste',
   email: 'polo@teste.com',
   telefone: '11999999999',
+  ponto_focal_nome: '',
+  ponto_focal_telefone: '',
+  ponto_focal_email: '',
   observacoes_gerais: '',
+  endereco_completo: 'Avenida Paulista, 1000, Bela Vista',
   ativo: true,
   criado_em: '2026-08-27T11:28:47.128Z',
   atualizado_em: '2026-08-27T11:28:47.128Z',
@@ -105,6 +110,7 @@ function renderListagem() {
 
 describe('PoloListagem', () => {
   beforeEach(() => {
+    usePoloParceiroStore.getState().limparFiltros()
     useGetPolosMock.mockReset()
     toastMock.mockReset()
     useGetPolosMock.mockReturnValue({
@@ -156,7 +162,7 @@ describe('PoloListagem', () => {
     expect(
       screen.getByRole('link', { name: /editar polo polo teste/i }),
     ).toHaveAttribute('href', `/editar-polo-parceiro/${polo.uuid}`)
-    expect(useGetPolosMock).toHaveBeenCalledWith('', '', '', 1, 10, 'parceira')
+    expect(useGetPolosMock).toHaveBeenCalledWith()
   })
 
   it('ordena por cada coluna e permite alterar itens por página', async () => {
@@ -208,14 +214,7 @@ describe('PoloListagem', () => {
     await usuario.click(screen.getByRole('button', { name: /próxima página/i }))
 
     await waitFor(() => {
-      expect(useGetPolosMock).toHaveBeenLastCalledWith(
-        '',
-        '',
-        '',
-        2,
-        10,
-        'parceira',
-      )
+      expect(useGetPolosMock).toHaveBeenLastCalledWith()
     })
   })
 
@@ -234,14 +233,12 @@ describe('PoloListagem', () => {
     await usuario.click(screen.getByRole('button', { name: 'Filtrar' }))
 
     await waitFor(() => {
-      expect(useGetPolosMock).toHaveBeenLastCalledWith(
-        'Polo Teste',
-        '',
-        '',
-        1,
-        10,
-        'parceira',
-      )
+      expect(usePoloParceiroStore.getState().filtrosAplicados).toEqual({
+        busca: 'Polo Teste',
+        dre_codigo_eol: '',
+        tipo_ue: '',
+      })
+      expect(useGetPolosMock).toHaveBeenLastCalledWith()
     })
   })
 
@@ -272,15 +269,12 @@ describe('PoloListagem', () => {
   })
 
   it('aplica o filtro de DRE na primeira página', async () => {
-    useGetPolosMock.mockImplementation(
-      (busca?: string, dre?: string, tipoUe?: string) => ({
-        data: criarListagemPaginada([polo], 25),
-        isPending: false,
-        isError: false,
-        error: null,
-        filtros: [busca, dre, tipoUe],
-      }),
-    )
+    useGetPolosMock.mockReturnValue({
+      data: criarListagemPaginada([polo], 25),
+      isPending: false,
+      isError: false,
+      error: null,
+    })
     const usuario = userEvent.setup()
     renderListagem()
 
@@ -290,14 +284,12 @@ describe('PoloListagem', () => {
     await usuario.click(screen.getByRole('button', { name: 'Filtrar' }))
 
     await waitFor(() => {
-      expect(useGetPolosMock).toHaveBeenLastCalledWith(
-        '',
-        '108100',
-        '',
-        1,
-        10,
-        'parceira',
-      )
+      expect(usePoloParceiroStore.getState().filtrosAplicados).toEqual({
+        busca: '',
+        dre_codigo_eol: '108100',
+        tipo_ue: '',
+      })
+      expect(useGetPolosMock).toHaveBeenLastCalledWith()
     })
   })
 
@@ -317,14 +309,12 @@ describe('PoloListagem', () => {
     await usuario.click(screen.getByRole('button', { name: 'Filtrar' }))
 
     await waitFor(() => {
-      expect(useGetPolosMock).toHaveBeenLastCalledWith(
-        '',
-        '',
-        'EMEF',
-        1,
-        10,
-        'parceira',
-      )
+      expect(usePoloParceiroStore.getState().filtrosAplicados).toEqual({
+        busca: '',
+        dre_codigo_eol: '',
+        tipo_ue: 'EMEF',
+      })
+      expect(useGetPolosMock).toHaveBeenLastCalledWith()
     })
   })
 })

@@ -82,7 +82,11 @@ const poloExemplo: PoloDetalhado = {
   nome_gestor: 'Gestor Teste',
   email: 'polo@teste.com',
   telefone: '11999999999',
+  ponto_focal_nome: '',
+  ponto_focal_telefone: '',
+  ponto_focal_email: '',
   observacoes_gerais: '',
+  endereco_completo: 'Avenida Paulista, 1000, Bela Vista',
   ativo: true,
   criado_em: '2026-08-27T11:28:47.128Z',
   atualizado_em: '2026-08-27T11:28:47.128Z',
@@ -196,14 +200,14 @@ describe('PaginaPolosParceiros', () => {
     await usuario.click(screen.getByRole('button', { name: /^filtrar$/i }))
 
     await waitFor(() => {
-      expect(listarPolosMock).toHaveBeenLastCalledWith(
-        '',
-        '108100',
-        '',
-        1,
-        10,
-        'parceira',
-      )
+      expect(listarPolosMock).toHaveBeenLastCalledWith({
+        busca: '',
+        dre_codigo_eol: '108100',
+        tipo_ue: '',
+        page: 1,
+        page_size: 10,
+        gestao: 'parceira',
+      })
     })
   })
 
@@ -225,14 +229,14 @@ describe('PaginaPolosParceiros', () => {
     expect(screen.getByLabelText(/filtrar por tipo de ue/i)).toHaveValue('')
 
     await waitFor(() => {
-      expect(listarPolosMock).toHaveBeenLastCalledWith(
-        '',
-        '',
-        '',
-        1,
-        10,
-        'parceira',
-      )
+      expect(listarPolosMock).toHaveBeenLastCalledWith({
+        busca: '',
+        dre_codigo_eol: '',
+        tipo_ue: '',
+        page: 1,
+        page_size: 10,
+        gestao: 'parceira',
+      })
     })
   })
 

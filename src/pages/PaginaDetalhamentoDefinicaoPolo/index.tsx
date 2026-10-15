@@ -2,6 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import IconeSetaVoltar from '@/assets/icone-seta-voltar.png'
 import { Cabecalho } from '@/components/Cabecalho'
 import { DefinicaoPoloForm } from '@/components/definicaoPolo/DefinicaoPoloForm'
+import { PontoFocalPoloForm } from '@/components/definicaoPolo/PontoFocalPoloForm'
 import { MapaVisual } from '@/components/MapaVisual'
 import { MenuLateral } from '@/components/MenuLateral'
 import { Button } from '@/components/ui/button'
@@ -16,10 +17,23 @@ const NIVEIS_MAPA_VISUAL = [
 
 export default function PaginaDetalhamentoDefinicaoPolo() {
   const navigate = useNavigate()
-  const { idDefinicao } = useParams()
+  const { idDefinicao, poloUuid } = useParams()
 
-  const poloQuery = useGetDefinicaoPolo(idDefinicao)
-  const polo = poloQuery.data
+  const definicaoQuery = useGetDefinicaoPolo(idDefinicao)
+  const definicao = definicaoQuery.data
+
+  let formulario = null
+
+  if (poloUuid) {
+    formulario = <PontoFocalPoloForm poloUuid={poloUuid} />
+  } else if (idDefinicao) {
+    formulario = (
+      <DefinicaoPoloForm
+        definicaoUuid={idDefinicao}
+        poloUuid={definicao?.polo.uuid}
+      />
+    )
+  }
 
   return (
     <main className="flex h-full w-full overflow-hidden">
@@ -51,12 +65,7 @@ export default function PaginaDetalhamentoDefinicaoPolo() {
               </div>
             </div>
 
-            {idDefinicao ? (
-              <DefinicaoPoloForm
-                definicaoUuid={idDefinicao}
-                poloUuid={polo?.polo.uuid}
-              />
-            ) : null}
+            {formulario}
           </section>
         </div>
       </section>

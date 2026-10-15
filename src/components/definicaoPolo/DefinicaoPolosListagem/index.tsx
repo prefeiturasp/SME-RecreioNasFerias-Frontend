@@ -7,15 +7,15 @@ import { ChevronDownIcon } from '@/components/icons'
 import { TabelaListagem } from '@/components/TabelaListagem'
 import type { DefinicaoColuna } from '@/components/TabelaListagem/types'
 import { Button } from '@/components/ui/button'
-import { OPCOES_ITENS_POR_PAGINA } from '@/constants/paginacao'
 import { useGetDefinicoesPolo } from '@/hooks/useGetDefinicoesPolo'
 import { useToast } from '@/hooks/useToast'
 import {
-  FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
   type DefinicaoPoloApi,
   type FiltrosListagemDefinicaoPolos,
   type PoloParaAlterarTipo,
 } from '@/services/definicaoPolo/types'
+import { useDefinicaoPoloStore } from '@/stores/useDefinicaoPolosStore'
+import { useShallow } from 'zustand/react/shallow'
 
 const TOAST_ERRO_LISTAGEM_ID = 'erro-listagem-definicoes-polos'
 
@@ -92,44 +92,36 @@ const COLUNAS = [
 type DefinicaoPolosListagemProps = {
   filtros?: FiltrosListagemDefinicaoPolos
   chaveResetSelecao?: number
-  onVisualizarPolo?: (definicaoUuid: string) => void
+  onVisualizarPolo?: (definicaoUuid: string | null, poloUuid: string) => void
   onAlterarEdicaoPolo: (idsPolos: string[]) => void
   onAlterarTipoPolo: (polos: PoloParaAlterarTipo[]) => void
 }
 
 export function DefinicaoPolosListagem({
-  filtros = FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
   chaveResetSelecao = 0,
   onVisualizarPolo,
   onAlterarEdicaoPolo,
   onAlterarTipoPolo,
 }: Readonly<DefinicaoPolosListagemProps>) {
   const { showToast } = useToast()
-  const [paginaAtual, setPaginaAtual] = useState(1)
-  const [itensPorPagina, setItensPorPagina] = useState<number>(
-    OPCOES_ITENS_POR_PAGINA[0],
-  )
   const [polosSelecionados, setPolosSelecionados] = useState<Set<string>>(
     () => new Set(),
   )
 
-  const listagemQuery = useGetDefinicoesPolo({
-    busca: filtros.nomeUeOuCodigoEol,
-    dre_codigos_eol: filtros.dre,
-    tipo_ue: filtros.tipoUe,
-    edicao: filtros.edicao,
-    gestao: filtros.gestao,
-    tipo_polo: filtros.tipoPolo,
-    page: paginaAtual,
-    page_size: itensPorPagina,
-  })
+  const { paginaAtual, setPaginaAtual, itensPorPagina, setItensPorPagina } =
+    useDefinicaoPoloStore(
+      useShallow((estado) => ({
+        paginaAtual: estado.paginaAtual,
+        setPaginaAtual: estado.setPaginaAtual,
+        itensPorPagina: estado.itensPorPagina,
+        setItensPorPagina: estado.setItensPorPagina,
+      })),
+    )
+
+  const listagemQuery = useGetDefinicoesPolo()
 
   const polos = listagemQuery.data?.results ?? []
   const totalRegistros = listagemQuery.data?.count ?? 0
-
-  useEffect(() => {
-    setPaginaAtual(1)
-  }, [filtros])
 
   useEffect(() => {
     setPolosSelecionados(new Set())
@@ -150,6 +142,7 @@ export function DefinicaoPolosListagem({
     listagemQuery.isSuccess,
     paginaAtual,
     totalPaginas,
+    setPaginaAtual,
   ])
 
   useEffect(() => {
@@ -209,8 +202,6 @@ export function DefinicaoPolosListagem({
         />
       )}
       renderizarAcoes={(polo) => {
-        const podeVisualizar = Boolean(polo.definicao_uuid)
-
         return (
           <div className="inline-flex items-center justify-center gap-2">
             <Button
@@ -219,11 +210,9 @@ export function DefinicaoPolosListagem({
               size="icon-sm"
               className="text-brand-dark"
               aria-label={`Visualizar polo ${polo.nome_polo}`}
-              disabled={!podeVisualizar}
-              onClick={() => {
-                if (!polo.definicao_uuid) return
-                onVisualizarPolo?.(polo.definicao_uuid)
-              }}
+              onClick={() =>
+                onVisualizarPolo?.(polo.definicao_uuid, polo.polo_uuid)
+              }
             >
               <img
                 src={iconeOlho}

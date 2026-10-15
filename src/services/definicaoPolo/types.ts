@@ -20,15 +20,6 @@ export type DefinicaoPoloApi = {
   resultado_final_de_inscritos_edicao: number | null
 }
 
-export type FiltrosListagemDefinicaoPolos = {
-  dre: string
-  tipoUe: string
-  nomeUeOuCodigoEol: string
-  edicao: string
-  tipoPolo: string
-  gestao: string
-}
-
 export type ParametrosListagemDefinicoesPolo = {
   busca?: string
   dre_codigos_eol?: string
@@ -39,6 +30,13 @@ export type ParametrosListagemDefinicoesPolo = {
   page?: number
   page_size?: number
 }
+
+export type FiltrosListagemDefinicaoPolos = Required<
+  Pick<
+    ParametrosListagemDefinicoesPolo,
+    'busca' | 'dre_codigos_eol' | 'tipo_ue' | 'edicao' | 'tipo_polo' | 'gestao'
+  >
+>
 
 export type ListagemDefinicoesPoloPaginada = {
   count: number
@@ -148,11 +146,11 @@ export type DadosAtualizacaoDefinicaoPolo = {
 
 export const FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS: FiltrosListagemDefinicaoPolos =
   {
-    dre: '',
-    tipoUe: '',
-    nomeUeOuCodigoEol: '',
+    busca: '',
+    dre_codigos_eol: '',
+    tipo_ue: '',
     edicao: '',
-    tipoPolo: '',
+    tipo_polo: '',
     gestao: '',
   }
 

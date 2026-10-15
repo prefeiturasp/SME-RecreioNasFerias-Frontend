@@ -4,6 +4,7 @@ import PaginaDefinicoesPolo from '../pages/PaginaDefinicoesPolo'
 import PaginaDetalhamentoDefinicaoPolo from '../pages/PaginaDetalhamentoDefinicaoPolo'
 import PaginaPolosParceiros from '../pages/PaginaPolosParceiros'
 import PaginaCadastrarNovaEdicaoPrograma from '../pages/PaginaCadastrarNovaEdicaoPrograma'
+import PaginaInscricaoParticipantes from '../pages/PaginaInscricaoParticipantes'
 import PaginaCadastrarParticipante from '../pages/PaginaCadastrarParticipante'
 import PaginaCadastrarPoloParceiro from '../pages/PaginaCadastrarPoloParceiro'
 import PaginaEditarPoloParceiro from '../pages/PaginaEditarPoloParceiro'
@@ -37,6 +38,14 @@ export function RotasAplicacao() {
         element={
           <RotaProtegida>
             <PaginaDefinicoesPolo />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/definicoes-polo/polo/:poloUuid"
+        element={
+          <RotaProtegida>
+            <PaginaDetalhamentoDefinicaoPolo />
           </RotaProtegida>
         }
       />
@@ -89,10 +98,18 @@ export function RotasAplicacao() {
         }
       />
       <Route
-        path="/inscricoes-participantes"
+        path="/inscricoes-participantes/cadastro"
         element={
           <RotaProtegida>
             <PaginaCadastrarParticipante />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/inscricoes-participantes"
+        element={
+          <RotaProtegida>
+            <PaginaInscricaoParticipantes />
           </RotaProtegida>
         }
       />

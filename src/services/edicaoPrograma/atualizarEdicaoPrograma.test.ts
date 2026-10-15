@@ -30,6 +30,8 @@ const respostaAtualizacaoExemplo: EdicaoPrograma = {
   quantidade_atendimento_efetivo: 10,
   quantidade_passeios: 3,
   quantidade_apresentacoes: 2,
+  status: 'ativo',
+  status_label: 'Ativo',
 }
 
 describe('atualizarEdicaoPrograma', () => {

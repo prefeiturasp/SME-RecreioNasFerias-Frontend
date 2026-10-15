@@ -75,6 +75,8 @@ const edicaoCarregada: EdicaoPrograma = {
   quantidade_atendimento_efetivo: 40,
   quantidade_passeios: 5,
   quantidade_apresentacoes: 2,
+  status: 'encerrada',
+  status_label: 'Encerrada',
 }
 
 function parseIsoLocal(iso: string) {

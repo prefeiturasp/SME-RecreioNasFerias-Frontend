@@ -63,6 +63,41 @@ export type Inscricao = {
   ativo: boolean
 }
 
+export type FiltrosIncricoesParticipantes = {
+  codigo_eol: string
+  cpf: string
+  grupo: string
+  nome_participante: string
+  polo: string
+  status: string
+  tipo_estudante: string
+}
+
+export const FILTROS_LISTAGEM_INSCRICOES_PARTICIPANTES_INICIAIS: FiltrosIncricoesParticipantes =
+  {
+    codigo_eol: '',
+    cpf: '',
+    grupo: '',
+    nome_participante: '',
+    polo: '',
+    status: '',
+    tipo_estudante: '',
+  }
+
+export type InscricaoApi = Inscricao & {
+  grupo_label: string
+  status_label: string
+  polo_nome: string
+  tipo_estudante_label: string
+}
+
+export type InscricoesParticipantesPaginada = {
+  count: number
+  next: string | null
+  previous: string | null
+  results: InscricaoApi[]
+}
+
 export type OpcaoChoice = {
   value: string
   label: string
@@ -80,4 +115,21 @@ export type PoloElegivel = {
   nome_polo: string
   dre_codigo_eol: string
   dre_nome: string
+}
+
+export type ParticipanteEol = {
+  codigo_eol: string
+  nome_participante: string
+  data_nascimento: string
+  responsavel_nome: string
+  responsavel_nome_social: string
+  cep: string
+  logradouro: string
+  numero: string
+  complemento: string
+  bairro: string
+  cidade: string
+  telefone_contato_1: string
+  telefone_contato_2: string
+  email: string
 }

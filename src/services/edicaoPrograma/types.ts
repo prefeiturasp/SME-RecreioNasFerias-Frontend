@@ -9,6 +9,8 @@ export type EdicaoPrograma = {
   quantidade_atendimento_efetivo: number
   quantidade_passeios: number
   quantidade_apresentacoes: number
+  status: string
+  status_label: string
 }
 
 export type DadosCadastroEdicaoPrograma = {

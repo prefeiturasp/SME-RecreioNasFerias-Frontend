@@ -11,9 +11,7 @@ import { usePostAlterarTipoEmMassa } from '@/hooks/usePostAlterarTipoEmMassa'
 import { usePostVincularEmMassa } from '@/hooks/usePostVincularEmMassa'
 import { cn } from '@/lib/utils'
 import {
-  FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
   OPCOES_TIPO_POLO,
-  type FiltrosListagemDefinicaoPolos,
   type PoloParaAlterarTipo,
 } from '@/services/definicaoPolo/types'
 
@@ -30,13 +28,6 @@ export function DefinicaoPolosConteudo() {
   const vincularEmMassaMutation = usePostVincularEmMassa()
   const alterarTipoMutation = usePostAlterarTipoEmMassa()
 
-  const [filtros, setFiltros] = useState<FiltrosListagemDefinicaoPolos>(
-    FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
-  )
-  const [filtrosAplicados, setFiltrosAplicados] =
-    useState<FiltrosListagemDefinicaoPolos>(
-      FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS,
-    )
   const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false)
   const [polosParaVincularEdicao, setPolosParaVincularEdicao] = useState<
     string[]
@@ -65,15 +56,6 @@ export function DefinicaoPolosConteudo() {
   const modalTipoAberto = polosParaAlterarTipoPolo.length > 0
   const edicoesQuery = useGetEdicoesPrograma(modalEdicaoAberto)
 
-  function aplicarFiltros() {
-    setFiltrosAplicados(filtros)
-  }
-
-  function limparFiltros() {
-    setFiltros(FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS)
-    setFiltrosAplicados(FILTROS_LISTAGEM_DEFINICAO_POLOS_INICIAIS)
-  }
-
   function fecharModalAlterarEdicao() {
     if (vincularEmMassaMutation.isPending) return
     vincularEmMassaMutation.reset()
@@ -98,8 +80,14 @@ export function DefinicaoPolosConteudo() {
     setPolosParaAlterarTipoPolo(polos)
   }
 
-  function visualizarDefinicao(definicaoUuid: string) {
-    navigate(`/definicoes-polo/${definicaoUuid}`)
+  function visualizarPolo(
+    definicaoUuid: string | null,
+    poloUuid: string,
+  ) {
+    const rota = definicaoUuid
+      ? `/definicoes-polo/${definicaoUuid}`
+      : `/definicoes-polo/polo/${poloUuid}`
+    void navigate(rota)
   }
 
   function confirmarAlteracaoEdicao(edicaoDestino: string) {
@@ -187,17 +175,11 @@ export function DefinicaoPolosConteudo() {
         </Alert>
       ) : null}
 
-      <FiltrosDefinicaoPolosForm
-        valores={filtros}
-        onChange={setFiltros}
-        onFiltrar={aplicarFiltros}
-        onLimpar={limparFiltros}
-      />
+      <FiltrosDefinicaoPolosForm />
 
       <DefinicaoPolosListagem
-        filtros={filtrosAplicados}
         chaveResetSelecao={chaveResetSelecao}
-        onVisualizarPolo={visualizarDefinicao}
+        onVisualizarPolo={visualizarPolo}
         onAlterarEdicaoPolo={abrirModalAlterarEdicao}
         onAlterarTipoPolo={abrirModalAlterarTipoPolo}
       />

@@ -34,7 +34,7 @@ export default function PaginaCadastrarParticipante() {
                   variant="outline"
                   aria-label="Voltar para o início"
                   className="h-9.5 rounded-sm border-brand-dark px-4 font-bold text-brand-dark hover:bg-accent hover:text-brand-dark"
-                  onClick={() => navigate('/inicio')}
+                  onClick={() => navigate('/inscricoes-participantes')}
                 >
                   <img src={IconeSetaVoltar} alt="" aria-hidden="true" /> Voltar
                 </Button>

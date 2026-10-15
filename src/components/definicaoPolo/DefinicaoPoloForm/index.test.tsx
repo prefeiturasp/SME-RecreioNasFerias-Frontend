@@ -52,6 +52,12 @@ vi.mock('@/hooks/useToast', () => ({
   }),
 }))
 
+vi.mock('../HistoricoDefinicaoPolo', () => ({
+  HistoricoDefinicaoPolo: ({ poloUuid }: { poloUuid: string }) => (
+    <div data-testid="historico-definicao-polo">{poloUuid}</div>
+  ),
+}))
+
 const idDefinicao = '11c43c20-dfcb-4a26-a677-30703b7de766'
 
 const definicaoCarregada: DefinicaoPoloDetalhe = {
@@ -111,7 +117,7 @@ function ListagemStub() {
   )
 }
 
-function renderFormulario(definicaoUuid = idDefinicao) {
+function renderFormulario(definicaoUuid = idDefinicao, poloUuid?: string) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -125,7 +131,12 @@ function renderFormulario(definicaoUuid = idDefinicao) {
         <Routes>
           <Route
             path="/definicoes-polo/:idDefinicao"
-            element={<DefinicaoPoloForm definicaoUuid={definicaoUuid} />}
+            element={
+              <DefinicaoPoloForm
+                definicaoUuid={definicaoUuid}
+                poloUuid={poloUuid}
+              />
+            }
           />
           <Route path="/definicoes-polo" element={<ListagemStub />} />
         </Routes>
@@ -185,6 +196,37 @@ describe('DefinicaoPoloForm', () => {
     expect(
       screen.getByLabelText(/resultado final de inscritos/i),
     ).toHaveValue('8')
+  })
+
+  it('formata telefone do ponto focal e exibe o historico quando ha poloUuid', async () => {
+    obterDefinicaoPoloMock.mockResolvedValue({
+      ...definicaoCarregada,
+      polo: { ...definicaoCarregada.polo, gestao: 'parceira' },
+      ponto_focal_telefone: '11987654321',
+    })
+    renderFormulario(idDefinicao, 'uuid-do-polo')
+
+    expect(await screen.findByLabelText(/tipo de gest/i)).toHaveValue(
+      'Parceira',
+    )
+    expect(screen.getByLabelText(/^telefone$/i)).toHaveValue(
+      '(11) 98765-4321',
+    )
+    expect(screen.getByTestId('historico-definicao-polo')).toHaveTextContent(
+      'uuid-do-polo',
+    )
+  })
+
+  it('usa o valor original para uma gestao diferente de direta ou parceira', async () => {
+    obterDefinicaoPoloMock.mockResolvedValue({
+      ...definicaoCarregada,
+      polo: { ...definicaoCarregada.polo, gestao: 'conveniada' },
+    })
+    renderFormulario()
+
+    expect(await screen.findByLabelText(/tipo de gest/i)).toHaveValue(
+      'conveniada',
+    )
   })
 
   it('mantem campos institucionais somente leitura', async () => {
@@ -271,6 +313,27 @@ describe('DefinicaoPoloForm', () => {
     ).toBeInTheDocument()
   })
 
+  it('desabilita o botao e informa quando a atualizacao esta pendente', async () => {
+    const usuario = criarUsuario()
+    let concluirAtualizacao!: (definicao: DefinicaoPoloDetalhe) => void
+    atualizarDefinicaoPoloMock.mockReturnValue(
+      new Promise<DefinicaoPoloDetalhe>((resolve) => {
+        concluirAtualizacao = resolve
+      }),
+    )
+
+    renderFormulario()
+
+    await screen.findByLabelText(/proje.*de inscritos/i)
+    await usuario.click(screen.getByRole('button', { name: 'Salvar' }))
+
+    const botaoSalvar = screen.getByRole('button', { name: 'Salvando...' })
+    expect(botaoSalvar).toBeDisabled()
+
+    concluirAtualizacao(definicaoCarregada)
+    expect(await screen.findByText('Definicao atualizada')).toBeInTheDocument()
+  })
+
   it('exibe toast de erro quando o GET falha', async () => {
     obterDefinicaoPoloMock.mockRejectedValue({
       response: {
@@ -293,11 +356,13 @@ describe('DefinicaoPoloForm', () => {
 
   it('exibe toast de erro quando o PUT falha', async () => {
     const usuario = criarUsuario()
-    atualizarDefinicaoPoloMock.mockRejectedValue({
-      response: {
-        data: { detalhe: 'Nao foi possivel salvar a definicao do polo.' },
-      },
-    })
+    atualizarDefinicaoPoloMock
+      .mockRejectedValueOnce({
+        response: {
+          data: { detalhe: 'Nao foi possivel salvar a definicao do polo.' },
+        },
+      })
+      .mockResolvedValueOnce(definicaoCarregada)
 
     renderFormulario()
     await screen.findByLabelText(/proje.*de inscritos/i)
@@ -315,6 +380,15 @@ describe('DefinicaoPoloForm', () => {
     expect(
       screen.queryByText('Listagem de definicoes'),
     ).not.toBeInTheDocument()
+
+    await usuario.click(screen.getByRole('button', { name: 'Salvar' }))
+
+    await waitFor(() => {
+      expect(dismissToastMock).toHaveBeenCalledWith(
+        'erro-atualizacao-definicao-polo',
+      )
+      expect(atualizarDefinicaoPoloMock).toHaveBeenCalledTimes(2)
+    })
   })
 
   it('cancela e volta para a listagem', async () => {

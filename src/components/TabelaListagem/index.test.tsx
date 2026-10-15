@@ -129,7 +129,9 @@ describe('TabelaListagem', () => {
 
     expect(linhas()[0]).toHaveTextContent('Janeiro 2026')
 
-    await usuario.click(screen.getByRole('button', { name: /ordenar por nome/i }))
+    await usuario.click(
+      screen.getByRole('button', { name: /ordenar por nome/i }),
+    )
 
     expect(linhas()[0]).toHaveTextContent('Março 2026')
   })
@@ -197,6 +199,7 @@ describe('TabelaListagem', () => {
         itens={itens}
         colunas={COLUNAS}
         obterId={(item) => item.id}
+        colunaOrdenacaoInicial="nome"
         paginaAtual={1}
         totalPaginas={2}
         itensPorPagina={10}
@@ -207,6 +210,33 @@ describe('TabelaListagem', () => {
 
     expect(screen.getByText('Abril 0')).toBeInTheDocument()
     expect(screen.queryByText('Zebra 2026')).not.toBeInTheDocument()
+  })
+
+  it('preserva a ordem da API até o usuário ordenar uma coluna', async () => {
+    const usuario = userEvent.setup()
+    const itens: ItemExemplo[] = [
+      { id: '1', nome: 'Março 2026', quantidade: 1 },
+      { id: '2', nome: 'Janeiro 2026', quantidade: 2 },
+    ]
+
+    render(
+      <TabelaListagem
+        itens={itens}
+        colunas={COLUNAS}
+        obterId={(item) => item.id}
+        {...propsPaginacaoPadrao}
+      />,
+    )
+
+    const linhas = () => screen.getAllByRole('row').slice(1)
+
+    expect(linhas()[0]).toHaveTextContent('Março 2026')
+
+    await usuario.click(
+      screen.getByRole('button', { name: /ordenar por nome/i }),
+    )
+
+    expect(linhas()[0]).toHaveTextContent('Janeiro 2026')
   })
 
   it('volta para a primeira página ao ordenar', async () => {
@@ -232,7 +262,9 @@ describe('TabelaListagem', () => {
       />,
     )
 
-    await usuario.click(screen.getByRole('button', { name: /ordenar por nome/i }))
+    await usuario.click(
+      screen.getByRole('button', { name: /ordenar por nome/i }),
+    )
 
     expect(onMudarPagina).toHaveBeenCalledWith(1)
   })
@@ -261,7 +293,13 @@ describe('TabelaListagem', () => {
   })
 
   it('não exibe paginação quando totalPaginas é zero', () => {
-    render(<TabelaListagem itens={[itemExemplo]} {...propsTabelaPadrao} totalPaginas={0} />)
+    render(
+      <TabelaListagem
+        itens={[itemExemplo]}
+        {...propsTabelaPadrao}
+        totalPaginas={0}
+      />,
+    )
 
     expect(
       screen.queryByRole('navigation', { name: /paginação da listagem/i }),
@@ -382,7 +420,9 @@ describe('TabelaListagem', () => {
       />,
     )
 
-    await usuario.click(screen.getByRole('button', { name: /ordenar por nome/i }))
+    await usuario.click(
+      screen.getByRole('button', { name: /ordenar por nome/i }),
+    )
 
     expect(onMudarPagina).not.toHaveBeenCalled()
   })

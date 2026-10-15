@@ -28,6 +28,8 @@ const respostaCadastroExemplo: EdicaoPrograma = {
   quantidade_atendimento_efetivo: 0,
   quantidade_passeios: 0,
   quantidade_apresentacoes: 0,
+  status: 'encerrada',
+  status_label: 'Encerrada',
 }
 
 describe('cadastrarEdicaoPrograma', () => {
