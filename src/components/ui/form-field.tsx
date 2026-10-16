@@ -42,7 +42,7 @@ type FormFieldInputProps<
   TFieldValues extends FieldValues,
   TName extends FieldPath<TFieldValues>,
 > = FormFieldBaseProps<TFieldValues, TName> & {
-  type?: 'input' | 'text' | 'email' | 'number' | 'tel' | 'password'
+  type?: 'input' | 'text' | 'email' | 'number' | 'tel' | 'password' | 'date'
   placeholder?: string
   inputMode?: InputHTMLAttributes<HTMLInputElement>['inputMode']
   autoComplete?: string

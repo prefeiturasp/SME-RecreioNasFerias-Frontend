@@ -360,7 +360,7 @@ describe('RotasAplicacao', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('renderiza a página Cadastrar Participante na rota /inscricoes-participantes quando autenticado', () => {
+  it('renderiza a página /cadastrar-participante quando autenticado', () => {
     definirSessaoAutenticacao({
       token: 'eyJ-token',
       rf: '1234567',
@@ -368,7 +368,7 @@ describe('RotasAplicacao', () => {
       descricaoCargo: 'CARGO TESTE',
     })
 
-    renderRotas('/inscricoes-participantes/cadastro')
+    renderRotas('/cadastrar-participante')
 
     const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
     expect(mapa).toHaveTextContent('Início')

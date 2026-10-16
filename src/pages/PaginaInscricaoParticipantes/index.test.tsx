@@ -87,7 +87,7 @@ describe('PaginaInscricaoParticipantes', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/inicio')
   })
 
-  it('deve navegar para a rota /inscricoes-participantes/cadastro ao clicar no botão Cadastrar Participante', async () => {
+  it('deve navegar para a rota /cadastrar-participante ao clicar no botão Cadastrar Participante', async () => {
     const user = userEvent.setup()
     renderPagina()
 
@@ -97,8 +97,6 @@ describe('PaginaInscricaoParticipantes', () => {
     await user.click(botaoCadastrar)
 
     expect(mockNavigate).toHaveBeenCalledTimes(1)
-    expect(mockNavigate).toHaveBeenCalledWith(
-      '/inscricoes-participantes/cadastro',
-    )
+    expect(mockNavigate).toHaveBeenCalledWith('/cadastrar-participante')
   })
 })

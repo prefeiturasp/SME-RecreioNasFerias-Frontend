@@ -9,16 +9,20 @@ import type { FormValues } from './schema'
 import formSchema from './schema'
 
 import { BlocoTexto } from '@/components/BlocoTexto'
+import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
 import { useGetDres } from '@/hooks/useGetDres'
 import { useGetParticipanteCpf } from '@/hooks/useGetParticipanteCpf'
 import { useGetParticipanteEol } from '@/hooks/useGetParticipanteEol'
+import { useGetInscricao } from '@/hooks/useGetInscricao'
 import { useGetPolosElegiveis } from '@/hooks/useGetPolosElegiveis'
 import { useGetValoresChoices } from '@/hooks/useGetValoresChoices'
 import { usePostInscricao } from '@/hooks/usePostInscricao'
+import { usePutInscricao } from '@/hooks/usePutInscricao'
 import { useToast } from '@/hooks/useToast'
 import type { ParticipanteEol } from '@/services/inscricao/types'
+import { extrairDigitos } from '@/utils/mascarasEntrada'
 
 function impedirBlurAntesDoClique(evento: MouseEvent<HTMLButtonElement>) {
   evento.preventDefault()
@@ -40,10 +44,17 @@ const CAMPOS_DO_PARTICIPANTE_VAZIOS = {
   email: '',
 }
 
-export function ParticipanteForm() {
+export function ParticipanteForm({
+  inscricaoUuid,
+}: {
+  inscricaoUuid?: string
+}) {
   const navigate = useNavigate()
   const { showToast } = useToast()
   const cadastroMutation = usePostInscricao()
+  const inscricaoQuery = useGetInscricao(inscricaoUuid)
+  const edicaoMutation = usePutInscricao(inscricaoUuid)
+  const mutation = inscricaoUuid ? edicaoMutation : cadastroMutation
   const buscaVigente = useRef<'codigoEol' | 'cpf' | null>(null)
   const [codigoEolConsulta, setCodigoEolConsulta] = useState<string>()
   const [cpfConsulta, setCpfConsulta] = useState<string>()
@@ -88,6 +99,32 @@ export function ParticipanteForm() {
       polo: '',
     },
   })
+  useEffect(() => {
+    const inscricao = inscricaoQuery.data
+    if (!inscricao) return
+
+    form.reset({
+      grupo: inscricao.grupo,
+      tipoEstudante: inscricao.tipo_estudante,
+      codigoEol: inscricao.codigo_eol,
+      cpf: extrairDigitos(inscricao.cpf),
+      nomeCompleto: inscricao.nome_participante,
+      dataNascimento: inscricao.data_nascimento ?? '',
+      nomeResponsavel: inscricao.responsavel_nome,
+      nomeSocialResponsavel: inscricao.responsavel_nome_social,
+      cep: inscricao.cep,
+      logradouro: inscricao.logradouro,
+      numero: inscricao.numero,
+      complemento: inscricao.complemento,
+      bairro: inscricao.bairro,
+      cidade: inscricao.cidade,
+      telefone1: inscricao.telefone_contato_1,
+      telefone2: inscricao.telefone_contato_2,
+      email: inscricao.email,
+      dreCodigoEol: inscricao.dre_codigo_eol,
+      polo: inscricao.polo?.uuid ?? '',
+    })
+  }, [form, inscricaoQuery.data])
   const [grupo, tipoEstudante, dreCodigoEol] = useWatch({
     control: form.control,
     name: ['grupo', 'tipoEstudante', 'dreCodigoEol'],
@@ -297,14 +334,12 @@ export function ParticipanteForm() {
   ])
 
   function salvar(dados: FormValues) {
-    if (cadastroMutation.isError) {
-      cadastroMutation.reset()
-    }
+    if (mutation.isError) mutation.reset()
 
     const dreNome =
       dres.find((dre) => dre.codigo_dre === dados.dreCodigoEol)?.nome_dre ?? ''
 
-    cadastroMutation.mutate(
+    mutation.mutate(
       {
         ...dados,
         dreNome,
@@ -321,10 +356,18 @@ export function ParticipanteForm() {
     )
   }
 
+  if (inscricaoUuid && inscricaoQuery.isLoading) {
+    return <p role="status">Carregando inscrição...</p>
+  }
+
+  if (inscricaoUuid && inscricaoQuery.isError) {
+    return <AlertaErroApi erro={inscricaoQuery.error} />
+  }
+
   return (
     <form
       noValidate
-      aria-label="Formulário de cadastro de participante"
+      aria-label={`Formulário de ${inscricaoUuid ? 'edição' : 'cadastro'} de participante`}
       onSubmit={form.handleSubmit(salvar)}
       className="rounded-sm bg-background p-8 shadow-card max-md:p-4"
     >
@@ -350,7 +393,7 @@ export function ParticipanteForm() {
               erro={
                 consultaCpf.error ??
                 consultaParticipante.error ??
-                cadastroMutation.error ??
+                mutation.error ??
                 dresQuery.error ??
                 polosQuery.error ??
                 choicesQuery.error
@@ -365,6 +408,8 @@ export function ParticipanteForm() {
               aoMudarDre={aoMudarDre}
               eolDesabilitado={eolDesabilitado}
               cpfDesabilitado={cpfDesabilitado}
+              modoEdicao={Boolean(inscricaoUuid)}
+              poloNome={inscricaoQuery.data?.polo?.nome_polo}
             />
           </SecaoFormulario>
         </div>
@@ -378,18 +423,21 @@ export function ParticipanteForm() {
           >
             Cancelar
           </Button>
+
+          {!inscricaoUuid && (
+            <Button
+              type="submit"
+              variant="outline"
+              disabled={mutation.isPending}
+              className="h-9.5 rounded-sm border-brand-dark px-4 font-bold text-brand-dark hover:bg-accent hover:text-brand-dark"
+              onMouseDown={impedirBlurAntesDoClique}
+            >
+              Salvar Rascunho
+            </Button>
+          )}
           <Button
             type="submit"
-            variant="outline"
-            disabled={cadastroMutation.isPending}
-            className="h-9.5 rounded-sm border-brand-dark px-4 font-bold text-brand-dark hover:bg-accent hover:text-brand-dark"
-            onMouseDown={impedirBlurAntesDoClique}
-          >
-            Salvar Rascunho
-          </Button>
-          <Button
-            type="submit"
-            disabled={cadastroMutation.isPending}
+            disabled={mutation.isPending}
             className="h-9.5 rounded-sm bg-brand-dark px-4 font-bold text-background hover:bg-brand-dark-hover disabled:bg-button-primary-disabled-bg disabled:opacity-100"
             onMouseDown={impedirBlurAntesDoClique}
           >

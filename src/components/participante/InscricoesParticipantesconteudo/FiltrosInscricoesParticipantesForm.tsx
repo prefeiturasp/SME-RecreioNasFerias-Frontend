@@ -152,7 +152,7 @@ export function FiltrosInscricoesParticipantesForm() {
           <CampoFiltroSelect
             id="filtro-grupo"
             rotulo="Filtrar por Agrupamento"
-            placeholder="Selecione o Grupo"
+            placeholder="Selecione o Agrupamento"
             valor={filtros.grupo}
             onValorChange={(valor) => atualizarCampo('grupo', valor)}
           >

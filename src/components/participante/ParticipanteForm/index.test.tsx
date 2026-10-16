@@ -12,6 +12,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type {
+  InscricaoDetalheApi,
   ParticipanteEol,
   ValoresChoicesInscricao,
 } from '@/services/inscricao/types'
@@ -80,6 +81,8 @@ const {
   listarPolosElegiveisMock,
   listarValoresChoicesMock,
   cadastrarInscricaoMock,
+  obterInscricaoMock,
+  atualizarInscricaoMock,
   obterParticipanteEolMock,
   obterParticipanteCpfMock,
   showToastMock,
@@ -88,6 +91,8 @@ const {
   listarPolosElegiveisMock: vi.fn(),
   listarValoresChoicesMock: vi.fn(),
   cadastrarInscricaoMock: vi.fn(),
+  obterInscricaoMock: vi.fn(),
+  atualizarInscricaoMock: vi.fn(),
   obterParticipanteEolMock: vi.fn(),
   obterParticipanteCpfMock: vi.fn(),
   showToastMock: vi.fn(),
@@ -109,6 +114,14 @@ vi.mock('@/services/inscricao/cadastrarInscricao', () => ({
   cadastrarInscricao: cadastrarInscricaoMock,
 }))
 
+vi.mock('@/services/inscricao/obterInscricao', () => ({
+  obterInscricao: obterInscricaoMock,
+}))
+
+vi.mock('@/services/inscricao/atualizarInscricao', () => ({
+  atualizarInscricao: atualizarInscricaoMock,
+}))
+
 vi.mock('@/services/inscricao/obterParticipanteEol', () => ({
   obterParticipanteEol: obterParticipanteEolMock,
 }))
@@ -121,7 +134,9 @@ vi.mock('@/hooks/useToast', () => ({
   useToast: () => ({ showToast: showToastMock, dismissToast: vi.fn() }),
 }))
 
-function renderFormulario() {
+function renderFormulario(
+  rotaInicial = '/inscricoes-participantes/cadastro',
+) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -131,11 +146,15 @@ function renderFormulario() {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={['/inscricoes-participantes/cadastro']}>
+      <MemoryRouter initialEntries={[rotaInicial]}>
         <Routes>
           <Route
             path="/inscricoes-participantes/cadastro"
             element={<ParticipanteForm />}
+          />
+          <Route
+            path="/inscricoes-participantes/editar/:inscricaoUuid"
+            element={<ParticipanteForm inscricaoUuid="inscricao-1" />}
           />
           <Route
             path="/inscricoes-participantes"
@@ -163,6 +182,8 @@ describe('ParticipanteForm', () => {
     listarPolosElegiveisMock.mockReset()
     listarValoresChoicesMock.mockReset()
     cadastrarInscricaoMock.mockReset()
+    obterInscricaoMock.mockReset()
+    atualizarInscricaoMock.mockReset()
     obterParticipanteEolMock.mockReset()
     obterParticipanteCpfMock.mockReset()
     showToastMock.mockReset()
@@ -220,6 +241,94 @@ describe('ParticipanteForm', () => {
     expect(
       screen.getByRole('button', { name: /^salvar$/i }),
     ).toBeInTheDocument()
+  })
+
+  it('carrega e atualiza uma inscrição no modo de edição', async () => {
+    const inscricao: InscricaoDetalheApi = {
+      uuid: 'inscricao-1',
+      edicao: null,
+      polo: { uuid: 'polo-1', nome_polo: 'Polo Central' },
+      tipo_estudante: 'ESTUDANTE_DA_REDE',
+      tipo_estudante_label: ROTULO_ESTUDANTE_REDE,
+      grupo: 'QUATRO_A_14_ANOS',
+      grupo_label: ROTULO_QUATRO_A_14,
+      codigo_eol: '123456',
+      cpf: '12345678901',
+      nome_participante: 'ANA JULIA ARAUJO SA',
+      data_nascimento: '2013-10-16',
+      responsavel_nome: 'SAMARA LIMA ARAUJO',
+      responsavel_nome_social: 'SAMARA',
+      cep: '08411-010',
+      tipo_logradouro: '',
+      logradouro: 'DA PASSAGEM FUNDA',
+      numero: '72',
+      complemento: 'CASA 2',
+      bairro: 'VILA SANTA CRUZ',
+      cidade: 'SAO PAULO',
+      telefone_contato_1: '11988887777',
+      telefone_contato_2: '11977776666',
+      email: 'ana@email.com',
+      dre_codigo_eol: 'DRE-1',
+      dre_nome: 'DRE LESTE 1',
+      status: 'RASCUNHO',
+      status_label: 'Rascunho',
+      ativo: true,
+      polo_nome: 'Polo Central',
+    }
+    obterInscricaoMock.mockResolvedValue(inscricao)
+    atualizarInscricaoMock.mockResolvedValue(inscricao)
+    const usuario = userEvent.setup()
+
+    renderFormulario('/inscricoes-participantes/editar/inscricao-1')
+
+    expect(
+      await screen.findByRole('form', {
+        name: /formulário de edição de participante/i,
+      }),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText(/agrupamento/i)).toHaveValue(ROTULO_QUATRO_A_14)
+    expect(screen.getByLabelText(/tipo de estudante/i)).toHaveValue(
+      ROTULO_ESTUDANTE_REDE,
+    )
+    expect(screen.queryByRole('combobox', { name: /agrupamento/i })).toBeNull()
+    expect(
+      screen.queryByRole('combobox', { name: /tipo de estudante/i }),
+    ).toBeNull()
+    expect(screen.getByLabelText(/polo de inscrição/i)).toHaveValue(
+      'Polo Central',
+    )
+    expect(screen.getByLabelText(/polo de inscrição/i)).toHaveAttribute(
+      'readonly',
+    )
+    expect(
+      screen.queryByRole('combobox', { name: /polo de inscrição/i }),
+    ).toBeNull()
+    expect(screen.getByLabelText(/nome completo do\(a\) participante/i)).toHaveValue(
+      'ANA JULIA ARAUJO SA',
+    )
+    expect(screen.getByLabelText(/código eol/i)).toHaveValue('123456')
+    expect(screen.getByLabelText(/cpf do responsável/i)).toHaveValue(
+      '123.456.789-01',
+    )
+    expect(screen.getByLabelText(/telefone de contato\/emergência 1/i)).toHaveValue(
+      '11988887777',
+    )
+
+    await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
+
+    await waitFor(() => {
+      expect(atualizarInscricaoMock).toHaveBeenCalledWith(
+        'inscricao-1',
+        expect.objectContaining({
+          grupo: 'QUATRO_A_14_ANOS',
+          codigoEol: '123456',
+          cpf: '12345678901',
+          nomeCompleto: 'ANA JULIA ARAUJO SA',
+          telefone1: '11988887777',
+          polo: 'polo-1',
+        }),
+      )
+    })
   })
 
   it('navega para a listagem ao clicar em Cancelar', async () => {

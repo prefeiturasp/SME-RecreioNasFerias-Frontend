@@ -32,6 +32,8 @@ type InformacoesBasicasProps = {
   cpfDesabilitado?: boolean
   aoMudarGrupo?: (valor: string) => void
   aoMudarDre?: (valor: string) => void
+  modoEdicao?: boolean
+  poloNome?: string
 }
 
 export function InformacoesBasicas({
@@ -54,6 +56,8 @@ export function InformacoesBasicas({
   aoMudarCpf,
   aoMudarGrupo,
   aoMudarDre,
+  modoEdicao = false,
+  poloNome,
   eolDesabilitado = false,
   cpfDesabilitado = false,
 }: Readonly<InformacoesBasicasProps>) {
@@ -68,20 +72,36 @@ export function InformacoesBasicas({
   return (
     <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
       <AlertaErroApi erro={erro} className="lg:col-span-2" />
-      <FormField
-        control={control}
-        name="grupo"
-        label={
-          <>
-            <span className="text-destructive">*</span> Agrupamento
-          </>
-        }
-        type="select"
-        options={grupos}
-        placeholder="Selecione o grupo"
-        onChange={aoMudarGrupo}
-      />
-      {grupo && tipoTravado ? (
+      {modoEdicao ? (
+        <FormField
+          control={control}
+          name="grupo"
+          label={
+            <>
+              <span className="text-destructive">*</span> Agrupamento
+            </>
+          }
+          // readOnly
+          valorExibicao={
+            grupos.find((opcao) => opcao.value === grupo)?.label ?? grupo
+          }
+        />
+      ) : (
+        <FormField
+          control={control}
+          name="grupo"
+          label={
+            <>
+              <span className="text-destructive">*</span> Agrupamento
+            </>
+          }
+          type="select"
+          options={grupos}
+          placeholder="Selecione o Agrupamento"
+          onChange={aoMudarGrupo}
+        />
+      )}
+      {grupo && (tipoTravado || modoEdicao) ? (
         <FormField
           control={control}
           name="tipoEstudante"
@@ -94,7 +114,7 @@ export function InformacoesBasicas({
           valorExibicao={rotuloTipoEstudante}
         />
       ) : null}
-      {grupo && !tipoTravado ? (
+      {grupo && !tipoTravado && !modoEdicao ? (
         <FormField
           control={control}
           name="tipoEstudante"
@@ -121,10 +141,10 @@ export function InformacoesBasicas({
             }
             placeholder="Código EOL"
             buscarAoSair
-            readOnly={eolDesabilitado}
+            readOnly={!modoEdicao && eolDesabilitado}
             isLoading={consultandoCodigoEol}
-            onSearch={onBuscarCodigoEol}
-            onChange={aoMudarCodigoEol}
+            onSearch={modoEdicao ? undefined : onBuscarCodigoEol}
+            onChange={modoEdicao ? undefined : aoMudarCodigoEol}
           />
           <FormFieldEol
             control={control}
@@ -137,14 +157,14 @@ export function InformacoesBasicas({
             }
             placeholder="Digite o CPF"
             buscarAoSair
-            readOnly={cpfDesabilitado}
             maxLength={11}
             maxLengthExibicao={14}
             rotuloBusca="CPF do responsável"
             formatarExibicao={aplicarMascaraCpf}
             isLoading={consultandoCpf}
-            onSearch={onBuscarCpf}
-            onChange={aoMudarCpf}
+            readOnly={!modoEdicao && cpfDesabilitado}
+            onSearch={modoEdicao ? undefined : onBuscarCpf}
+            onChange={modoEdicao ? undefined : aoMudarCpf}
           />
           <FormField
             control={control}
@@ -156,7 +176,7 @@ export function InformacoesBasicas({
               </>
             }
             placeholder="Nome completo do(a) participante"
-            readOnly
+            readOnly={!modoEdicao}
           />
           <FormField
             control={control}
@@ -167,8 +187,11 @@ export function InformacoesBasicas({
               </>
             }
             placeholder="DD/MM/AAAA"
-            readOnly
-            valorExibicao={formatarDataBr(dataNascimento)}
+            type={modoEdicao ? 'date' : undefined}
+            readOnly={!modoEdicao}
+            valorExibicao={
+              modoEdicao ? undefined : formatarDataBr(dataNascimento)
+            }
           />
           <FormField
             control={control}
@@ -180,14 +203,14 @@ export function InformacoesBasicas({
               </>
             }
             placeholder="Nome Completo do Responsável"
-            readOnly
+            readOnly={!modoEdicao}
           />
           <FormField
             control={control}
             name="nomeSocialResponsavel"
             label="Nome social do(a) responsável"
             placeholder="Nome Social do(a) Responsável"
-            readOnly
+            readOnly={!modoEdicao}
           />
           <FormField
             control={control}
@@ -198,7 +221,7 @@ export function InformacoesBasicas({
               </>
             }
             placeholder="CEP"
-            readOnly
+            readOnly={!modoEdicao}
           />
           <FormField
             control={control}
@@ -209,7 +232,7 @@ export function InformacoesBasicas({
               </>
             }
             placeholder="Logradouro"
-            readOnly
+            readOnly={!modoEdicao}
           />
           <FormField
             control={control}
@@ -220,14 +243,14 @@ export function InformacoesBasicas({
               </>
             }
             placeholder="Número"
-            readOnly
+            readOnly={!modoEdicao}
           />
           <FormField
             control={control}
             name="complemento"
             label="Complemento"
             placeholder="Complemento"
-            readOnly
+            readOnly={!modoEdicao}
           />
           <FormField
             control={control}
@@ -238,7 +261,7 @@ export function InformacoesBasicas({
               </>
             }
             placeholder="Bairro"
-            readOnly
+            readOnly={!modoEdicao}
           />
           <FormField
             control={control}
@@ -249,7 +272,7 @@ export function InformacoesBasicas({
               </>
             }
             placeholder="Cidade"
-            readOnly
+            readOnly={!modoEdicao}
           />
           <FormField
             control={control}
@@ -297,26 +320,40 @@ export function InformacoesBasicas({
             placeholder="Selecione a DRE"
             onChange={aoMudarDre}
           />
-          <FormField
-            control={control}
-            name="polo"
-            label={
-              <>
-                <span className="text-destructive">*</span> Polo de Inscrição
-              </>
-            }
-            type="select"
-            disabled={!dreCodigoEol}
-            options={polos.map((polo) => ({
-              value: polo.uuid,
-              label: polo.nome_polo,
-            }))}
-            placeholder={
-              dreCodigoEol
-                ? 'Selecione o Polo'
-                : 'É necessário selecionar o DRE primeiro'
-            }
-          />
+          {modoEdicao ? (
+            <FormField
+              control={control}
+              name="polo"
+              label={
+                <>
+                  <span className="text-destructive">*</span> Polo de Inscrição
+                </>
+              }
+              readOnly
+              valorExibicao={poloNome ?? ''}
+            />
+          ) : (
+            <FormField
+              control={control}
+              name="polo"
+              label={
+                <>
+                  <span className="text-destructive">*</span> Polo de Inscrição
+                </>
+              }
+              type="select"
+              disabled={!dreCodigoEol}
+              options={polos.map((polo) => ({
+                value: polo.uuid,
+                label: polo.nome_polo,
+              }))}
+              placeholder={
+                dreCodigoEol
+                  ? 'Selecione o Polo'
+                  : 'É necessário selecionar o DRE primeiro'
+              }
+            />
+          )}
         </>
       ) : null}
     </div>
