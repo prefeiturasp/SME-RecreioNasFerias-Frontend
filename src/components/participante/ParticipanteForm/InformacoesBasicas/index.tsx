@@ -78,7 +78,7 @@ export function InformacoesBasicas({
         }
         type="select"
         options={grupos}
-        placeholder="Selecione o grupo"
+        placeholder="Selecione o Agrupamento"
         onChange={aoMudarGrupo}
       />
       {grupo && tipoTravado ? (

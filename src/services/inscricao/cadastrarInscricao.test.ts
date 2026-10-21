@@ -30,6 +30,18 @@ const dadosInscricaoExemplo: DadosCadastroInscricao = {
   email: 'maria@example.com',
   dreCodigoEol: '108100',
   dreNome: 'DRE Butantã',
+  possui_deficiencia: true,
+  deficiencias: ['DEFICIENCIA_A', 'OUTRO'],
+  outra_deficiencia: 'Deficiência informada pela família',
+  possui_problema_saude: false,
+  problemas_saude: [],
+  outro_problema_saude: null,
+  usuario_medicacao_ou_tratamento_continuo: false,
+  medicacao_ou_tratamento_continuo: null,
+  possui_restricao_medicamento_pronto_atendimento: false,
+  restricao_medicamento_pronto_atendimento: null,
+  possui_convenio_medico: false,
+  convenio_medico: null,
 }
 
 const payloadEsperado = {
@@ -54,6 +66,18 @@ const payloadEsperado = {
   email: 'maria@example.com',
   dre_codigo_eol: '108100',
   dre_nome: 'DRE Butantã',
+  possui_deficiencia: true,
+  deficiencias: ['DEFICIENCIA_A', 'OUTRO'] as string[],
+  outra_deficiencia: 'Deficiência informada pela família',
+  possui_problema_saude: false,
+  problemas_saude: [],
+  outro_problema_saude: null,
+  usuario_medicacao_ou_tratamento_continuo: false,
+  medicacao_ou_tratamento_continuo: null,
+  possui_restricao_medicamento_pronto_atendimento: false,
+  restricao_medicamento_pronto_atendimento: null,
+  possui_convenio_medico: false,
+  convenio_medico: null,
 } as const
 
 const respostaCadastroExemplo: Inscricao = {
@@ -65,6 +89,13 @@ const respostaCadastroExemplo: Inscricao = {
   status: 'RASCUNHO',
   status_label: 'Rascunho',
   ativo: true,
+  problemas_saude: [],
+  deficiencias: [],
+  outro_problema_saude: '',
+  outra_deficiencia: '',
+  medicacao_ou_tratamento_continuo: '',
+  restricao_medicamento_pronto_atendimento: '',
+  convenio_medico: '',
 }
 
 describe('cadastrarInscricao', () => {

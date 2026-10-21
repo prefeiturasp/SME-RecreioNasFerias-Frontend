@@ -98,7 +98,7 @@ export function RotasAplicacao() {
         }
       />
       <Route
-        path="/inscricoes-participantes/cadastro"
+        path="/cadastrar-participante"
         element={
           <RotaProtegida>
             <PaginaCadastrarParticipante />

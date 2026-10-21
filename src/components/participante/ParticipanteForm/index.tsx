@@ -6,7 +6,7 @@ import { grupoExigeEstudanteDaRede, TIPO_ESTUDANTE_REDE } from './constantes'
 import { InformacoesBasicas } from './InformacoesBasicas'
 import { SecaoFormulario } from './SecaoFormulario'
 import type { FormValues } from './schema'
-import formSchema from './schema'
+import formSchema, { formSchemaRascunho } from './schema'
 
 import { BlocoTexto } from '@/components/BlocoTexto'
 import { Button } from '@/components/ui/button'
@@ -18,13 +18,17 @@ import { useGetPolosElegiveis } from '@/hooks/useGetPolosElegiveis'
 import { useGetValoresChoices } from '@/hooks/useGetValoresChoices'
 import { usePostInscricao } from '@/hooks/usePostInscricao'
 import { useToast } from '@/hooks/useToast'
-import type { ParticipanteEol } from '@/services/inscricao/types'
+import type {
+  DadosCadastroInscricao,
+  ParticipanteEol,
+} from '@/services/inscricao/types'
+import { InformacoesSaude } from './InformacoesSaude/index'
 
 function impedirBlurAntesDoClique(evento: MouseEvent<HTMLButtonElement>) {
   evento.preventDefault()
 }
 
-const CAMPOS_DO_PARTICIPANTE_VAZIOS = {
+const CAMPOS_DO_PARTICIPANTE_VAZIOS: Partial<FormValues> = {
   nomeCompleto: '',
   dataNascimento: '',
   nomeResponsavel: '',
@@ -38,12 +42,25 @@ const CAMPOS_DO_PARTICIPANTE_VAZIOS = {
   telefone1: '',
   telefone2: '',
   email: '',
+  criancaComDeficiencia: '',
+  qualDeficiencia: [],
+  outraDeficiencia: '',
+  criancaComProblemaSaude: '',
+  qualProblemaSaude: [],
+  outroProblemaSaude: '',
+  medicacaoTratamentoContinuo: '',
+  qualMedicacaoTratamentoContinuo: '',
+  restricaoMedicamentoProntoAtendimento: '',
+  qualRestricaoMedicamentoProntoAtendimento: '',
+  temConvenioMedico: '',
+  qualConvenioMedico: '',
 }
 
 export function ParticipanteForm() {
   const navigate = useNavigate()
   const { showToast } = useToast()
   const cadastroMutation = usePostInscricao()
+  const schemaEnvio = useRef(formSchema)
   const buscaVigente = useRef<'codigoEol' | 'cpf' | null>(null)
   const [codigoEolConsulta, setCodigoEolConsulta] = useState<string>()
   const [cpfConsulta, setCpfConsulta] = useState<string>()
@@ -65,7 +82,8 @@ export function ParticipanteForm() {
     [origemConsulta],
   )
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: (valores, contexto, opcoes) =>
+      zodResolver(schemaEnvio.current)(valores, contexto, opcoes),
     defaultValues: {
       grupo: '',
       tipoEstudante: '',
@@ -86,6 +104,18 @@ export function ParticipanteForm() {
       email: '',
       dreCodigoEol: '',
       polo: '',
+      criancaComDeficiencia: '',
+      qualDeficiencia: [],
+      outraDeficiencia: '',
+      criancaComProblemaSaude: '',
+      qualProblemaSaude: [],
+      outroProblemaSaude: '',
+      medicacaoTratamentoContinuo: '',
+      qualMedicacaoTratamentoContinuo: '',
+      restricaoMedicamentoProntoAtendimento: '',
+      qualRestricaoMedicamentoProntoAtendimento: '',
+      temConvenioMedico: '',
+      qualConvenioMedico: '',
     },
   })
   const [grupo, tipoEstudante, dreCodigoEol] = useWatch({
@@ -303,29 +333,82 @@ export function ParticipanteForm() {
 
     const dreNome =
       dres.find((dre) => dre.codigo_dre === dados.dreCodigoEol)?.nome_dre ?? ''
+    const {
+      criancaComDeficiencia,
+      qualDeficiencia,
+      outraDeficiencia,
+      criancaComProblemaSaude,
+      qualProblemaSaude,
+      outroProblemaSaude,
+      medicacaoTratamentoContinuo,
+      qualMedicacaoTratamentoContinuo,
+      restricaoMedicamentoProntoAtendimento,
+      qualRestricaoMedicamentoProntoAtendimento,
+      temConvenioMedico,
+      qualConvenioMedico,
+      ...dadosInscricao
+    } = dados
+    const textoOuVazio = (valor: string) => valor.trim() || ''
+    const dadosCadastro: DadosCadastroInscricao = {
+      ...dadosInscricao,
+      dreNome,
+      possui_deficiencia: criancaComDeficiencia === 'sim',
+      deficiencias:
+        criancaComDeficiencia === 'sim'
+          ? qualDeficiencia.map((opcao) => opcao.value)
+          : [],
+      outra_deficiencia:
+        criancaComDeficiencia === 'sim' ? textoOuVazio(outraDeficiencia) : '',
+      possui_problema_saude: criancaComProblemaSaude === 'sim',
+      problemas_saude:
+        criancaComProblemaSaude === 'sim'
+          ? qualProblemaSaude.map((opcao) => opcao.value)
+          : [],
+      outro_problema_saude:
+        criancaComProblemaSaude === 'sim'
+          ? textoOuVazio(outroProblemaSaude)
+          : '',
+      usuario_medicacao_ou_tratamento_continuo:
+        medicacaoTratamentoContinuo === 'sim',
+      medicacao_ou_tratamento_continuo:
+        medicacaoTratamentoContinuo === 'sim'
+          ? textoOuVazio(qualMedicacaoTratamentoContinuo)
+          : '',
+      possui_restricao_medicamento_pronto_atendimento:
+        restricaoMedicamentoProntoAtendimento === 'sim',
+      restricao_medicamento_pronto_atendimento:
+        restricaoMedicamentoProntoAtendimento === 'sim'
+          ? textoOuVazio(qualRestricaoMedicamentoProntoAtendimento)
+          : '',
+      possui_convenio_medico: temConvenioMedico === 'sim',
+      convenio_medico:
+        temConvenioMedico === 'sim' ? textoOuVazio(qualConvenioMedico) : '',
+    }
 
-    cadastroMutation.mutate(
-      {
-        ...dados,
-        dreNome,
+    cadastroMutation.mutate(dadosCadastro, {
+      onSuccess: (inscricao) => {
+        showToast({
+          id: 'inscricao-salva',
+          description: inscricao.status_label,
+        })
+        navigate('/inscricoes-participantes')
       },
-      {
-        onSuccess: (inscricao) => {
-          showToast({
-            id: 'inscricao-salva',
-            description: inscricao.status_label,
-          })
-          navigate('/inscricoes-participantes')
-        },
-      },
-    )
+    })
   }
 
   return (
     <form
       noValidate
       aria-label="Formulário de cadastro de participante"
-      onSubmit={form.handleSubmit(salvar)}
+      onSubmit={(evento) => {
+        const submitter = evento.nativeEvent.submitter
+        schemaEnvio.current =
+          submitter instanceof HTMLElement &&
+          submitter.dataset.acao === 'rascunho'
+            ? formSchemaRascunho
+            : formSchema
+        void form.handleSubmit(salvar)(evento)
+      }}
       className="rounded-sm bg-background p-8 shadow-card max-md:p-4"
     >
       <FieldGroup className="gap-8">
@@ -367,6 +450,15 @@ export function ParticipanteForm() {
               cpfDesabilitado={cpfDesabilitado}
             />
           </SecaoFormulario>
+
+          {camposLiberados && (
+            <SecaoFormulario titulo="Informações de Saúde">
+              <InformacoesSaude
+                control={form.control}
+                setValue={form.setValue}
+              />
+            </SecaoFormulario>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2 max-md:flex-col-reverse max-md:[&>button]:w-full">
@@ -383,6 +475,7 @@ export function ParticipanteForm() {
             variant="outline"
             disabled={cadastroMutation.isPending}
             className="h-9.5 rounded-sm border-brand-dark px-4 font-bold text-brand-dark hover:bg-accent hover:text-brand-dark"
+            data-acao="rascunho"
             onMouseDown={impedirBlurAntesDoClique}
           >
             Salvar Rascunho
@@ -393,7 +486,7 @@ export function ParticipanteForm() {
             className="h-9.5 rounded-sm bg-brand-dark px-4 font-bold text-background hover:bg-brand-dark-hover disabled:bg-button-primary-disabled-bg disabled:opacity-100"
             onMouseDown={impedirBlurAntesDoClique}
           >
-            Salvar
+            Finalizar Inscrição
           </Button>
         </div>
       </FieldGroup>

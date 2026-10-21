@@ -13,6 +13,8 @@ const valoresChoicesExemplo: ValoresChoicesInscricao = {
   grupo_inscricao: [{ value: 'BERCARIO_I', label: 'Berçário I' }],
   tipo_estudante: [{ value: 'ESTUDANTE_DA_REDE', label: 'Estudante da rede' }],
   status_inscricao: [{ value: 'RASCUNHO', label: 'Rascunho' }],
+  deficiencias: [{ value: 'DEFICIENCIA_A', label: 'Deficiência A' }],
+  problemas_saude: [{ value: 'PROBLEMA_A', label: 'Problema A' }],
 }
 
 describe('listarValoresChoices', () => {

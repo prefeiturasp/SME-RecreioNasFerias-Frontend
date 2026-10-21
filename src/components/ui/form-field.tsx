@@ -86,6 +86,8 @@ type FormFieldTextareaProps<
   placeholder?: string
   rows?: number
   textareaClassName?: string
+  autoResize?: boolean
+  maxLength?: number
 }
 
 /**
@@ -203,7 +205,7 @@ function renderInput<
     const isReadOnlyField =
       readOnly || props.readOnly || valorExibicao !== undefined
     const readOnlyClass = isReadOnlyField
-      ? 'h-10 cursor-not-allowed rounded-sm border-input-border-muted bg-input-disabled-bg text-placeholder'
+      ? 'h-10 cursor-not-allowed rounded-sm border-input-border-muted bg-input-disabled-bg text-placeholder opacity-50'
       : inputClassName
 
     // Determinar o tipo de input (padrão é 'text')
@@ -304,18 +306,101 @@ function renderInput<
       placeholder,
       rows = 4,
       textareaClassName = 'rounded-sm border-input-border-muted',
+      autoResize = false,
+      maxLength,
     } = props
+    const isReadOnlyField = Boolean(readOnly || props.readOnly)
 
     return (
-      <Textarea
-        {...field}
+      <TextareaField
+        field={field}
         id={fieldId}
         placeholder={placeholder}
         rows={rows}
-        className={textareaClassName}
+        maxLength={maxLength}
+        readOnly={isReadOnlyField}
+        autoResize={autoResize}
+        className={cn(
+          textareaClassName,
+          autoResize && 'resize-none overflow-hidden',
+          isReadOnlyField &&
+            'cursor-not-allowed bg-input-disabled-bg text-placeholder opacity-50',
+        )}
       />
     )
   }
 
   return <div>Tipo de campo não suportado</div>
+}
+
+type TextareaFieldProps<
+  TFieldValues extends FieldValues,
+  TName extends FieldPath<TFieldValues>,
+> = {
+  field: ControllerRenderProps<TFieldValues, TName>
+  id: string
+  placeholder?: string
+  rows: number
+  maxLength?: number
+  readOnly: boolean
+  autoResize: boolean
+  className?: string
+}
+
+function TextareaField<
+  TFieldValues extends FieldValues,
+  TName extends FieldPath<TFieldValues>,
+>({
+  field,
+  id,
+  placeholder,
+  rows,
+  maxLength,
+  readOnly,
+  autoResize,
+  className,
+}: Readonly<TextareaFieldProps<TFieldValues, TName>>) {
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+
+  React.useLayoutEffect(() => {
+    const textarea = textareaRef.current
+    if (!textarea || !autoResize) return
+
+    if (readOnly) {
+      textarea.style.height = ''
+      return
+    }
+
+    textarea.style.height = 'auto'
+    const alturaBordas = textarea.offsetHeight - textarea.clientHeight
+    textarea.style.height = `${textarea.scrollHeight + alturaBordas}px`
+  }, [autoResize, field.value, readOnly])
+
+  return (
+    <Textarea
+      {...field}
+      ref={(element) => {
+        textareaRef.current = element
+        field.ref(element)
+      }}
+      id={id}
+      placeholder={placeholder}
+      rows={rows}
+      maxLength={maxLength}
+      readOnly={readOnly}
+      aria-readonly={readOnly ? 'true' : undefined}
+      onInput={
+        autoResize
+          ? (event) => {
+              const textarea = event.currentTarget
+              textarea.style.height = 'auto'
+              const alturaBordas =
+                textarea.offsetHeight - textarea.clientHeight
+              textarea.style.height = `${textarea.scrollHeight + alturaBordas}px`
+            }
+          : undefined
+      }
+      className={className}
+    />
+  )
 }
