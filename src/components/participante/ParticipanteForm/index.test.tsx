@@ -39,6 +39,16 @@ const valoresChoicesExemplo: ValoresChoicesInscricao = {
     { value: 'COMPLETA', label: 'Completa' },
     { value: 'CANCELADA', label: 'Cancelada' },
   ],
+  deficiencias: [
+    { value: 'DEFICIENCIA_A', label: 'Deficiência A' },
+    { value: 'DEFICIENCIA_B', label: 'Deficiência B' },
+    { value: 'OUTRO', label: 'Outro' },
+  ],
+  problemas_saude: [
+    { value: 'PROBLEMA_SAUDE_A', label: 'Problema de Saúde A' },
+    { value: 'PROBLEMA_SAUDE_B', label: 'Problema de Saúde B' },
+    { value: 'OUTRO', label: 'Outro' },
+  ],
 }
 
 const participanteEolVazio: ParticipanteEol = {
@@ -131,10 +141,10 @@ function renderFormulario() {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={['/inscricoes-participantes/cadastro']}>
+      <MemoryRouter initialEntries={['/cadastrar-participante']}>
         <Routes>
           <Route
-            path="/inscricoes-participantes/cadastro"
+            path="/cadastrar-participante"
             element={<ParticipanteForm />}
           />
           <Route
@@ -157,6 +167,30 @@ async function escolherGrupo(
   )
 }
 
+async function liberarInformacoesSaude(
+  usuario: ReturnType<typeof userEvent.setup>,
+) {
+  if (screen.queryByRole('button', { name: /informações de saúde/i })) return
+
+  await escolherGrupo(usuario, 'Berçário I')
+}
+
+async function responderPerguntasSaudeComoNao(
+  usuario: ReturnType<typeof userEvent.setup>,
+): Promise<void> {
+  await liberarInformacoesSaude(usuario)
+  const secaoSaude = screen.getByRole('button', {
+    name: /informações de saúde/i,
+  })
+  if (secaoSaude.getAttribute('aria-expanded') !== 'true') {
+    await usuario.click(secaoSaude)
+  }
+
+  for (let indice = 0; indice < 5; indice += 1) {
+    await usuario.click(screen.getAllByRole('radio', { name: 'Não' })[indice])
+  }
+}
+
 describe('ParticipanteForm', () => {
   beforeEach(() => {
     listarDresMock.mockReset()
@@ -177,7 +211,8 @@ describe('ParticipanteForm', () => {
     })
   })
 
-  it('renderiza alerta, seção de informações básicas e ações do rodapé', () => {
+  it('renderiza alerta, seção de informações básicas e ações do rodapé', async () => {
+    const usuario = userEvent.setup()
     renderFormulario()
 
     expect(
@@ -209,7 +244,27 @@ describe('ParticipanteForm', () => {
     expect(
       screen.queryByRole('button', { name: /informações de saúde/i }),
     ).not.toBeInTheDocument()
-    expect(screen.getAllByText(/campos obrigatórios/i)).toHaveLength(1)
+
+    await escolherGrupo(usuario, ROTULO_QUATRO_A_14)
+    expect(
+      screen.queryByRole('button', { name: /informações de saúde/i }),
+    ).not.toBeInTheDocument()
+    await usuario.click(screen.getByLabelText(/tipo de estudante/i))
+    await usuario.click(
+      screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
+    )
+
+    const saude = screen.getByRole('button', {
+      name: /informações de saúde/i,
+    })
+    expect(saude).toHaveAttribute('aria-expanded', 'false')
+    await usuario.click(saude)
+    expect(saude).toHaveAttribute('aria-expanded', 'true')
+    for (const radio of screen.getAllByRole('radio')) {
+      expect(radio).not.toBeChecked()
+    }
+    expect(screen.getAllByRole('combobox', { name: /qual/i })[0]).toBeDisabled()
+    expect(screen.getAllByText(/campos obrigatórios/i)).toHaveLength(2)
 
     expect(
       screen.getByRole('button', { name: /cancelar/i }),
@@ -218,9 +273,150 @@ describe('ParticipanteForm', () => {
       screen.getByRole('button', { name: /salvar rascunho/i }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: /^salvar$/i }),
+      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
     ).toBeInTheDocument()
   })
+
+  it('habilita o campo Qual somente quando Sim é selecionado', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+    await liberarInformacoesSaude(usuario)
+    await usuario.click(
+      screen.getByRole('button', { name: /informações de saúde/i }),
+    )
+
+    const camposQual = screen.getAllByRole('combobox', { name: /qual/i })
+    const campoQual = camposQual[0]
+    expect(campoQual).toBeDisabled()
+    expect(campoQual).toHaveClass('placeholder:text-muted-foreground')
+    expect(camposQual[1]).toHaveClass('placeholder:text-muted-foreground')
+    expect(campoQual.closest('[data-slot="combobox-chips"]')).toHaveClass(
+      'opacity-50',
+    )
+
+    await usuario.click(screen.getAllByRole('radio', { name: 'Sim' })[0])
+    expect(campoQual).toBeEnabled()
+    expect(campoQual).toHaveClass('placeholder:text-muted-foreground')
+    expect(camposQual[1]).toHaveClass('placeholder:text-muted-foreground')
+    expect(campoQual.closest('[data-slot="combobox-chips"]')).not.toHaveClass(
+      'opacity-50',
+    )
+
+    await usuario.click(screen.getAllByRole('radio', { name: 'Não' })[0])
+    expect(campoQual).toBeDisabled()
+    expect(campoQual.closest('[data-slot="combobox-chips"]')).toHaveClass(
+      'opacity-50',
+    )
+  })
+
+  it('quebra linha na descrição da medicação e só permite edição ao selecionar Sim', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+    await liberarInformacoesSaude(usuario)
+    await usuario.click(
+      screen.getByRole('button', { name: /informações de saúde/i }),
+    )
+
+    const campoMedicacao = screen.getByPlaceholderText(
+      /informe a medicação\/tratamento contínuo/i,
+    )
+    expect(campoMedicacao.tagName).toBe('TEXTAREA')
+    expect(campoMedicacao).toHaveAttribute('rows', '1')
+    expect(campoMedicacao).toHaveAttribute('maxlength', '300')
+    expect(campoMedicacao).toHaveClass('min-h-10')
+    expect(campoMedicacao).toHaveAttribute('readonly')
+
+    await usuario.click(screen.getAllByRole('radio', { name: 'Sim' })[2])
+    expect(campoMedicacao).not.toHaveAttribute('readonly')
+    Object.defineProperty(campoMedicacao, 'scrollHeight', {
+      configurable: true,
+      value: 60,
+    })
+    await usuario.type(campoMedicacao, 'texto que ocupa mais de uma linha')
+    expect(campoMedicacao).toHaveStyle({ height: '60px' })
+
+    await usuario.click(screen.getAllByRole('radio', { name: 'Não' })[2])
+    expect(campoMedicacao).toHaveValue('')
+    expect(campoMedicacao).not.toHaveStyle({ height: '60px' })
+  })
+
+  it('exibe o campo de texto ao selecionar Outro tipo de deficiência', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+    await liberarInformacoesSaude(usuario)
+    await usuario.click(
+      screen.getByRole('button', { name: /informações de saúde/i }),
+    )
+
+    await usuario.click(screen.getAllByRole('radio', { name: 'Sim' })[0])
+    const seletorDeficiencia = screen.getAllByRole('combobox', {
+      name: /qual/i,
+    })[0]
+    await usuario.click(seletorDeficiencia)
+    await usuario.click(screen.getByRole('option', { name: 'Outro' }))
+
+    expect(
+      screen.getByRole('textbox', {
+        name: /qual ou quais outros tipos de deficiência/i,
+      }),
+    ).toBeInTheDocument()
+  })
+
+  it('limpa os valores condicionais ao selecionar Não nas perguntas de saúde', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+    await liberarInformacoesSaude(usuario)
+    await usuario.click(
+      screen.getByRole('button', { name: /informações de saúde/i }),
+    )
+
+    const respostasSim = screen.getAllByRole('radio', { name: 'Sim' })
+    const respostasNao = screen.getAllByRole('radio', { name: 'Não' })
+    const seletoresQual = screen.getAllByRole('combobox', { name: /qual/i })
+
+    await usuario.click(respostasSim[0])
+    await usuario.click(seletoresQual[0])
+    await usuario.click(screen.getByRole('option', { name: 'Outro' }))
+    const outraDeficiencia = screen.getByRole('textbox', {
+      name: /qual ou quais outros tipos de deficiência/i,
+    })
+    await usuario.type(outraDeficiencia, 'Descrição')
+    await usuario.click(respostasNao[0])
+    expect(
+      screen.queryByRole('textbox', {
+        name: /qual ou quais outros tipos de deficiência/i,
+      }),
+    ).not.toBeInTheDocument()
+    expect(seletoresQual[0]).toHaveAttribute(
+      'placeholder',
+      'Selecione as deficiências',
+    )
+
+    await usuario.click(respostasSim[1])
+    await usuario.click(seletoresQual[1])
+    await usuario.click(
+      screen.getByRole('option', { name: 'Problema de Saúde A' }),
+    )
+    await usuario.click(respostasNao[1])
+    expect(seletoresQual[1]).toHaveAttribute(
+      'placeholder',
+      'Selecione o(s) problema(s) de saúde',
+    )
+
+    const camposTexto = [
+      'Informe a medicação/tratamento contínuo',
+      'Informe a restrição a medicamento em pronto atendimento',
+      'Informe o convênio médico',
+    ]
+
+    for (const [indice, placeholder] of camposTexto.entries()) {
+      await usuario.click(respostasSim[indice + 2])
+      const campo = screen.getByPlaceholderText(placeholder)
+      await usuario.type(campo, 'Valor preenchido')
+      await usuario.click(respostasNao[indice + 2])
+      expect(campo).toHaveValue('')
+    }
+  }, 15_000)
 
   it('navega para a listagem ao clicar em Cancelar', async () => {
     const usuario = userEvent.setup()
@@ -355,7 +551,10 @@ describe('ParticipanteForm', () => {
     })
     expect(screen.getByText('Selecione o Polo')).toBeInTheDocument()
 
-    await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
+    await responderPerguntasSaudeComoNao(usuario)
+    await usuario.click(
+      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
+    )
 
     await waitFor(() => {
       expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
@@ -369,7 +568,7 @@ describe('ParticipanteForm', () => {
         expect.anything(),
       )
     })
-  })
+  }, 15000)
 
   it('mostra o erro dos polos e some quando a busca seguinte funciona', async () => {
     const usuario = userEvent.setup()
@@ -541,6 +740,11 @@ describe('ParticipanteForm', () => {
     expect(screen.getByLabelText(/data de nascimento/i)).toHaveValue('')
     expect(screen.getByLabelText(/\bcep\b/i)).toHaveValue('')
     expect(codigoEol).toHaveValue('123456')
+
+    await usuario.type(codigoEol, '7')
+
+    expect(codigoEol).toHaveValue('1234567')
+    expect(obterParticipanteEolMock).toHaveBeenCalledTimes(2)
   })
 
   it('limpa os dados do participante quando o código EOL deixa de corresponder à consulta', async () => {
@@ -581,6 +785,7 @@ describe('ParticipanteForm', () => {
     renderFormulario()
 
     await escolherGrupo(usuario, 'Berçário I')
+    await responderPerguntasSaudeComoNao(usuario)
     const cpf = screen.getByRole('textbox', { name: /cpf do responsável/i })
     await usuario.type(cpf, '12345678901')
     await usuario.click(
@@ -615,7 +820,7 @@ describe('ParticipanteForm', () => {
     expect(screen.getByLabelText(/\bcep\b/i)).toHaveAttribute('readonly')
     expect(screen.getByLabelText(/\bdre\b/i)).toBeEnabled()
     expect(screen.getByLabelText(/polo de inscrição/i)).toBeDisabled()
-  })
+  }, 15000)
 
   it('salva a inscrição preenchida pela consulta do CPF sem consultar de novo', async () => {
     const usuario = userEvent.setup()
@@ -623,6 +828,7 @@ describe('ParticipanteForm', () => {
     renderFormulario()
 
     await escolherGrupo(usuario, 'Berçário I')
+    await responderPerguntasSaudeComoNao(usuario)
     const cpf = screen.getByRole('textbox', { name: /cpf do responsável/i })
     await usuario.type(cpf, '12345678901')
     await usuario.click(
@@ -635,7 +841,9 @@ describe('ParticipanteForm', () => {
     })
 
     obterParticipanteCpfMock.mockClear()
-    await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
+    await usuario.click(
+      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
+    )
 
     await waitFor(() => {
       expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
@@ -646,10 +854,12 @@ describe('ParticipanteForm', () => {
         }),
         expect.anything(),
       )
-      expect(screen.getByText(/inscrições de participantes/i)).toBeInTheDocument()
+      expect(
+        screen.getByText(/inscrições de participantes/i),
+      ).toBeInTheDocument()
     })
     expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
-  })
+  }, 15000)
 
   it('mantém o erro de CPF incompleto ao salvar depois da consulta', async () => {
     const usuario = userEvent.setup()
@@ -657,6 +867,7 @@ describe('ParticipanteForm', () => {
     renderFormulario()
 
     await escolherGrupo(usuario, 'Berçário I')
+    await responderPerguntasSaudeComoNao(usuario)
     const cpf = screen.getByRole('textbox', { name: /cpf do responsável/i })
     await usuario.type(cpf, '4642051317')
     await usuario.click(
@@ -669,7 +880,9 @@ describe('ParticipanteForm', () => {
     })
 
     obterParticipanteCpfMock.mockClear()
-    await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
+    await usuario.click(
+      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
+    )
 
     expect(
       await screen.findByText('Informe um CPF válido.'),
@@ -677,7 +890,7 @@ describe('ParticipanteForm', () => {
     expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
     expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
     expect(cpf).toHaveValue('464.205.131-7')
-  })
+  }, 15000)
 
   it('consulta o CPF do responsável ao sair do campo', async () => {
     const usuario = userEvent.setup()
@@ -746,6 +959,11 @@ describe('ParticipanteForm', () => {
     expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue('')
     expect(screen.getByRole('textbox', { name: /código eol/i })).toHaveValue('')
     expect(cpf).toHaveValue('123.456.789-01')
+
+    await usuario.type(cpf, '{Backspace}')
+
+    expect(cpf).toHaveValue('123.456.789-0')
+    expect(obterParticipanteCpfMock).toHaveBeenCalledTimes(2)
   })
 
   it('limpa os dados do participante quando o CPF deixa de corresponder à consulta', async () => {
@@ -935,13 +1153,16 @@ describe('ParticipanteForm', () => {
     await waitFor(() => {
       expect(obterParticipanteCpfMock).toHaveBeenCalledWith('123')
     })
-    await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
+    await responderPerguntasSaudeComoNao(usuario)
+    await usuario.click(
+      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
+    )
 
     expect(
       await screen.findByText('Informe um CPF válido.'),
     ).toBeInTheDocument()
     expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
-  })
+  }, 15000)
 
   it.each(['Berçário I', 'Berçário II', 'Mini Grupo I', 'Mini Grupo II'])(
     'trava Estudante da Rede e libera o restante ao escolher %s',
@@ -961,8 +1182,8 @@ describe('ParticipanteForm', () => {
         screen.queryByRole('button', { name: /informações por grupo/i }),
       ).not.toBeInTheDocument()
       expect(
-        screen.queryByRole('button', { name: /informações de saúde/i }),
-      ).not.toBeInTheDocument()
+        screen.getByRole('button', { name: /informações de saúde/i }),
+      ).toBeInTheDocument()
     },
   )
 
@@ -978,6 +1199,9 @@ describe('ParticipanteForm', () => {
     expect(
       screen.queryByRole('textbox', { name: /código eol/i }),
     ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /informações de saúde/i }),
+    ).not.toBeInTheDocument()
 
     await usuario.click(screen.getByLabelText(/tipo de estudante/i))
     await usuario.click(
@@ -991,8 +1215,8 @@ describe('ParticipanteForm', () => {
       screen.queryByRole('button', { name: /informações por grupo/i }),
     ).not.toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: /informações de saúde/i }),
-    ).not.toBeInTheDocument()
+      screen.getByRole('button', { name: /informações de saúde/i }),
+    ).toBeInTheDocument()
   })
 
   it('limpa o tipo e oculta o restante ao sair de um grupo da rede', async () => {
@@ -1022,21 +1246,25 @@ describe('ParticipanteForm', () => {
     expect(
       screen.queryByRole('textbox', { name: /código eol/i }),
     ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /informações de saúde/i }),
+    ).not.toBeInTheDocument()
   })
 
   it('salva o rascunho incompleto e recusa e-mail inválido', async () => {
     const usuario = userEvent.setup()
     const primeiraRenderizacao = renderFormulario()
 
+    await liberarInformacoesSaude(usuario)
     await usuario.click(
       screen.getByRole('button', { name: /salvar rascunho/i }),
     )
     await waitFor(() => {
       expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          grupo: '',
+          grupo: 'BERCARIO_I',
           polo: '',
-          tipoEstudante: '',
+          tipoEstudante: TIPO_ESTUDANTE_REDE,
           codigoEol: '',
           cpf: '',
           nomeCompleto: '',
@@ -1044,10 +1272,17 @@ describe('ParticipanteForm', () => {
           email: '',
           dreCodigoEol: '',
           dreNome: '',
+          possui_deficiencia: false,
+          possui_problema_saude: false,
+          usuario_medicacao_ou_tratamento_continuo: false,
+          possui_restricao_medicamento_pronto_atendimento: false,
+          possui_convenio_medico: false,
         }),
         expect.anything(),
       )
-      expect(screen.getByText(/inscrições de participantes/i)).toBeInTheDocument()
+      expect(
+        screen.getByText(/inscrições de participantes/i),
+      ).toBeInTheDocument()
     })
     expect(showToastMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -1063,7 +1298,10 @@ describe('ParticipanteForm', () => {
       status_label: 'Completa',
     })
     const segundaRenderizacao = renderFormulario()
-    await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
+    await responderPerguntasSaudeComoNao(usuario)
+    await usuario.click(
+      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
+    )
     await waitFor(() => {
       expect(showToastMock).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1071,7 +1309,9 @@ describe('ParticipanteForm', () => {
           description: 'Completa',
         }),
       )
-      expect(screen.getByText(/inscrições de participantes/i)).toBeInTheDocument()
+      expect(
+        screen.getByText(/inscrições de participantes/i),
+      ).toBeInTheDocument()
     })
     expect(cadastrarInscricaoMock).toHaveBeenCalledTimes(2)
 
@@ -1080,17 +1320,20 @@ describe('ParticipanteForm', () => {
     renderFormulario()
     await escolherGrupo(usuario, 'Berçário I')
     await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'ana')
-    await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
+    await responderPerguntasSaudeComoNao(usuario)
+    await usuario.click(
+      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
+    )
     expect(
       await screen.findByText(/digite um e-mail válido/i),
     ).toBeInTheDocument()
     expect(showToastMock).not.toHaveBeenCalled()
     expect(cadastrarInscricaoMock).toHaveBeenCalledTimes(2)
-  })
+  }, 15000)
 
   it('mostra o detalhe quando o cadastro falha', async () => {
     const usuario = userEvent.setup()
-    cadastrarInscricaoMock.mockRejectedValue({
+    cadastrarInscricaoMock.mockRejectedValueOnce({
       response: {
         data: {
           detalhe:
@@ -1100,6 +1343,7 @@ describe('ParticipanteForm', () => {
     })
     renderFormulario()
 
+    await responderPerguntasSaudeComoNao(usuario)
     await usuario.click(
       screen.getByRole('button', { name: /salvar rascunho/i }),
     )
@@ -1110,6 +1354,21 @@ describe('ParticipanteForm', () => {
       ),
     ).toBeInTheDocument()
     expect(showToastMock).not.toHaveBeenCalled()
+
+    cadastrarInscricaoMock.mockResolvedValueOnce({
+      status: 'RASCUNHO',
+      status_label: 'Rascunho',
+    })
+    await usuario.click(
+      screen.getByRole('button', { name: /salvar rascunho/i }),
+    )
+
+    await waitFor(() => {
+      expect(cadastrarInscricaoMock).toHaveBeenCalledTimes(2)
+      expect(
+        screen.getByText(/inscrições de participantes/i),
+      ).toBeInTheDocument()
+    })
   })
 
   it('envia o grupo escolhido nas informações básicas', async () => {
@@ -1145,7 +1404,10 @@ describe('ParticipanteForm', () => {
     )
     await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'Ana@Email.com')
 
-    await usuario.click(screen.getByRole('button', { name: /^salvar$/i }))
+    await responderPerguntasSaudeComoNao(usuario)
+    await usuario.click(
+      screen.getByRole('button', { name: /finalizar inscrição/i }),
+    )
 
     await waitFor(() => {
       expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
@@ -1156,6 +1418,80 @@ describe('ParticipanteForm', () => {
           email: 'ana@email.com',
           dreCodigoEol: '108100',
           dreNome: 'DRE Butantã',
+        }),
+        expect.anything(),
+      )
+    })
+  }, 15_000)
+
+  it('envia as informações de saúde no formato esperado pela API', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+    await liberarInformacoesSaude(usuario)
+    await usuario.click(
+      screen.getByRole('button', { name: /informações de saúde/i }),
+    )
+
+    const respostasSim = screen.getAllByRole('radio', { name: 'Sim' })
+    const seletoresQual = screen.getAllByRole('combobox', { name: /qual/i })
+
+    await usuario.click(respostasSim[0])
+    await usuario.click(seletoresQual[0])
+    await usuario.click(screen.getByRole('option', { name: 'Deficiência A' }))
+    await usuario.click(seletoresQual[0])
+    await usuario.click(screen.getByRole('option', { name: 'Outro' }))
+    await usuario.type(
+      screen.getByRole('textbox', {
+        name: /qual ou quais outros tipos de deficiência/i,
+      }),
+      'Deficiência informada pela família',
+    )
+
+    await usuario.click(respostasSim[1])
+    await usuario.click(seletoresQual[1])
+    await usuario.click(
+      screen.getByRole('option', { name: 'Problema de Saúde A' }),
+    )
+
+    await usuario.click(respostasSim[2])
+    await usuario.type(
+      screen.getByPlaceholderText('Informe a medicação/tratamento contínuo'),
+      'Medicamento A',
+    )
+
+    await usuario.click(respostasSim[3])
+    await usuario.type(
+      screen.getByPlaceholderText(
+        'Informe a restrição a medicamento em pronto atendimento',
+      ),
+      'Restrição A',
+    )
+
+    await usuario.click(respostasSim[4])
+    await usuario.type(
+      screen.getByPlaceholderText('Informe o convênio médico'),
+      'Convênio A',
+    )
+
+    await usuario.click(
+      screen.getByRole('button', { name: /salvar rascunho/i }),
+    )
+
+    await waitFor(() => {
+      expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          possui_deficiencia: true,
+          deficiencias: ['DEFICIENCIA_A', 'OUTRO'],
+          outra_deficiencia: 'Deficiência informada pela família',
+          possui_problema_saude: true,
+          problemas_saude: ['PROBLEMA_SAUDE_A'],
+          outro_problema_saude: null,
+          usuario_medicacao_ou_tratamento_continuo: true,
+          medicacao_ou_tratamento_continuo: 'Medicamento A',
+          possui_restricao_medicamento_pronto_atendimento: true,
+          restricao_medicamento_pronto_atendimento: 'Restrição A',
+          possui_convenio_medico: true,
+          convenio_medico: 'Convênio A',
         }),
         expect.anything(),
       )

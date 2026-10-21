@@ -153,6 +153,34 @@ describe('FiltrosInscricoesParticipantesForm', () => {
     )
   })
 
+  it('deve atualizar tipo de estudante, polo e nome do participante na store', async () => {
+    const user = userEvent.setup()
+    render(<FiltrosInscricoesParticipantesForm />)
+
+    await user.click(
+      screen.getByRole('combobox', {
+        name: 'Filtrar por Tipo de Estudante',
+      }),
+    )
+    await user.click(screen.getByRole('option', { name: 'Regular' }))
+
+    const campoPolo = screen.getByPlaceholderText(
+      'Selecione o Polo de Inscrição',
+    )
+    await user.click(campoPolo)
+    await user.click(await screen.findByText('Polo Centro'))
+
+    await user.type(
+      screen.getByPlaceholderText('Digite o Nome do Participante'),
+      'Maria Silva',
+    )
+
+    const { filtros } = useInscricoesParticipantesStore.getState()
+    expect(filtros.tipo_estudante).toBe('REGULAR')
+    expect(filtros.polo).toBe('polo-1')
+    expect(filtros.nome_participante).toBe('Maria Silva')
+  })
+
   it('deve atualizar o campo de Código EOL na store ao digitar', async () => {
     const user = userEvent.setup()
     render(<FiltrosInscricoesParticipantesForm />)
