@@ -90,6 +90,12 @@ const respostaCadastroExemplo: Inscricao = {
   status_label: 'Rascunho',
   ativo: true,
   problemas_saude: [],
+  deficiencias: [],
+  outro_problema_saude: '',
+  outra_deficiencia: '',
+  medicacao_ou_tratamento_continuo: '',
+  restricao_medicamento_pronto_atendimento: '',
+  convenio_medico: '',
 }
 
 describe('cadastrarInscricao', () => {

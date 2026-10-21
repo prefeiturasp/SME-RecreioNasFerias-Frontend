@@ -348,7 +348,7 @@ export function ParticipanteForm() {
       qualConvenioMedico,
       ...dadosInscricao
     } = dados
-    const textoOuNull = (valor: string) => valor.trim() || null
+    const textoOuVazio = (valor: string) => valor.trim() || ''
     const dadosCadastro: DadosCadastroInscricao = {
       ...dadosInscricao,
       dreNome,
@@ -358,7 +358,7 @@ export function ParticipanteForm() {
           ? qualDeficiencia.map((opcao) => opcao.value)
           : [],
       outra_deficiencia:
-        criancaComDeficiencia === 'sim' ? textoOuNull(outraDeficiencia) : null,
+        criancaComDeficiencia === 'sim' ? textoOuVazio(outraDeficiencia) : '',
       possui_problema_saude: criancaComProblemaSaude === 'sim',
       problemas_saude:
         criancaComProblemaSaude === 'sim'
@@ -366,23 +366,23 @@ export function ParticipanteForm() {
           : [],
       outro_problema_saude:
         criancaComProblemaSaude === 'sim'
-          ? textoOuNull(outroProblemaSaude)
-          : null,
+          ? textoOuVazio(outroProblemaSaude)
+          : '',
       usuario_medicacao_ou_tratamento_continuo:
         medicacaoTratamentoContinuo === 'sim',
       medicacao_ou_tratamento_continuo:
         medicacaoTratamentoContinuo === 'sim'
-          ? textoOuNull(qualMedicacaoTratamentoContinuo)
-          : null,
+          ? textoOuVazio(qualMedicacaoTratamentoContinuo)
+          : '',
       possui_restricao_medicamento_pronto_atendimento:
         restricaoMedicamentoProntoAtendimento === 'sim',
       restricao_medicamento_pronto_atendimento:
         restricaoMedicamentoProntoAtendimento === 'sim'
-          ? textoOuNull(qualRestricaoMedicamentoProntoAtendimento)
-          : null,
+          ? textoOuVazio(qualRestricaoMedicamentoProntoAtendimento)
+          : '',
       possui_convenio_medico: temConvenioMedico === 'sim',
       convenio_medico:
-        temConvenioMedico === 'sim' ? textoOuNull(qualConvenioMedico) : null,
+        temConvenioMedico === 'sim' ? textoOuVazio(qualConvenioMedico) : '',
     }
 
     cadastroMutation.mutate(dadosCadastro, {
@@ -401,7 +401,7 @@ export function ParticipanteForm() {
       noValidate
       aria-label="Formulário de cadastro de participante"
       onSubmit={(evento) => {
-        const submitter = (evento.nativeEvent as SubmitEvent).submitter
+        const submitter = evento.nativeEvent.submitter
         schemaEnvio.current =
           submitter instanceof HTMLElement &&
           submitter.dataset.acao === 'rascunho'

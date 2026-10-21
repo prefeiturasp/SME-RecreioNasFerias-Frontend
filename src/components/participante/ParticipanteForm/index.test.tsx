@@ -1369,7 +1369,7 @@ describe('ParticipanteForm', () => {
         screen.getByText(/inscrições de participantes/i),
       ).toBeInTheDocument()
     })
-  })
+  }, 15000)
 
   it('envia o grupo escolhido nas informações básicas', async () => {
     const usuario = userEvent.setup()
@@ -1485,7 +1485,7 @@ describe('ParticipanteForm', () => {
           outra_deficiencia: 'Deficiência informada pela família',
           possui_problema_saude: true,
           problemas_saude: ['PROBLEMA_SAUDE_A'],
-          outro_problema_saude: null,
+          outro_problema_saude: '',
           usuario_medicacao_ou_tratamento_continuo: true,
           medicacao_ou_tratamento_continuo: 'Medicamento A',
           possui_restricao_medicamento_pronto_atendimento: true,

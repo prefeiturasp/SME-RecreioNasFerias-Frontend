@@ -75,16 +75,16 @@ export type Inscricao = {
   ativo: boolean
   possui_deficiencia: boolean
   deficiencias: string[]
-  outra_deficiencia: string | null
+  outra_deficiencia: string
   possui_problema_saude: boolean
   problemas_saude: string[]
-  outro_problema_saude: string | null
+  outro_problema_saude: string
   usuario_medicacao_ou_tratamento_continuo: boolean
-  medicacao_ou_tratamento_continuo: string | null
+  medicacao_ou_tratamento_continuo: string
   possui_restricao_medicamento_pronto_atendimento: boolean
-  restricao_medicamento_pronto_atendimento: string | null
+  restricao_medicamento_pronto_atendimento: string
   possui_convenio_medico: boolean
-  convenio_medico: string | null
+  convenio_medico: string
 }
 
 export type FiltrosIncricoesParticipantes = {
