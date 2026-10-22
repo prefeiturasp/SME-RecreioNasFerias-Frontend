@@ -115,6 +115,15 @@ export type InscricaoApi = Inscricao & {
   tipo_estudante_label: string
 }
 
+export type PoloInscricao = {
+  uuid: string
+  nome_polo: string
+}
+
+export type InscricaoDetalheApi = Omit<InscricaoApi, 'polo'> & {
+  polo: PoloInscricao | null
+}
+
 export type InscricoesParticipantesPaginada = {
   count: number
   next: string | null
