@@ -21,6 +21,7 @@ const dadosInscricaoExemplo: DadosCadastroInscricao = {
   nomeSocialResponsavel: '',
   cep: '05508000',
   logradouro: 'Exemplo',
+  tipoLogradouro: 'Rua',
   numero: '100',
   complemento: '',
   bairro: 'Centro',
@@ -57,6 +58,7 @@ const payloadEsperado = {
   responsavel_nome_social: '',
   cep: '05508000',
   logradouro: 'Exemplo',
+  tipo_logradouro: 'Rua',
   numero: '100',
   complemento: '',
   bairro: 'Centro',
@@ -83,7 +85,7 @@ const payloadEsperado = {
 const respostaCadastroExemplo: Inscricao = {
   uuid: '22222222-2222-2222-2222-222222222222',
   ...payloadEsperado,
-  tipo_logradouro: '',
+  tipo_logradouro: 'Rua',
   tipo_estudante_label: 'Estudante da rede',
   grupo_label: 'Berçário I',
   status: 'RASCUNHO',
@@ -137,7 +139,6 @@ describe('cadastrarInscricao', () => {
         grupo: 'MINI_GRUPO_I',
       }),
     )
-    expect(apiPostMock.mock.calls[0]?.[1]).not.toHaveProperty('tipo_logradouro')
   })
 
   it('não envia campos que ficam só no formulário', async () => {
