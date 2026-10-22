@@ -18,6 +18,7 @@ export async function cadastrarInscricao(
     responsavel_nome_social: dados.nomeSocialResponsavel,
     cep: dados.cep,
     logradouro: dados.logradouro,
+    tipo_logradouro: dados.tipoLogradouro ? dados.tipoLogradouro : 'N/I',
     numero: dados.numero,
     complemento: dados.complemento,
     bairro: dados.bairro,

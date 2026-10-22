@@ -35,6 +35,7 @@ const CAMPOS_DO_PARTICIPANTE_VAZIOS: Partial<FormValues> = {
   nomeSocialResponsavel: '',
   cep: '',
   logradouro: '',
+  tipoLogradouro: '',
   numero: '',
   complemento: '',
   bairro: '',
@@ -56,6 +57,21 @@ const CAMPOS_DO_PARTICIPANTE_VAZIOS: Partial<FormValues> = {
   qualConvenioMedico: '',
 }
 
+const CAMPOS_DE_SAUDE: (keyof FormValues)[] = [
+  'criancaComDeficiencia',
+  'qualDeficiencia',
+  'outraDeficiencia',
+  'criancaComProblemaSaude',
+  'qualProblemaSaude',
+  'outroProblemaSaude',
+  'medicacaoTratamentoContinuo',
+  'qualMedicacaoTratamentoContinuo',
+  'restricaoMedicamentoProntoAtendimento',
+  'qualRestricaoMedicamentoProntoAtendimento',
+  'temConvenioMedico',
+  'qualConvenioMedico',
+]
+
 export function ParticipanteForm() {
   const navigate = useNavigate()
   const { showToast } = useToast()
@@ -73,6 +89,7 @@ export function ParticipanteForm() {
     string | null
   >(null)
   const [cpfSincronizado, setCpfSincronizado] = useState<string | null>(null)
+  const [informacoesSaudeAberta, setInformacoesSaudeAberta] = useState(false)
   const eolDesabilitado = useMemo(
     () => origemConsulta === 'cpf',
     [origemConsulta],
@@ -94,6 +111,7 @@ export function ParticipanteForm() {
       nomeResponsavel: '',
       nomeSocialResponsavel: '',
       cep: '',
+      tipoLogradouro: '',
       logradouro: '',
       numero: '',
       complemento: '',
@@ -172,8 +190,8 @@ export function ParticipanteForm() {
   ) {
     const codigoEol =
       origemConsulta === 'cpf'
-        ? form.getValues('codigoEol')
-        : participante.codigo_eol
+        ? participante.codigo_eol
+        : form.getValues('codigoEol')
 
     form.reset({
       ...form.getValues(),
@@ -184,6 +202,7 @@ export function ParticipanteForm() {
       nomeResponsavel: participante.responsavel_nome,
       nomeSocialResponsavel: participante.responsavel_nome_social,
       cep: participante.cep,
+      tipoLogradouro: participante.tipo_logradouro,
       logradouro: participante.logradouro,
       numero: participante.numero,
       complemento: participante.complemento,
@@ -407,7 +426,11 @@ export function ParticipanteForm() {
           submitter.dataset.acao === 'rascunho'
             ? formSchemaRascunho
             : formSchema
-        void form.handleSubmit(salvar)(evento)
+        void form.handleSubmit(salvar, (erros) => {
+          if (CAMPOS_DE_SAUDE.some((campo) => erros[campo])) {
+            setInformacoesSaudeAberta(true)
+          }
+        })(evento)
       }}
       className="rounded-sm bg-background p-8 shadow-card max-md:p-4"
     >
@@ -452,7 +475,11 @@ export function ParticipanteForm() {
           </SecaoFormulario>
 
           {camposLiberados && (
-            <SecaoFormulario titulo="Informações de Saúde">
+            <SecaoFormulario
+              titulo="Informações de Saúde"
+              aberta={informacoesSaudeAberta}
+              aoMudarAbertura={setInformacoesSaudeAberta}
+            >
               <InformacoesSaude
                 control={form.control}
                 setValue={form.setValue}

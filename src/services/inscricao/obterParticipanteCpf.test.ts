@@ -17,6 +17,7 @@ const participanteEolExemplo: ParticipanteEol = {
   responsavel_nome_social: '',
   cep: '08411-010',
   logradouro: 'DA PASSAGEM FUNDA',
+  tipo_logradouro: 'Rua',
   numero: '72',
   complemento: '',
   bairro: 'VILA SANTA CRUZ ZONA LESTE',

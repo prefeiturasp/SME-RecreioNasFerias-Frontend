@@ -12,6 +12,7 @@ const vazio = {
   nomeSocialResponsavel: '',
   cep: '',
   logradouro: '',
+  tipoLogradouro: '',
   numero: '',
   complemento: '',
   bairro: '',
@@ -165,13 +166,12 @@ describe('ParticipanteForm schema', () => {
       const resultado = formSchema.safeParse({
         ...vazio,
         [campoRadio]: 'sim',
-        [campoSelect]:
-          [
-            {
-              value: opcaoOutro,
-              label: opcaoOutro === 'OUTRA' ? 'Outra' : 'Outro',
-            },
-          ],
+        [campoSelect]: [
+          {
+            value: opcaoOutro,
+            label: opcaoOutro === 'OUTRA' ? 'Outra' : 'Outro',
+          },
+        ],
       })
 
       expect(resultado.success).toBe(false)

@@ -10,18 +10,25 @@ import {
 type SecaoFormularioProps = {
   titulo: string
   aberta?: boolean
+  aoMudarAbertura?: (aberta: boolean) => void
   children: ReactNode
 }
 
 export function SecaoFormulario({
   titulo,
   aberta = false,
+  aoMudarAbertura,
   children,
 }: Readonly<SecaoFormularioProps>) {
   return (
     <div className="flex overflow-hidden rounded-sm border border-gray-300">
       <span aria-hidden="true" className="w-2.5 shrink-0 bg-brand-dark" />
-      <Collapsible className="group min-w-0 flex-1" defaultOpen={aberta}>
+      <Collapsible
+        className="group min-w-0 flex-1"
+        open={aoMudarAbertura ? aberta : undefined}
+        defaultOpen={aoMudarAbertura ? undefined : aberta}
+        onOpenChange={aoMudarAbertura}
+      >
         <CollapsibleTrigger asChild>
           <button
             type="button"
@@ -34,7 +41,9 @@ export function SecaoFormulario({
             <ChevronDownIcon className="size-6 shrink-0 text-brand-dark transition-transform group-data-[state=open]:rotate-180" />
           </button>
         </CollapsibleTrigger>
-        <CollapsibleContent className="px-5 py-4">{children}</CollapsibleContent>
+        <CollapsibleContent className="px-5 py-4">
+          {children}
+        </CollapsibleContent>
       </Collapsible>
     </div>
   )

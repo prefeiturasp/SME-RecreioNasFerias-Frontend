@@ -21,6 +21,7 @@ export type DadosCadastroInscricao = {
   nomeSocialResponsavel: string
   cep: string
   logradouro: string
+  tipoLogradouro: string
   numero: string
   complemento: string
   bairro: string
@@ -150,6 +151,7 @@ export type ParticipanteEol = {
   responsavel_nome: string
   responsavel_nome_social: string
   cep: string
+  tipo_logradouro: string
   logradouro: string
   numero: string
   complemento: string
