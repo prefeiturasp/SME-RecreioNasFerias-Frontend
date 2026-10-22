@@ -22,6 +22,7 @@ export const formSchemaRascunho = z.object({
   nomeSocialResponsavel: z.string(),
   cep: z.string(),
   logradouro: z.string(),
+  tipoLogradouro: z.string(),
   numero: z.string(),
   complemento: z.string(),
   bairro: z.string(),
