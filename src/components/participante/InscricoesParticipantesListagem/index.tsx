@@ -107,7 +107,7 @@ export function InscricoesParticipantesListagem() {
             className="text-brand-dark"
           >
             <Link
-              to={'#'}
+              to={`/editar-participante/${inscricao.uuid}`}
               aria-label={`Editar inscrição ${inscricao.nome_participante}`}
             >
               <img

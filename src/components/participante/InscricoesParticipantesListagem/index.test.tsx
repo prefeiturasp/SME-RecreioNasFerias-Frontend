@@ -93,7 +93,7 @@ describe('InscricoesParticipantesListagem', () => {
       name: /editar inscrição joão da silva/i,
     })
     expect(botaoEditar).toBeInTheDocument()
-    expect(botaoEditar).toHaveAttribute('href', '/')
+    expect(botaoEditar).toHaveAttribute('href', '/editar-participante/1')
   })
 
   it('deve chamar a função de alterar página ao interagir com a paginação', async () => {
