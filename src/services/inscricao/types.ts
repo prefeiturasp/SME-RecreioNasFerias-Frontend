@@ -109,7 +109,13 @@ export const FILTROS_LISTAGEM_INSCRICOES_PARTICIPANTES_INICIAIS: FiltrosIncricoe
     tipo_estudante: '',
   }
 
-export type InscricaoApi = Inscricao & {
+export type EdicaoResumoInscricao = {
+  uuid: string
+  nome: string
+}
+
+export type InscricaoApi = Omit<Inscricao, 'edicao'> & {
+  edicao: EdicaoResumoInscricao | null
   grupo_label: string
   status_label: string
   polo_nome: string
