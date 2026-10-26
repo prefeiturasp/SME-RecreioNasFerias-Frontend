@@ -295,6 +295,26 @@ describe('ParticipanteForm', () => {
     })
   })
 
+  it('destaca CPF e código EOL quando nenhum identificador válido foi informado', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await escolherGrupo(usuario, 'Berçário I')
+    await usuario.click(
+      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
+    )
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('textbox', { name: /código eol/i }),
+      ).toHaveAttribute('aria-invalid', 'true')
+      expect(
+        screen.getByRole('textbox', { name: /cpf do responsável/i }),
+      ).toHaveAttribute('aria-invalid', 'true')
+    })
+    expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
+  })
+
   it('habilita o campo Qual somente quando Sim é selecionado', async () => {
     const usuario = userEvent.setup()
     renderFormulario()
@@ -568,27 +588,10 @@ describe('ParticipanteForm', () => {
       expect(screen.queryByText('Polo 108100')).not.toBeInTheDocument()
     })
     expect(screen.getByText('Selecione o Polo')).toBeInTheDocument()
-
-    await responderPerguntasSaudeComoNao(usuario)
-    await usuario.click(
-      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
-    )
-
-    await waitFor(() => {
-      expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          grupo: 'BERCARIO_I',
-          tipoEstudante: TIPO_ESTUDANTE_REDE,
-          dreCodigoEol: '108200',
-          dreNome: 'DRE Ipiranga',
-          polo: '',
-        }),
-        expect.anything(),
-      )
-    })
+    expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
   }, 15000)
 
-  it('mostra o erro dos polos e some quando a busca seguinte funciona', async () => {
+  it('mostra erro dos polos em toast quando a busca seguinte funciona', async () => {
     const usuario = userEvent.setup()
     listarDresMock.mockResolvedValue([
       {
@@ -613,9 +616,14 @@ describe('ParticipanteForm', () => {
       await screen.findByRole('option', { name: 'DRE Butantã' }),
     )
 
-    expect(
-      await screen.findByText('Falha ao carregar polos.'),
-    ).toBeInTheDocument()
+    await waitFor(() => {
+      expect(showToastMock).toHaveBeenCalledWith({
+        id: 'erro-api',
+        title: 'Erro ao processar a inscrição',
+        description: 'Falha ao carregar polos.',
+        variant: 'destructive',
+      })
+    })
 
     listarPolosElegiveisMock.mockResolvedValue([
       {
@@ -630,11 +638,7 @@ describe('ParticipanteForm', () => {
     await usuario.click(screen.getByLabelText(/\bdre\b/i))
     await usuario.click(screen.getByRole('option', { name: 'DRE Ipiranga' }))
 
-    await waitFor(() => {
-      expect(
-        screen.queryByText('Falha ao carregar polos.'),
-      ).not.toBeInTheDocument()
-    })
+    expect(showToastMock).toHaveBeenCalledTimes(1)
   })
 
   it('preenche os campos com o retorno da consulta EOL', async () => {
@@ -717,7 +721,7 @@ describe('ParticipanteForm', () => {
     expect(obterParticipanteEolMock).toHaveBeenCalledWith('123456')
   })
 
-  it('exibe o detalhe quando a consulta do código EOL falha', async () => {
+  it('exibe o detalhe da consulta do código EOL em toast', async () => {
     const usuario = userEvent.setup()
     obterParticipanteEolMock
       .mockResolvedValueOnce(participanteEolExemplo)
@@ -747,11 +751,15 @@ describe('ParticipanteForm', () => {
 
     await usuario.click(consultar)
 
-    expect(
-      await screen.findByText(
-        'Código EOL não encontrado. Verifique o número digitado e tente novamente.',
-      ),
-    ).toBeInTheDocument()
+    await waitFor(() => {
+      expect(showToastMock).toHaveBeenCalledWith({
+        id: 'erro-api',
+        title: 'Erro ao processar a inscrição',
+        description:
+          'Código EOL não encontrado. Verifique o número digitado e tente novamente.',
+        variant: 'destructive',
+      })
+    })
     expect(
       screen.getByLabelText(/nome completo do\(a\) participante/i),
     ).toHaveValue('')
@@ -845,6 +853,22 @@ describe('ParticipanteForm', () => {
   it('salva a inscrição preenchida pela consulta do CPF sem consultar de novo', async () => {
     const usuario = userEvent.setup()
     obterParticipanteCpfMock.mockResolvedValue(participanteEolExemplo)
+    listarDresMock.mockResolvedValue([
+      {
+        codigo_dre: '108100',
+        nome_dre: 'DRE Butantã',
+        sigla_dre: 'BT',
+      },
+    ])
+    listarPolosElegiveisMock.mockResolvedValue([
+      {
+        uuid: 'polo-108100',
+        codigo_eol: '123456',
+        nome_polo: 'Polo Butantã',
+        dre_codigo_eol: '108100',
+        dre_nome: 'DRE Butantã',
+      },
+    ])
     renderFormulario()
 
     await escolherGrupo(usuario, 'Berçário I')
@@ -859,6 +883,15 @@ describe('ParticipanteForm', () => {
         screen.getByLabelText(/nome completo do\(a\) participante/i),
       ).toHaveValue('ANNA JULIA ARAUJO SA')
     })
+
+    await usuario.click(screen.getByLabelText(/\bdre\b/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: 'DRE Butantã' }),
+    )
+    await usuario.click(screen.getByLabelText(/polo de inscrição/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: 'Polo Butantã' }),
+    )
 
     obterParticipanteCpfMock.mockClear()
     await usuario.click(
@@ -879,6 +912,35 @@ describe('ParticipanteForm', () => {
       ).toBeInTheDocument()
     })
     expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
+  }, 15000)
+
+  it('impede finalizar após consulta por CPF com campos obrigatórios vazios', async () => {
+    const usuario = userEvent.setup()
+    obterParticipanteCpfMock.mockResolvedValue({
+      ...participanteEolExemplo,
+      telefone_contato_1: '',
+      email: '',
+    })
+    renderFormulario()
+
+    await escolherGrupo(usuario, 'Berçário I')
+    await responderPerguntasSaudeComoNao(usuario)
+    const cpf = screen.getByRole('textbox', { name: /cpf do responsável/i })
+    await usuario.type(cpf, '12345678901')
+    await usuario.click(
+      screen.getByRole('button', { name: /consultar cpf do responsável/i }),
+    )
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText(/nome completo do\(a\) participante/i),
+      ).toHaveValue('ANNA JULIA ARAUJO SA')
+    })
+
+    await usuario.click(
+      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
+    )
+
+    expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
   }, 15000)
 
   it('mantém o erro de CPF incompleto ao salvar depois da consulta', async () => {
@@ -938,7 +1000,7 @@ describe('ParticipanteForm', () => {
     )
   })
 
-  it('exibe o detalhe quando a consulta do CPF falha e limpa os demais campos', async () => {
+  it('exibe o detalhe da consulta do CPF em toast e limpa os demais campos', async () => {
     const usuario = userEvent.setup()
     obterParticipanteCpfMock
       .mockResolvedValueOnce(participanteEolExemplo)
@@ -968,11 +1030,15 @@ describe('ParticipanteForm', () => {
 
     await usuario.click(consultar)
 
-    expect(
-      await screen.findByText(
-        'CPF não encontrado. Verifique o número digitado e tente novamente.',
-      ),
-    ).toBeInTheDocument()
+    await waitFor(() => {
+      expect(showToastMock).toHaveBeenCalledWith({
+        id: 'erro-api',
+        title: 'Erro ao processar a inscrição',
+        description:
+          'CPF não encontrado. Verifique o número digitado e tente novamente.',
+        variant: 'destructive',
+      })
+    })
     expect(
       screen.getByLabelText(/nome completo do\(a\) participante/i),
     ).toHaveValue('')
@@ -991,6 +1057,22 @@ describe('ParticipanteForm', () => {
   it('limpa os dados do participante quando o CPF deixa de corresponder à consulta', async () => {
     const usuario = userEvent.setup()
     obterParticipanteCpfMock.mockResolvedValue(participanteEolExemplo)
+    listarDresMock.mockResolvedValue([
+      {
+        codigo_dre: '108100',
+        nome_dre: 'DRE Butantã',
+        sigla_dre: 'BT',
+      },
+    ])
+    listarPolosElegiveisMock.mockResolvedValue([
+      {
+        uuid: 'polo-108100',
+        codigo_eol: '123456',
+        nome_polo: 'Polo 108100',
+        dre_codigo_eol: '108100',
+        dre_nome: 'DRE Butantã',
+      },
+    ])
     renderFormulario()
 
     await escolherGrupo(usuario, 'Berçário I')
@@ -1006,6 +1088,15 @@ describe('ParticipanteForm', () => {
       ).toHaveValue('ANNA JULIA ARAUJO SA')
     })
 
+    await usuario.click(screen.getByLabelText(/\bdre\b/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: 'DRE Butantã' }),
+    )
+    await usuario.click(screen.getByLabelText(/polo de inscrição/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: 'Polo 108100' }),
+    )
+
     await usuario.type(cpf, '{Backspace}')
 
     expect(
@@ -1015,7 +1106,11 @@ describe('ParticipanteForm', () => {
     expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue('')
     expect(screen.getByRole('textbox', { name: /código eol/i })).toHaveValue('')
     expect(cpf).toHaveValue('123.456.789-0')
-  })
+    expect(screen.getByText('Selecione a DRE')).toBeInTheDocument()
+    expect(
+      screen.getByText('É necessário selecionar o DRE primeiro'),
+    ).toBeInTheDocument()
+  }, 15000)
 
   it('desabilita o CPF ao informar o código EOL', async () => {
     const usuario = userEvent.setup()
@@ -1309,7 +1404,9 @@ describe('ParticipanteForm', () => {
     expect(showToastMock).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'inscricao-salva',
-        description: 'Rascunho',
+        title: 'Inscrição salva com sucesso',
+        description: 'Sua inscrição foi salva com o status: Rascunho',
+        variant: 'success',
       }),
     )
 
@@ -1319,8 +1416,43 @@ describe('ParticipanteForm', () => {
       status: 'COMPLETA',
       status_label: 'Completa',
     })
+    listarDresMock.mockResolvedValue([
+      {
+        codigo_dre: '108100',
+        nome_dre: 'DRE Butantã',
+        sigla_dre: 'BT',
+      },
+    ])
+    listarPolosElegiveisMock.mockImplementation(
+      async (dreCodigoEol: string) => [
+        {
+          uuid: `polo-${dreCodigoEol}`,
+          codigo_eol: '123456',
+          nome_polo: `Polo ${dreCodigoEol}`,
+          dre_codigo_eol: dreCodigoEol,
+          dre_nome: 'DRE Butantã',
+        },
+      ],
+    )
     const segundaRenderizacao = renderFormulario()
     await responderPerguntasSaudeComoNao(usuario)
+    await usuario.type(
+      screen.getByRole('textbox', { name: /cpf do responsável/i }),
+      '12345678901',
+    )
+    await usuario.click(screen.getByLabelText(/\bdre\b/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: 'DRE Butantã' }),
+    )
+    await usuario.click(screen.getByLabelText(/polo de inscrição/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: 'Polo 108100' }),
+    )
+    await usuario.type(
+      screen.getByLabelText(/telefone de contato\/emergência 1/i),
+      '11988887777',
+    )
+    await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'ana@email.com')
     await usuario.click(
       screen.getByRole('button', { name: /^finalizar inscrição$/i }),
     )
@@ -1328,7 +1460,9 @@ describe('ParticipanteForm', () => {
       expect(showToastMock).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 'inscricao-salva',
-          description: 'Completa',
+          title: 'Inscrição salva com sucesso',
+          description: 'Sua inscrição foi salva com o status: Completa',
+          variant: 'success',
         }),
       )
       expect(
@@ -1353,7 +1487,7 @@ describe('ParticipanteForm', () => {
     expect(cadastrarInscricaoMock).toHaveBeenCalledTimes(2)
   }, 15000)
 
-  it('mostra o detalhe quando o cadastro falha', async () => {
+  it('mostra o detalhe do erro de cadastro em toast', async () => {
     const usuario = userEvent.setup()
     cadastrarInscricaoMock.mockRejectedValueOnce({
       response: {
@@ -1370,17 +1504,21 @@ describe('ParticipanteForm', () => {
       screen.getByRole('button', { name: /salvar rascunho/i }),
     )
 
-    expect(
-      await screen.findByText(
-        'Já existe inscrição com o identificador informado neste polo.',
-      ),
-    ).toBeInTheDocument()
-    expect(showToastMock).not.toHaveBeenCalled()
+    await waitFor(() => {
+      expect(showToastMock).toHaveBeenCalledWith({
+        id: 'erro-api',
+        title: 'Erro ao processar a inscrição',
+        description:
+          'Já existe inscrição com o identificador informado neste polo.',
+        variant: 'destructive',
+      })
+    })
 
     cadastrarInscricaoMock.mockResolvedValueOnce({
       status: 'RASCUNHO',
       status_label: 'Rascunho',
     })
+    showToastMock.mockClear()
     await usuario.click(
       screen.getByRole('button', { name: /salvar rascunho/i }),
     )
@@ -1416,6 +1554,10 @@ describe('ParticipanteForm', () => {
     renderFormulario()
 
     await escolherGrupo(usuario, 'Berçário I')
+    await usuario.type(
+      screen.getByRole('textbox', { name: /cpf do responsável/i }),
+      '12345678901',
+    )
     await usuario.click(screen.getByLabelText(/\bdre\b/i))
     await usuario.click(
       await screen.findByRole('option', { name: 'DRE Butantã' }),
@@ -1423,6 +1565,10 @@ describe('ParticipanteForm', () => {
     await usuario.click(screen.getByLabelText(/polo de inscrição/i))
     await usuario.click(
       await screen.findByRole('option', { name: 'Polo 108100' }),
+    )
+    await usuario.type(
+      screen.getByLabelText(/telefone de contato\/emergência 1/i),
+      '11988887777',
     )
     await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'Ana@Email.com')
 
