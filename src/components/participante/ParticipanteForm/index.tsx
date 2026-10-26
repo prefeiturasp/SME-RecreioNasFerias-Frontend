@@ -410,7 +410,7 @@ export function ParticipanteForm() {
           id: 'inscricao-salva',
           description: inscricao.status_label,
         })
-        navigate('/inscricoes-participantes')
+        void navigate('/inscricoes-participantes')
       },
     })
   }
