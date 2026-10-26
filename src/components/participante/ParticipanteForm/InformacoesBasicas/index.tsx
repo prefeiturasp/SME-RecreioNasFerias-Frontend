@@ -1,8 +1,6 @@
 import { useMemo } from 'react'
 import { useWatch, type Control } from 'react-hook-form'
 import type { FormValues } from '../schema'
-
-import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { FormField } from '@/components/ui/form-field'
 import { FormFieldEol } from '@/components/ui/form-field-eol'
 import { formatarDataBr } from '@/lib/formatarPeriodo'
@@ -45,7 +43,6 @@ export function InformacoesBasicas({
   polos,
   tiposEstudante,
   grupos,
-  erro,
   consultandoCodigoEol = false,
   consultandoCpf = false,
   onBuscarCodigoEol,
@@ -67,7 +64,6 @@ export function InformacoesBasicas({
 
   return (
     <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
-      <AlertaErroApi erro={erro} className="lg:col-span-2" />
       <FormField
         control={control}
         name="grupo"
