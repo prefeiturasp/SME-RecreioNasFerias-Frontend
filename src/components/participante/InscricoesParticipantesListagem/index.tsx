@@ -22,6 +22,12 @@ const COLUNAS = [
     renderizar: (inscricao) => inscricao.polo_nome ?? inscricao.polo ?? '-',
   },
   {
+    id: 'edicao',
+    rotulo: 'Edição',
+    valorOrdenacao: (inscricao) => inscricao.edicao?.nome ?? '',
+    renderizar: (inscricao) => inscricao.edicao?.nome ?? '-',
+  },
+  {
     id: 'codigo_eol',
     rotulo: 'Código EOL',
     valorOrdenacao: (inscricao) => inscricao.codigo_eol ?? 0,
