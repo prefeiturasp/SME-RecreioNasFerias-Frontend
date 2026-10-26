@@ -18,6 +18,7 @@ import { useGetPolosElegiveis } from '@/hooks/useGetPolosElegiveis'
 import { useGetValoresChoices } from '@/hooks/useGetValoresChoices'
 import { usePostInscricao } from '@/hooks/usePostInscricao'
 import { useToast } from '@/hooks/useToast'
+import { extrairMensagemDeErro } from '@/services/api/extrairMensagemDeErro'
 import type {
   DadosCadastroInscricao,
   ParticipanteEol,
@@ -288,6 +289,8 @@ export function ParticipanteForm() {
 
     if (cpfAlteradoAposConsulta) {
       limparCamposDoParticipante('', valor)
+      form.setValue('dreCodigoEol', '')
+      form.setValue('polo', '')
       setCpfConsulta(undefined)
       return
     }
@@ -296,6 +299,36 @@ export function ParticipanteForm() {
       setCpfConsulta(undefined)
     }
   }
+
+  const erroApi = useMemo(() => {
+    return (
+      consultaCpf.error ??
+      consultaParticipante.error ??
+      dresQuery.error ??
+      polosQuery.error ??
+      choicesQuery.error ??
+      cadastroMutation.error
+    )
+  }, [
+    consultaCpf.error,
+    consultaParticipante.error,
+    dresQuery.error,
+    polosQuery.error,
+    choicesQuery.error,
+    cadastroMutation.error,
+  ])
+
+  useEffect(() => {
+    if (erroApi && extrairMensagemDeErro(erroApi)) {
+      const mensagem = extrairMensagemDeErro(erroApi)
+      showToast({
+        id: 'erro-api',
+        title: 'Erro ao processar a inscrição',
+        variant: 'destructive',
+        description: mensagem,
+      })
+    }
+  }, [erroApi, showToast])
 
   useEffect(() => {
     if (!codigoEolConsulta || buscaVigente.current !== 'codigoEol') return
@@ -408,7 +441,9 @@ export function ParticipanteForm() {
       onSuccess: (inscricao) => {
         showToast({
           id: 'inscricao-salva',
-          description: inscricao.status_label,
+          title: 'Inscrição salva com sucesso',
+          description: `Sua inscrição foi salva com o status: ${inscricao.status_label}`,
+          variant: 'success',
         })
         void navigate('/inscricoes-participantes')
       },
@@ -453,14 +488,6 @@ export function ParticipanteForm() {
               polos={polos}
               tiposEstudante={tiposEstudante}
               grupos={grupos}
-              erro={
-                consultaCpf.error ??
-                consultaParticipante.error ??
-                cadastroMutation.error ??
-                dresQuery.error ??
-                polosQuery.error ??
-                choicesQuery.error
-              }
               consultandoCodigoEol={consultaParticipante.isFetching}
               consultandoCpf={consultaCpf.isFetching}
               onBuscarCodigoEol={consultarParticipante}

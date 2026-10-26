@@ -55,7 +55,50 @@ export const formSchemaRascunho = z.object({
 })
 
 const formSchema = formSchemaRascunho.superRefine((dados, contexto) => {
+  const codigoEolValido = /^\d{6,7}$/.test(dados.codigoEol)
+  const cpfValido = /^\d{11}$/.test(dados.cpf)
+
+  if (!codigoEolValido && !cpfValido) {
+    for (const caminho of ['codigoEol', 'cpf']) {
+      contexto.addIssue({
+        code: 'custom',
+        path: [caminho],
+        message: 'Informe um CPF ou código EOL válido.',
+      })
+    }
+  }
+
   const camposObrigatorios = [
+    {
+      condicao: !dados.grupo,
+      preenchido: Boolean(dados.grupo.trim()),
+      caminho: 'grupo',
+    },
+    {
+      condicao: !dados.tipoEstudante,
+      preenchido: Boolean(dados.tipoEstudante.trim()),
+      caminho: 'tipoEstudante',
+    },
+    {
+      condicao: !dados.telefone1,
+      preenchido: Boolean(dados.telefone1.trim()),
+      caminho: 'telefone1',
+    },
+    {
+      condicao: !dados.email,
+      preenchido: Boolean(dados.email.trim()),
+      caminho: 'email',
+    },
+    {
+      condicao: !dados.dreCodigoEol,
+      preenchido: Boolean(dados.dreCodigoEol.trim()),
+      caminho: 'dreCodigoEol',
+    },
+    {
+      condicao: !dados.polo,
+      preenchido: Boolean(dados.polo.trim()),
+      caminho: 'polo',
+    },
     {
       condicao: !dados.criancaComDeficiencia,
       preenchido: false,

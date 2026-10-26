@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { iconeLapisEditar } from '@/assets'
 import { AlertaErroApi } from '@/components/AlertaErroApi'
 import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
@@ -8,7 +9,7 @@ import { OPCOES_ITENS_POR_PAGINA } from '@/constants/paginacao'
 import { useGetEdicoesPrograma } from '@/hooks/useGetEdicoesPrograma'
 import { formatarPeriodo } from '@/lib/formatarPeriodo'
 import type { EdicaoPrograma } from '@/services/edicaoPrograma/types'
-import { useState } from 'react'
+import { useToast } from '@/hooks/useToast'
 import { Link } from 'react-router-dom'
 
 const COLUNAS = [
@@ -59,10 +60,23 @@ export function EdicaoListagem() {
     OPCOES_ITENS_POR_PAGINA[0],
   )
 
+  const { showToast } = useToast()
+
   function mudarItensPorPagina(novoTamanho: number) {
     setItensPorPagina(novoTamanho)
     setPaginaAtual(1)
   }
+
+  useEffect(() => {
+    if (listagemQuery.error) {
+      showToast({
+        id: 'erro-api',
+        title: 'Erro ao carregar edições do programa',
+        description: '',
+        variant: 'destructive',
+      })
+    }
+  }, [listagemQuery.error, showToast])
 
   if (listagemQuery.isPending) {
     return (

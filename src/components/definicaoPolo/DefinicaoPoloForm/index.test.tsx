@@ -191,7 +191,9 @@ describe('DefinicaoPoloForm', () => {
     expect(screen.getByLabelText(/^nome$/i)).toHaveValue('')
     expect(screen.getByLabelText(/^telefone$/i)).toHaveValue('')
     expect(screen.getByLabelText(/^email$/i)).toHaveValue('')
-    expect(screen.getByLabelText(/proje.*de inscritos/i)).toHaveValue(10)
+    await waitFor(() => {
+      expect(screen.getByLabelText(/proje.*de inscritos/i)).toHaveValue(10)
+    })
     expect(screen.getByLabelText(/total de inscritos/i)).toHaveValue('13')
     expect(
       screen.getByLabelText(/resultado final de inscritos/i),

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import formSchema from './schema'
+import formSchema, { formSchemaRascunho } from './schema'
 
 const vazio = {
   grupo: '',
@@ -37,9 +37,66 @@ const vazio = {
 }
 
 describe('ParticipanteForm schema', () => {
-  it('aceita o formulário vazio', () => {
-    expect(formSchema.safeParse(vazio).success).toBe(true)
+  it('aceita o formulário vazio apenas como rascunho', () => {
+    expect(formSchemaRascunho.safeParse(vazio).success).toBe(true)
   })
+
+  it.each([
+    ['sem CPF nem código EOL', ''],
+    ['com código EOL incompleto', '12345'],
+  ])('exige CPF ou código EOL válido %s', (_descricao, codigoEol) => {
+    const resultado = formSchema.safeParse({ ...vazio, codigoEol })
+
+    expect(resultado.success).toBe(false)
+    if (resultado.success) return
+    expect(resultado.error.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: ['codigoEol'],
+          message: 'Informe um CPF ou código EOL válido.',
+        }),
+        expect.objectContaining({
+          path: ['cpf'],
+          message: 'Informe um CPF ou código EOL válido.',
+        }),
+      ]),
+    )
+  })
+
+  it.each([
+    ['CPF', { cpf: '12345678901' }],
+    ['código EOL', { codigoEol: '123456' }],
+    ['código EOL com sete dígitos', { codigoEol: '1234567' }],
+  ])('aceita identificação por %s', (_descricao, identificador) => {
+    expect(
+      formSchema.safeParse({
+        ...vazio,
+        grupo: 'grupo',
+        tipoEstudante: 'estudante',
+        telefone1: '11999999999',
+        email: 'ana@email.com',
+        dreCodigoEol: 'dre',
+        polo: 'polo',
+        ...identificador,
+      }).success,
+    ).toBe(true)
+  })
+
+  it.each(['codigoEol', 'cpf'] as const)(
+    'exige telefone, e-mail, DRE e polo após consulta por %s',
+    (campoConsulta) => {
+      const resultado = formSchema.safeParse({
+        ...vazio,
+        [campoConsulta]: campoConsulta === 'cpf' ? '12345678901' : '123456',
+      })
+
+      expect(resultado.success).toBe(false)
+      if (resultado.success) return
+      expect(resultado.error.issues.map((issue) => issue.path[0])).toEqual(
+        expect.arrayContaining(['telefone1', 'email', 'dreCodigoEol', 'polo']),
+      )
+    },
+  )
 
   it('exige uma resposta explícita em todas as perguntas de saúde', () => {
     const resultado = formSchema.safeParse({
@@ -80,9 +137,9 @@ describe('ParticipanteForm schema', () => {
   })
 
   it('aceita CPF com 11 dígitos', () => {
-    expect(formSchema.safeParse({ ...vazio, cpf: '12345678901' }).success).toBe(
-      true,
-    )
+    expect(
+      formSchemaRascunho.safeParse({ ...vazio, cpf: '12345678901' }).success,
+    ).toBe(true)
   })
 
   it('rejeita telefone incompleto', () => {
@@ -96,10 +153,12 @@ describe('ParticipanteForm schema', () => {
 
   it('aceita telefone com 10 ou 11 dígitos', () => {
     expect(
-      formSchema.safeParse({ ...vazio, telefone1: '1133334444' }).success,
+      formSchemaRascunho.safeParse({ ...vazio, telefone1: '1133334444' })
+        .success,
     ).toBe(true)
     expect(
-      formSchema.safeParse({ ...vazio, telefone2: '(11) 99999-9999' }).success,
+      formSchemaRascunho.safeParse({ ...vazio, telefone2: '(11) 99999-9999' })
+        .success,
     ).toBe(true)
   })
 
@@ -110,12 +169,13 @@ describe('ParticipanteForm schema', () => {
 
   it('aceita e-mail preenchido em formato válido', () => {
     expect(
-      formSchema.safeParse({ ...vazio, email: 'ana@email.com' }).success,
+      formSchemaRascunho.safeParse({ ...vazio, email: 'ana@email.com' })
+        .success,
     ).toBe(true)
   })
 
   it('grava o e-mail em minúsculas', () => {
-    const resultado = formSchema.safeParse({
+    const resultado = formSchemaRascunho.safeParse({
       ...vazio,
       email: ' Ana@Email.com ',
     })
@@ -183,6 +243,6 @@ describe('ParticipanteForm schema', () => {
   )
 
   it('aceita campos de saúde vazios quando não estão marcados como sim', () => {
-    expect(formSchema.safeParse(vazio).success).toBe(true)
+    expect(formSchemaRascunho.safeParse(vazio).success).toBe(true)
   })
 })

@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ToastProvider } from '@/contexts/ToastContext'
 import type { EdicaoPrograma } from '@/services/edicaoPrograma/types'
 import { EdicaoListagem } from './index'
 
@@ -61,9 +62,11 @@ function renderEdicaoListagem() {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
-        <EdicaoListagem />
-      </MemoryRouter>
+      <ToastProvider>
+        <MemoryRouter>
+          <EdicaoListagem />
+        </MemoryRouter>
+      </ToastProvider>
     </QueryClientProvider>,
   )
 }
