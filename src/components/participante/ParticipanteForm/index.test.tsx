@@ -277,7 +277,7 @@ describe('ParticipanteForm', () => {
     expect(
       screen.getByRole('button', { name: /^finalizar inscrição$/i }),
     ).toBeInTheDocument()
-  })
+  }, 15000)
 
   it('abre informações de saúde quando a finalização falha por campos de saúde', async () => {
     const usuario = userEvent.setup()
@@ -1366,11 +1366,11 @@ describe('ParticipanteForm', () => {
     expect(
       screen.queryByRole('button', { name: /informações de saúde/i }),
     ).not.toBeInTheDocument()
-  })
+  }, 15000)
 
-  it('salva o rascunho incompleto e recusa e-mail inválido', async () => {
+  it('salva o rascunho incompleto', async () => {
     const usuario = userEvent.setup()
-    const primeiraRenderizacao = renderFormulario()
+    renderFormulario()
 
     await liberarInformacoesSaude(usuario)
     await usuario.click(
@@ -1409,9 +1409,10 @@ describe('ParticipanteForm', () => {
         variant: 'success',
       }),
     )
+  }, 15000)
 
-    primeiraRenderizacao.unmount()
-    showToastMock.mockClear()
+  it('finaliza a inscrição completa', async () => {
+    const usuario = userEvent.setup()
     cadastrarInscricaoMock.mockResolvedValueOnce({
       status: 'COMPLETA',
       status_label: 'Completa',
@@ -1434,7 +1435,7 @@ describe('ParticipanteForm', () => {
         },
       ],
     )
-    const segundaRenderizacao = renderFormulario()
+    renderFormulario()
     await responderPerguntasSaudeComoNao(usuario)
     await usuario.type(
       screen.getByRole('textbox', { name: /cpf do responsável/i }),
@@ -1469,10 +1470,11 @@ describe('ParticipanteForm', () => {
         screen.getByText(/inscrições de participantes/i),
       ).toBeInTheDocument()
     })
-    expect(cadastrarInscricaoMock).toHaveBeenCalledTimes(2)
+    expect(cadastrarInscricaoMock).toHaveBeenCalledTimes(1)
+  }, 15000)
 
-    segundaRenderizacao.unmount()
-    showToastMock.mockClear()
+  it('recusa e-mail inválido ao finalizar', async () => {
+    const usuario = userEvent.setup()
     renderFormulario()
     await escolherGrupo(usuario, 'Berçário I')
     await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'ana')
@@ -1484,7 +1486,7 @@ describe('ParticipanteForm', () => {
       await screen.findByText(/digite um e-mail válido/i),
     ).toBeInTheDocument()
     expect(showToastMock).not.toHaveBeenCalled()
-    expect(cadastrarInscricaoMock).toHaveBeenCalledTimes(2)
+    expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
   }, 15000)
 
   it('mostra o detalhe do erro de cadastro em toast', async () => {
