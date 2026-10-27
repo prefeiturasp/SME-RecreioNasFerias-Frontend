@@ -90,6 +90,8 @@ export function ParticipanteForm() {
     string | null
   >(null)
   const [cpfSincronizado, setCpfSincronizado] = useState<string | null>(null)
+  const [informacoesPorGrupoAberta, setInformacoesPorGrupoAberta] =
+    useState(false)
   const [informacoesSaudeAberta, setInformacoesSaudeAberta] = useState(false)
   const eolDesabilitado = useMemo(
     () => origemConsulta === 'cpf',
@@ -500,6 +502,16 @@ export function ParticipanteForm() {
               cpfDesabilitado={cpfDesabilitado}
             />
           </SecaoFormulario>
+
+          {camposLiberados && tipoEstudante === TIPO_ESTUDANTE_REDE && (
+            <SecaoFormulario
+              titulo="Informações por Grupo"
+              aberta={informacoesPorGrupoAberta}
+              aoMudarAbertura={setInformacoesPorGrupoAberta}
+            >
+              {null}
+            </SecaoFormulario>
+          )}
 
           {camposLiberados && (
             <SecaoFormulario
