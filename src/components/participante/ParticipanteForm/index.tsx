@@ -4,6 +4,7 @@ import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { grupoExigeEstudanteDaRede, TIPO_ESTUDANTE_REDE } from './constantes'
 import { InformacoesBasicas } from './InformacoesBasicas'
+import { InformacoesPorGrupo } from './InformacoesPorGrupo'
 import { SecaoFormulario } from './SecaoFormulario'
 import type { FormValues } from './schema'
 import formSchema, { formSchemaRascunho } from './schema'
@@ -56,7 +57,21 @@ const CAMPOS_DO_PARTICIPANTE_VAZIOS: Partial<FormValues> = {
   qualRestricaoMedicamentoProntoAtendimento: '',
   temConvenioMedico: '',
   qualConvenioMedico: '',
+  unidadeEducacional: '',
+  unidadeEducacionalCodigoEol: '',
+  unidadeEducacionalTipo: '',
+  nomeTurma: '',
+  ano: '',
+  podeIrEmboraSozinho: '',
+  responsavelRetirada: '',
+  autorizaUsoPiscina: '',
 }
+
+const CAMPOS_DO_GRUPO: (keyof FormValues)[] = [
+  'podeIrEmboraSozinho',
+  'responsavelRetirada',
+  'autorizaUsoPiscina',
+]
 
 const CAMPOS_DE_SAUDE: (keyof FormValues)[] = [
   'criancaComDeficiencia',
@@ -137,6 +152,14 @@ export function ParticipanteForm() {
       qualRestricaoMedicamentoProntoAtendimento: '',
       temConvenioMedico: '',
       qualConvenioMedico: '',
+      unidadeEducacional: '',
+      unidadeEducacionalCodigoEol: '',
+      unidadeEducacionalTipo: '',
+      nomeTurma: '',
+      ano: '',
+      podeIrEmboraSozinho: '',
+      responsavelRetirada: '',
+      autorizaUsoPiscina: '',
     },
   })
   const [grupo, tipoEstudante, dreCodigoEol] = useWatch({
@@ -214,6 +237,11 @@ export function ParticipanteForm() {
       telefone1: participante.telefone_contato_1,
       telefone2: participante.telefone_contato_2,
       email: participante.email,
+      unidadeEducacional: participante.unidade_educacional,
+      unidadeEducacionalCodigoEol: participante.unidade_educacional_codigo_eol,
+      unidadeEducacionalTipo: participante.unidade_educacional_tipo,
+      nomeTurma: participante.nome_turma,
+      ano: participante.ano,
     })
     setCodigoEolSincronizado(origemConsulta === 'cpf' ? null : codigoEol)
   }
@@ -464,6 +492,9 @@ export function ParticipanteForm() {
             ? formSchemaRascunho
             : formSchema
         void form.handleSubmit(salvar, (erros) => {
+          if (CAMPOS_DO_GRUPO.some((campo) => erros[campo])) {
+            setInformacoesPorGrupoAberta(true)
+          }
           if (CAMPOS_DE_SAUDE.some((campo) => erros[campo])) {
             setInformacoesSaudeAberta(true)
           }
@@ -509,7 +540,7 @@ export function ParticipanteForm() {
               aberta={informacoesPorGrupoAberta}
               aoMudarAbertura={setInformacoesPorGrupoAberta}
             >
-              {null}
+              <InformacoesPorGrupo control={form.control} grupos={grupos} />
             </SecaoFormulario>
           )}
 

@@ -33,6 +33,7 @@ type FormFieldBaseProps<
   labelClassName?: string
   hideError?: boolean
   readOnly?: boolean
+  id?: string
 }
 
 /**
@@ -146,8 +147,9 @@ export function FormField<
     labelClassName = 'font-bold',
     hideError = false,
     readOnly = false,
+    id,
   } = props
-  const fieldId = String(name)
+  const fieldId = id ?? String(name)
 
   return (
     <Controller
@@ -185,7 +187,7 @@ function renderInput<
   readOnly: boolean,
 ): React.JSX.Element {
   const { name } = props
-  const fieldId = String(name)
+  const fieldId = props.id ?? String(name)
 
   // Input
   if (

@@ -25,6 +25,12 @@ const participanteEolExemplo: ParticipanteEol = {
   telefone_contato_1: '',
   telefone_contato_2: '',
   email: '',
+  nome_turma: '7C',
+  ano: '7',
+  unidade_educacional: 'EMEF - EMEF Professora Teste',
+  unidade_educacional_codigo_eol: '094633',
+  unidade_educacional_tipo: 'EMEF',
+  idade: 13,
 }
 
 describe('obterParticipanteCpf', () => {

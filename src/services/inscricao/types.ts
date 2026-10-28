@@ -166,4 +166,10 @@ export type ParticipanteEol = {
   telefone_contato_1: string
   telefone_contato_2: string
   email: string
+  nome_turma: string
+  ano: string
+  unidade_educacional: string
+  unidade_educacional_codigo_eol: string
+  unidade_educacional_tipo: string
+  idade: number | null
 }

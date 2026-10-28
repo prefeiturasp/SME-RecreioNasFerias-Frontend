@@ -34,6 +34,14 @@ const vazio = {
   qualRestricaoMedicamentoProntoAtendimento: '',
   temConvenioMedico: 'nao',
   qualConvenioMedico: '',
+  unidadeEducacional: '',
+  unidadeEducacionalCodigoEol: '',
+  unidadeEducacionalTipo: '',
+  nomeTurma: '',
+  ano: '',
+  podeIrEmboraSozinho: '',
+  responsavelRetirada: '',
+  autorizaUsoPiscina: '',
 }
 
 describe('ParticipanteForm schema', () => {

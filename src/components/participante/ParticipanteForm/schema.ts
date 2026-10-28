@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { extrairDigitos } from '@/utils/mascarasEntrada'
+import { TIPO_ESTUDANTE_REDE } from './constantes'
 
 const telefone = z
   .string()
@@ -52,6 +53,14 @@ export const formSchemaRascunho = z.object({
   qualRestricaoMedicamentoProntoAtendimento: z.string(),
   temConvenioMedico: z.enum(['sim', 'nao', '']),
   qualConvenioMedico: z.string(),
+  unidadeEducacional: z.string(),
+  unidadeEducacionalCodigoEol: z.string(),
+  unidadeEducacionalTipo: z.string(),
+  nomeTurma: z.string(),
+  ano: z.string(),
+  podeIrEmboraSozinho: z.enum(['sim', 'nao', '']),
+  responsavelRetirada: z.string(),
+  autorizaUsoPiscina: z.enum(['sim', 'nao', '']),
 })
 
 const formSchema = formSchemaRascunho.superRefine((dados, contexto) => {
@@ -172,6 +181,25 @@ const formSchema = formSchemaRascunho.superRefine((dados, contexto) => {
         ),
       preenchido: Boolean(dados.outroProblemaSaude.trim()),
       caminho: 'outroProblemaSaude',
+    },
+    {
+      condicao:
+        dados.tipoEstudante === TIPO_ESTUDANTE_REDE &&
+        !dados.podeIrEmboraSozinho,
+      preenchido: false,
+      caminho: 'podeIrEmboraSozinho',
+    },
+    {
+      condicao: dados.tipoEstudante === TIPO_ESTUDANTE_REDE,
+      preenchido: Boolean(dados.responsavelRetirada.trim()),
+      caminho: 'responsavelRetirada',
+    },
+    {
+      condicao:
+        dados.tipoEstudante === TIPO_ESTUDANTE_REDE &&
+        !dados.autorizaUsoPiscina,
+      preenchido: false,
+      caminho: 'autorizaUsoPiscina',
     },
   ]
 

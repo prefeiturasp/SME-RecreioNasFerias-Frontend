@@ -7,7 +7,7 @@ class ObservadorTamanho {
 globalThis.ResizeObserver ??=
   ObservadorTamanho as unknown as typeof ResizeObserver
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -67,6 +67,12 @@ const participanteEolVazio: ParticipanteEol = {
   telefone_contato_1: '',
   telefone_contato_2: '',
   email: '',
+  nome_turma: '',
+  ano: '',
+  unidade_educacional: '',
+  unidade_educacional_codigo_eol: '',
+  unidade_educacional_tipo: '',
+  idade: null,
 }
 
 const participanteEolExemplo: ParticipanteEol = {
@@ -85,6 +91,12 @@ const participanteEolExemplo: ParticipanteEol = {
   telefone_contato_1: '11988887777',
   telefone_contato_2: '',
   email: 'ana@email.com',
+  nome_turma: '7C',
+  ano: '7',
+  unidade_educacional: 'EMEF - EMEF Professora Teste',
+  unidade_educacional_codigo_eol: '094633',
+  unidade_educacional_tipo: 'EMEF',
+  idade: 13,
 }
 
 const {
@@ -191,6 +203,34 @@ async function responderPerguntasSaudeComoNao(
   for (let indice = 0; indice < 5; indice += 1) {
     await usuario.click(screen.getAllByRole('radio', { name: 'Não' })[indice])
   }
+}
+
+async function responderInformacoesPorGrupo(
+  usuario: ReturnType<typeof userEvent.setup>,
+) {
+  const secao = screen.getByRole('button', {
+    name: /informações por grupo/i,
+  })
+  if (secao.getAttribute('aria-expanded') !== 'true') {
+    await usuario.click(secao)
+  }
+
+  const podeIrEmbora = screen.getByRole('radiogroup', {
+    name: /pode ir embora sozinho/i,
+  })
+  await usuario.click(within(podeIrEmbora).getByRole('radio', { name: 'Não' }))
+
+  const piscina = screen.getByRole('radiogroup', {
+    name: /autoriza uso da piscina/i,
+  })
+  await usuario.click(within(piscina).getByRole('radio', { name: 'Não' }))
+
+  await usuario.type(
+    screen.getByRole('textbox', {
+      name: /responsável por retirar na saída/i,
+    }),
+    'Maria Fernanda Santos',
+  )
 }
 
 describe('ParticipanteForm', () => {
@@ -894,6 +934,7 @@ describe('ParticipanteForm', () => {
     )
 
     obterParticipanteCpfMock.mockClear()
+    await responderInformacoesPorGrupo(usuario)
     await usuario.click(
       screen.getByRole('button', { name: /^finalizar inscrição$/i }),
     )
@@ -1454,6 +1495,7 @@ describe('ParticipanteForm', () => {
       '11988887777',
     )
     await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'ana@email.com')
+    await responderInformacoesPorGrupo(usuario)
     await usuario.click(
       screen.getByRole('button', { name: /^finalizar inscrição$/i }),
     )
@@ -1575,6 +1617,7 @@ describe('ParticipanteForm', () => {
     await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'Ana@Email.com')
 
     await responderPerguntasSaudeComoNao(usuario)
+    await responderInformacoesPorGrupo(usuario)
     await usuario.click(
       screen.getByRole('button', { name: /finalizar inscrição/i }),
     )
