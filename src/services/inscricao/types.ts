@@ -43,6 +43,14 @@ export type DadosCadastroInscricao = {
   restricao_medicamento_pronto_atendimento: string | null
   possui_convenio_medico: boolean
   convenio_medico: string | null
+  unidadeEducacional: string
+  unidadeEducacionalCodigoEol: string
+  unidadeEducacionalTipo: string
+  nomeTurma: string
+  ano: string
+  podeIrEmboraSozinho: '' | 'sim' | 'nao'
+  responsavelRetirada: string
+  autorizaUsoPiscina: '' | 'sim' | 'nao'
 }
 
 export type Inscricao = {
@@ -86,6 +94,14 @@ export type Inscricao = {
   restricao_medicamento_pronto_atendimento: string
   possui_convenio_medico: boolean
   convenio_medico: string
+  unidade_educacional: string
+  unidade_educacional_codigo_eol: string
+  unidade_educacional_tipo: string
+  nome_turma: string
+  ano: string
+  pode_ir_embora_sozinho: boolean | null
+  responsavel_retirada: string
+  autoriza_uso_piscina: boolean | null
 }
 
 export type FiltrosIncricoesParticipantes = {

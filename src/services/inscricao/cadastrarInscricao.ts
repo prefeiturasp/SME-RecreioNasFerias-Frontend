@@ -43,6 +43,20 @@ export async function cadastrarInscricao(
       dados.restricao_medicamento_pronto_atendimento,
     possui_convenio_medico: dados.possui_convenio_medico,
     convenio_medico: dados.convenio_medico,
+    unidade_educacional: dados.unidadeEducacional,
+    unidade_educacional_codigo_eol: dados.unidadeEducacionalCodigoEol,
+    unidade_educacional_tipo: dados.unidadeEducacionalTipo,
+    nome_turma: dados.nomeTurma,
+    ano: dados.ano,
+    pode_ir_embora_sozinho:
+      dados.podeIrEmboraSozinho === ''
+        ? null
+        : dados.podeIrEmboraSozinho === 'sim',
+    responsavel_retirada: dados.responsavelRetirada,
+    autoriza_uso_piscina:
+      dados.autorizaUsoPiscina === ''
+        ? null
+        : dados.autorizaUsoPiscina === 'sim',
   })
 
   return data
