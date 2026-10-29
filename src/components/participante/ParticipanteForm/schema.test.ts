@@ -34,6 +34,14 @@ const vazio = {
   qualRestricaoMedicamentoProntoAtendimento: '',
   temConvenioMedico: 'nao',
   qualConvenioMedico: '',
+  unidadeEducacional: '',
+  unidadeEducacionalCodigoEol: '',
+  unidadeEducacionalTipo: '',
+  nomeTurma: '',
+  ano: '',
+  podeIrEmboraSozinho: '',
+  responsavelRetirada: '',
+  autorizaUsoPiscina: '',
 }
 
 describe('ParticipanteForm schema', () => {
@@ -244,5 +252,71 @@ describe('ParticipanteForm schema', () => {
 
   it('aceita campos de saúde vazios quando não estão marcados como sim', () => {
     expect(formSchemaRascunho.safeParse(vazio).success).toBe(true)
+  })
+
+  it('aceita informações por grupo vazias no rascunho da rede', () => {
+    expect(
+      formSchemaRascunho.safeParse({
+        ...vazio,
+        tipoEstudante: 'ESTUDANTE_DA_REDE',
+      }).success,
+    ).toBe(true)
+  })
+
+  it('exige saída, retirada e piscina ao finalizar estudante da rede', () => {
+    const resultado = formSchema.safeParse({
+      ...vazio,
+      grupo: 'BERCARIO_I',
+      tipoEstudante: 'ESTUDANTE_DA_REDE',
+      cpf: '12345678901',
+      telefone1: '11999999999',
+      email: 'ana@email.com',
+      dreCodigoEol: 'dre',
+      polo: 'polo',
+      responsavelRetirada: '   ',
+    })
+
+    expect(resultado.success).toBe(false)
+    if (resultado.success) return
+    expect(resultado.error.issues.map((issue) => issue.path[0])).toEqual(
+      expect.arrayContaining([
+        'podeIrEmboraSozinho',
+        'responsavelRetirada',
+        'autorizaUsoPiscina',
+      ]),
+    )
+  })
+
+  it('aceita a finalização da rede com as respostas da seção', () => {
+    expect(
+      formSchema.safeParse({
+        ...vazio,
+        grupo: 'BERCARIO_I',
+        tipoEstudante: 'ESTUDANTE_DA_REDE',
+        cpf: '12345678901',
+        telefone1: '11999999999',
+        email: 'ana@email.com',
+        dreCodigoEol: 'dre',
+        polo: 'polo',
+        podeIrEmboraSozinho: 'nao',
+        responsavelRetirada: 'Maria Fernanda Santos',
+        autorizaUsoPiscina: 'sim',
+      }).success,
+    ).toBe(true)
+  })
+
+  it('não exige informações por grupo de quem não é estudante da rede', () => {
+    expect(
+      formSchema.safeParse({
+        ...vazio,
+        grupo: 'QUATRO_A_14_ANOS',
+        tipoEstudante: 'ESTUDANTE_EXTERNO',
+        cpf: '12345678901',
+        telefone1: '11999999999',
+        email: 'ana@email.com',
+        dreCodigoEol: 'dre',
+        polo: 'polo',
+      }).success,
+    ).toBe(true)
   })
 })

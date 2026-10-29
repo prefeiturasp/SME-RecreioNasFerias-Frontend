@@ -7,7 +7,7 @@ class ObservadorTamanho {
 globalThis.ResizeObserver ??=
   ObservadorTamanho as unknown as typeof ResizeObserver
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -67,6 +67,12 @@ const participanteEolVazio: ParticipanteEol = {
   telefone_contato_1: '',
   telefone_contato_2: '',
   email: '',
+  nome_turma: '',
+  ano: '',
+  unidade_educacional: '',
+  unidade_educacional_codigo_eol: '',
+  unidade_educacional_tipo: '',
+  idade: null,
 }
 
 const participanteEolExemplo: ParticipanteEol = {
@@ -85,6 +91,12 @@ const participanteEolExemplo: ParticipanteEol = {
   telefone_contato_1: '11988887777',
   telefone_contato_2: '',
   email: 'ana@email.com',
+  nome_turma: '7C',
+  ano: '7',
+  unidade_educacional: 'EMEF - EMEF Professora Teste',
+  unidade_educacional_codigo_eol: '094633',
+  unidade_educacional_tipo: 'EMEF',
+  idade: 13,
 }
 
 const {
@@ -191,6 +203,40 @@ async function responderPerguntasSaudeComoNao(
   for (let indice = 0; indice < 5; indice += 1) {
     await usuario.click(screen.getAllByRole('radio', { name: 'Não' })[indice])
   }
+}
+
+function nascimentoComUmAno() {
+  const hoje = new Date()
+  const mes = String(hoje.getMonth() + 1).padStart(2, '0')
+  return `${hoje.getFullYear() - 1}-${mes}-01`
+}
+
+async function responderInformacoesPorGrupo(
+  usuario: ReturnType<typeof userEvent.setup>,
+) {
+  const secao = screen.getByRole('button', {
+    name: /informações por grupo/i,
+  })
+  if (secao.getAttribute('aria-expanded') !== 'true') {
+    await usuario.click(secao)
+  }
+
+  const podeIrEmbora = screen.getByRole('radiogroup', {
+    name: /pode ir embora sozinho/i,
+  })
+  await usuario.click(within(podeIrEmbora).getByRole('radio', { name: 'Não' }))
+
+  const piscina = screen.getByRole('radiogroup', {
+    name: /autoriza uso da piscina/i,
+  })
+  await usuario.click(within(piscina).getByRole('radio', { name: 'Não' }))
+
+  await usuario.type(
+    screen.getByRole('textbox', {
+      name: /responsável por retirar na saída/i,
+    }),
+    'Maria Fernanda Santos',
+  )
 }
 
 describe('ParticipanteForm', () => {
@@ -894,6 +940,7 @@ describe('ParticipanteForm', () => {
     )
 
     obterParticipanteCpfMock.mockClear()
+    await responderInformacoesPorGrupo(usuario)
     await usuario.click(
       screen.getByRole('button', { name: /^finalizar inscrição$/i }),
     )
@@ -904,6 +951,14 @@ describe('ParticipanteForm', () => {
           cpf: '12345678901',
           codigoEol: '123456',
           nomeCompleto: 'ANNA JULIA ARAUJO SA',
+          unidadeEducacional: 'EMEF - EMEF Professora Teste',
+          unidadeEducacionalCodigoEol: '094633',
+          unidadeEducacionalTipo: 'EMEF',
+          nomeTurma: '7C',
+          ano: '7',
+          podeIrEmboraSozinho: 'nao',
+          responsavelRetirada: 'Maria Fernanda Santos',
+          autorizaUsoPiscina: 'nao',
         }),
         expect.anything(),
       )
@@ -1296,8 +1351,8 @@ describe('ParticipanteForm', () => {
         screen.getByRole('textbox', { name: /código eol/i }),
       ).toBeInTheDocument()
       expect(
-        screen.queryByRole('button', { name: /informações por grupo/i }),
-      ).not.toBeInTheDocument()
+        screen.getByRole('button', { name: /informações por grupo/i }),
+      ).toHaveAttribute('aria-expanded', 'false')
       expect(
         screen.getByRole('button', { name: /informações de saúde/i }),
       ).toBeInTheDocument()
@@ -1394,6 +1449,14 @@ describe('ParticipanteForm', () => {
           usuario_medicacao_ou_tratamento_continuo: false,
           possui_restricao_medicamento_pronto_atendimento: false,
           possui_convenio_medico: false,
+          unidadeEducacional: '',
+          unidadeEducacionalCodigoEol: '',
+          unidadeEducacionalTipo: '',
+          nomeTurma: '',
+          ano: '',
+          podeIrEmboraSozinho: '',
+          responsavelRetirada: '',
+          autorizaUsoPiscina: '',
         }),
         expect.anything(),
       )
@@ -1454,6 +1517,7 @@ describe('ParticipanteForm', () => {
       '11988887777',
     )
     await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'ana@email.com')
+    await responderInformacoesPorGrupo(usuario)
     await usuario.click(
       screen.getByRole('button', { name: /^finalizar inscrição$/i }),
     )
@@ -1575,6 +1639,7 @@ describe('ParticipanteForm', () => {
     await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'Ana@Email.com')
 
     await responderPerguntasSaudeComoNao(usuario)
+    await responderInformacoesPorGrupo(usuario)
     await usuario.click(
       screen.getByRole('button', { name: /finalizar inscrição/i }),
     )
@@ -1667,4 +1732,127 @@ describe('ParticipanteForm', () => {
       )
     })
   }, 15_000)
+
+  it('mostra os campos da rede, a idade em um ano e limpa ao sair da consulta', async () => {
+    const usuario = userEvent.setup()
+    obterParticipanteEolMock.mockResolvedValue({
+      ...participanteEolExemplo,
+      data_nascimento: nascimentoComUmAno(),
+    })
+    renderFormulario()
+
+    await escolherGrupo(usuario, 'Berçário I')
+    const secao = screen.getByRole('button', {
+      name: /informações por grupo/i,
+    })
+    expect(secao).toHaveAttribute('aria-expanded', 'false')
+    await usuario.click(secao)
+
+    expect(screen.getByLabelText(/\bidade\b/i)).toHaveValue('')
+    expect(screen.getByLabelText(/grupo do participante/i)).toBeDisabled()
+    expect(screen.getByLabelText(/grupo do participante/i)).toHaveTextContent(
+      'Berçário I',
+    )
+    const alunoRede = screen.getByRole('radiogroup', {
+      name: /é aluno da rede municipal/i,
+    })
+    expect(within(alunoRede).getByRole('radio', { name: 'Sim' })).toBeChecked()
+    expect(within(alunoRede).getByRole('radio', { name: 'Sim' })).toBeDisabled()
+    expect(within(alunoRede).getByRole('radio', { name: 'Não' })).toBeDisabled()
+    expect(
+      screen.getByLabelText(/unidade educacional do participante/i),
+    ).toHaveValue('')
+    expect(screen.getByLabelText(/turma \/ ano/i)).toHaveValue('')
+
+    const codigoEol = screen.getByRole('textbox', { name: /código eol/i })
+    await usuario.type(codigoEol, '123456')
+    await usuario.click(
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    )
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/\bidade\b/i)).toHaveValue('1 ano')
+    })
+    expect(
+      screen.getByLabelText(/unidade educacional do participante/i),
+    ).toHaveValue('EMEF - EMEF Professora Teste')
+    expect(
+      screen.getByLabelText(/unidade educacional do participante/i),
+    ).toHaveAttribute('readonly')
+    expect(screen.getByLabelText(/turma \/ ano/i)).toHaveValue('7C / 7')
+    expect(screen.getByLabelText(/turma \/ ano/i)).toHaveAttribute('readonly')
+
+    await usuario.type(
+      screen.getByRole('textbox', {
+        name: /responsável por retirar na saída/i,
+      }),
+      'Maria Fernanda Santos',
+    )
+    await usuario.type(codigoEol, '7')
+
+    expect(screen.getByLabelText(/\bidade\b/i)).toHaveValue('')
+    expect(
+      screen.getByLabelText(/unidade educacional do participante/i),
+    ).toHaveValue('')
+    expect(screen.getByLabelText(/turma \/ ano/i)).toHaveValue('')
+    expect(
+      screen.getByRole('textbox', {
+        name: /responsável por retirar na saída/i,
+      }),
+    ).toHaveValue('')
+  }, 15000)
+
+  it('abre a seção e impede finalizar sem as respostas da rede', async () => {
+    const usuario = userEvent.setup()
+    listarDresMock.mockResolvedValue([
+      {
+        codigo_dre: '108100',
+        nome_dre: 'DRE Butantã',
+        sigla_dre: 'BT',
+      },
+    ])
+    listarPolosElegiveisMock.mockImplementation(
+      async (dreCodigoEol: string) => [
+        {
+          uuid: `polo-${dreCodigoEol}`,
+          codigo_eol: '123456',
+          nome_polo: `Polo ${dreCodigoEol}`,
+          dre_codigo_eol: dreCodigoEol,
+          dre_nome: 'DRE Butantã',
+        },
+      ],
+    )
+    renderFormulario()
+
+    await responderPerguntasSaudeComoNao(usuario)
+    await usuario.type(
+      screen.getByRole('textbox', { name: /cpf do responsável/i }),
+      '12345678901',
+    )
+    await usuario.click(screen.getByLabelText(/\bdre\b/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: 'DRE Butantã' }),
+    )
+    await usuario.click(screen.getByLabelText(/polo de inscrição/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: 'Polo 108100' }),
+    )
+    await usuario.type(
+      screen.getByLabelText(/telefone de contato\/emergência 1/i),
+      '11988887777',
+    )
+    await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'ana@email.com')
+    await usuario.click(
+      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
+    )
+
+    const secao = screen.getByRole('button', {
+      name: /informações por grupo/i,
+    })
+    await waitFor(() => {
+      expect(secao).toHaveAttribute('aria-expanded', 'true')
+    })
+    expect(screen.getAllByText('Este campo é obrigatório.')).toHaveLength(3)
+    expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
+  }, 15000)
 })

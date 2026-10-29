@@ -43,6 +43,14 @@ const dadosInscricaoExemplo: DadosCadastroInscricao = {
   restricao_medicamento_pronto_atendimento: null,
   possui_convenio_medico: false,
   convenio_medico: null,
+  unidadeEducacional: 'EMEF - EMEF Professora Teste',
+  unidadeEducacionalCodigoEol: '094633',
+  unidadeEducacionalTipo: 'EMEF',
+  nomeTurma: '7C',
+  ano: '7',
+  podeIrEmboraSozinho: 'nao',
+  responsavelRetirada: 'Maria Fernanda Santos',
+  autorizaUsoPiscina: 'sim',
 }
 
 const payloadEsperado = {
@@ -80,6 +88,14 @@ const payloadEsperado = {
   restricao_medicamento_pronto_atendimento: null,
   possui_convenio_medico: false,
   convenio_medico: null,
+  unidade_educacional: 'EMEF - EMEF Professora Teste',
+  unidade_educacional_codigo_eol: '094633',
+  unidade_educacional_tipo: 'EMEF',
+  nome_turma: '7C',
+  ano: '7',
+  pode_ir_embora_sozinho: false,
+  responsavel_retirada: 'Maria Fernanda Santos',
+  autoriza_uso_piscina: true,
 } as const
 
 const respostaCadastroExemplo: Inscricao = {
@@ -128,6 +144,8 @@ describe('cadastrarInscricao', () => {
       dataNascimento: '',
       tipoEstudante: 'ESTUDANTE_EXTERNO',
       grupo: 'MINI_GRUPO_I',
+      podeIrEmboraSozinho: '',
+      autorizaUsoPiscina: '',
     })
 
     expect(apiPostMock).toHaveBeenCalledWith(
@@ -137,6 +155,8 @@ describe('cadastrarInscricao', () => {
         data_nascimento: null,
         tipo_estudante: 'ESTUDANTE_EXTERNO',
         grupo: 'MINI_GRUPO_I',
+        pode_ir_embora_sozinho: null,
+        autoriza_uso_piscina: null,
       }),
     )
   })
