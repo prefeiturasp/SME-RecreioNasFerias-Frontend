@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { InscricoesParticipantesListagem } from './index'
 import useGetInscricoes from '@/hooks/useGetInscricoes'
 import { useInscricoesParticipantesStore } from '@/stores/useInscricoesParticipantesStore'
+import { ToastProvider } from '@/contexts/ToastContext'
 
 // Mock dos hooks e dependências
 vi.mock('@/hooks/useGetInscricoes')
@@ -44,6 +45,16 @@ function criarResultadoQueryMock() {
   } as unknown as ReturnType<typeof useGetInscricoes>
 }
 
+function renderInscricoesParticipantesListagem() {
+  return render(
+    <ToastProvider>
+      <BrowserRouter>
+        <InscricoesParticipantesListagem />
+      </BrowserRouter>
+    </ToastProvider>,
+  )
+}
+
 describe('InscricoesParticipantesListagem', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -63,11 +74,7 @@ describe('InscricoesParticipantesListagem', () => {
   it('deve renderizar o título da listagem e os dados da tabela corretamente', () => {
     vi.mocked(useGetInscricoes).mockReturnValue(criarResultadoQueryMock())
 
-    render(
-      <BrowserRouter>
-        <InscricoesParticipantesListagem />
-      </BrowserRouter>,
-    )
+    renderInscricoesParticipantesListagem()
 
     // Verifica o título da seção
     expect(
@@ -83,11 +90,7 @@ describe('InscricoesParticipantesListagem', () => {
   it('deve renderizar o botão de ação (edição) com o link e acessibilidade corretos', () => {
     vi.mocked(useGetInscricoes).mockReturnValue(criarResultadoQueryMock())
 
-    render(
-      <BrowserRouter>
-        <InscricoesParticipantesListagem />
-      </BrowserRouter>,
-    )
+    renderInscricoesParticipantesListagem()
 
     const botaoEditar = screen.getByRole('link', {
       name: /editar inscrição joão da silva/i,
@@ -101,11 +104,7 @@ describe('InscricoesParticipantesListagem', () => {
 
     vi.mocked(useGetInscricoes).mockReturnValue(criarResultadoQueryMock())
 
-    render(
-      <BrowserRouter>
-        <InscricoesParticipantesListagem />
-      </BrowserRouter>,
-    )
+    renderInscricoesParticipantesListagem()
 
     const botaoProximaPagina = screen.queryByRole('button', {
       name: /próxima página/i,
@@ -140,11 +139,7 @@ describe('InscricoesParticipantesListagem', () => {
       isLoading: false,
     } as unknown as ReturnType<typeof useGetInscricoes>)
 
-    render(
-      <BrowserRouter>
-        <InscricoesParticipantesListagem />
-      </BrowserRouter>,
-    )
+    renderInscricoesParticipantesListagem()
 
     expect(screen.getByText('Ana Souza')).toBeInTheDocument()
     expect(screen.getByText('Polo Alternativo')).toBeInTheDocument()
@@ -158,11 +153,7 @@ describe('InscricoesParticipantesListagem', () => {
 
     vi.mocked(useGetInscricoes).mockReturnValue(criarResultadoQueryMock())
 
-    render(
-      <BrowserRouter>
-        <InscricoesParticipantesListagem />
-      </BrowserRouter>,
-    )
+    renderInscricoesParticipantesListagem()
 
     await user.click(
       screen.getByRole('combobox', { name: /itens por página/i }),
@@ -215,11 +206,7 @@ describe('InscricoesParticipantesListagem', () => {
       isLoading: false,
     } as unknown as ReturnType<typeof useGetInscricoes>)
 
-    const { container } = render(
-      <BrowserRouter>
-        <InscricoesParticipantesListagem />
-      </BrowserRouter>,
-    )
+    const { container } = renderInscricoesParticipantesListagem()
 
     for (const nomeColuna of [
       'tipo de estudante',

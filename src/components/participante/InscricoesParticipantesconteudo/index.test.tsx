@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { InscricoesParticipantesConteudo } from './index'
 import useGetInscricoes from '@/hooks/useGetInscricoes'
+import { ToastProvider } from '@/contexts/ToastContext'
 
 // Mock do hook useGetInscricoes para isolar o componente
 vi.mock('@/hooks/useGetInscricoes', () => ({
@@ -13,6 +14,14 @@ vi.mock('./FiltrosInscricoesParticipantesForm', () => ({
     <div data-testid="mock-filtros-form">Filtros Form Mock</div>
   ),
 }))
+
+function renderConteudo() {
+  return render(
+    <ToastProvider>
+      <InscricoesParticipantesConteudo />
+    </ToastProvider>,
+  )
+}
 
 describe('InscricoesParticipantesConteudo', () => {
   beforeEach(() => {
@@ -27,7 +36,7 @@ describe('InscricoesParticipantesConteudo', () => {
       isSuccess: true,
     } as unknown as ReturnType<typeof useGetInscricoes>)
 
-    render(<InscricoesParticipantesConteudo />)
+    renderConteudo()
 
     // Verifica se o hook foi acionado
     expect(useGetInscricoes).toHaveBeenCalledTimes(1)
@@ -44,7 +53,7 @@ describe('InscricoesParticipantesConteudo', () => {
       isSuccess: false,
     } as unknown as ReturnType<typeof useGetInscricoes>)
 
-    render(<InscricoesParticipantesConteudo />)
+    renderConteudo()
 
     expect(useGetInscricoes).toHaveBeenCalledTimes(1)
     expect(screen.getByTestId('mock-filtros-form')).toBeInTheDocument()

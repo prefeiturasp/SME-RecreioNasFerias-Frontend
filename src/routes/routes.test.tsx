@@ -356,11 +356,11 @@ describe('RotasAplicacao', () => {
 
     expect(await screen.findByText(/bem-vindo\(a\) ao/i)).toBeInTheDocument()
     expect(
-      screen.queryByRole('heading', { name: /cadastrar participante/i }),
+      screen.queryByRole('heading', { name: /inscrições de participantes/i }),
     ).not.toBeInTheDocument()
   })
 
-  it('renderiza a página Cadastrar Participante na rota /inscricoes-participantes quando autenticado', () => {
+  it('renderiza a página Cadastrar Participante na rota /cadastrar-participante quando autenticado', () => {
     definirSessaoAutenticacao({
       token: 'eyJ-token',
       rf: '1234567',
@@ -368,7 +368,7 @@ describe('RotasAplicacao', () => {
       descricaoCargo: 'CARGO TESTE',
     })
 
-    renderRotas('/inscricoes-participantes/cadastro')
+    renderRotas('/cadastrar-participante')
 
     const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
     expect(mapa).toHaveTextContent('Início')

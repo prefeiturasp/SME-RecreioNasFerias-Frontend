@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HistoricoDefinicaoPolo } from './index'
 import useGetHistoricoDefinicoesPolo from '@/hooks/useGetHistoricoDefinicoesPolo'
@@ -66,6 +66,64 @@ describe('Componente: HistoricoDefinicaoPolo', () => {
     // Como os valores numéricos/tipo retornam null, o componente usa fallback para '-'
     const hifens = screen.getAllByText('-')
     expect(hifens.length).toBeGreaterThan(0)
+  })
+
+  it('deve ordenar o histórico por todas as colunas', async () => {
+    const usuario = userEvent.setup()
+    mockUseGetHistoricoDefinicoesPolo.mockReturnValue({
+      data: {
+        count: 2,
+        results: [
+          {
+            edicao: { nome: 'Edição B' },
+            tipo: 'A',
+            tipo_label: 'Tipo A',
+            projecao_inscritos: 20,
+            resultado_final_de_inscritos: 3,
+          },
+          {
+            edicao: { nome: 'Edição A' },
+            tipo: 'B',
+            tipo_label: 'Tipo B',
+            projecao_inscritos: 10,
+            resultado_final_de_inscritos: 8,
+          },
+        ],
+      },
+      isLoading: false,
+    })
+
+    render(<HistoricoDefinicaoPolo poloUuid={mockPoloUuid} />)
+
+    const obterNomesDasEdicoes = () =>
+      within(screen.getByRole('table'))
+        .getAllByRole('row')
+        .slice(1)
+        .map((linha) => within(linha).getAllByRole('cell')[0].textContent)
+
+    expect(obterNomesDasEdicoes()).toEqual(['Edição A', 'Edição B'])
+
+    await usuario.click(
+      screen.getByRole('button', { name: /ordenar por tipo de polo/i }),
+    )
+    expect(obterNomesDasEdicoes()).toEqual(['Edição B', 'Edição A'])
+    expect(
+      within(screen.getByRole('table'))
+        .getAllByRole('row')[1]
+        .textContent,
+    ).toContain('Tipo A')
+
+    await usuario.click(
+      screen.getByRole('button', { name: /ordenar por projeção de inscritos/i }),
+    )
+    expect(obterNomesDasEdicoes()).toEqual(['Edição A', 'Edição B'])
+
+    await usuario.click(
+      screen.getByRole('button', {
+        name: /ordenar por resultado final de inscritos/i,
+      }),
+    )
+    expect(obterNomesDasEdicoes()).toEqual(['Edição B', 'Edição A'])
   })
 
   it('deve chamar o hook com os parâmetros corretos do polo', () => {

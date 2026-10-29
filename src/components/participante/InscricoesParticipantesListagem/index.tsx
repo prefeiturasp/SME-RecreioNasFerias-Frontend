@@ -1,12 +1,15 @@
+import { useEffect } from 'react'
 import type { DefinicaoColuna } from '@/components/TabelaListagem/types'
 import useGetInscricoes from '@/hooks/useGetInscricoes'
 import { useInscricoesParticipantesStore } from '@/stores/useInscricoesParticipantesStore'
 import { useShallow } from 'zustand/react/shallow'
+import { useToast } from '@/hooks/useToast'
 import { TabelaListagem } from '@/components/TabelaListagem'
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
 import { iconeLapisEditar } from '@/assets/'
 import type { InscricaoApi } from '@/services/inscricao/types'
+import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 
 const COLUNAS = [
   {
@@ -20,6 +23,12 @@ const COLUNAS = [
     rotulo: 'Polo de Inscrição',
     valorOrdenacao: (inscricao) => inscricao.polo_nome ?? inscricao.polo ?? '',
     renderizar: (inscricao) => inscricao.polo_nome ?? inscricao.polo ?? '-',
+  },
+  {
+    id: 'edicao',
+    rotulo: 'Edição',
+    valorOrdenacao: (inscricao) => inscricao.edicao?.nome ?? '',
+    renderizar: (inscricao) => inscricao.edicao?.nome ?? '-',
   },
   {
     id: 'codigo_eol',
@@ -55,6 +64,7 @@ const COLUNAS = [
 
 export function InscricoesParticipantesListagem() {
   const inscricoesQuery = useGetInscricoes()
+  const { showToast } = useToast()
 
   const { paginaAtual, itensPorPagina, setPaginaAtual, setItensPorPagina } =
     useInscricoesParticipantesStore(
@@ -81,45 +91,62 @@ export function InscricoesParticipantesListagem() {
     setPaginaAtual(1)
   }
 
+  useEffect(() => {
+    if (inscricoesQuery.error) {
+      showToast({
+        id: 'erro-api',
+        title: 'Erro ao carregar inscrições',
+        description: '',
+        variant: 'destructive',
+      })
+    }
+  }, [inscricoesQuery.error, showToast])
+
   return (
     <>
       <h4 id="secao-listagem" className="font-bold text-primary mt-3">
         Listagem de Participantes
       </h4>
 
-      <TabelaListagem
-        itens={inscricoes}
-        colunas={COLUNAS}
-        obterId={(item) => item.uuid}
-        colunaOrdenacaoInicial="nome_participante"
-        modoPaginacao="servidor"
-        paginaAtual={paginaAtual}
-        totalPaginas={totalPaginas}
-        itensPorPagina={itensPorPagina}
-        onMudarPagina={setPaginaAtual}
-        onMudarItensPorPagina={mudarItensPorPagina}
-        rotuloAcessivelPaginacao="Paginação das inscrições dos participantes"
-        renderizarAcoes={(inscricao) => (
-          <Button
-            asChild
-            variant="ghost"
-            size="icon-sm"
-            className="text-brand-dark"
-          >
-            <Link
-              to={'#'}
-              aria-label={`Editar inscrição ${inscricao.nome_participante}`}
+      {inscricoesQuery.isPending && (
+        <IndicadorCarregamento mensagem="Carregando inscrições..." />
+      )}
+
+      {!inscricoesQuery.isPending && !inscricoesQuery.isError && (
+        <TabelaListagem
+          itens={inscricoes}
+          colunas={COLUNAS}
+          obterId={(item) => item.uuid}
+          colunaOrdenacaoInicial="nome_participante"
+          modoPaginacao="servidor"
+          paginaAtual={paginaAtual}
+          totalPaginas={totalPaginas}
+          itensPorPagina={itensPorPagina}
+          onMudarPagina={setPaginaAtual}
+          onMudarItensPorPagina={mudarItensPorPagina}
+          rotuloAcessivelPaginacao="Paginação das inscrições dos participantes"
+          renderizarAcoes={(inscricao) => (
+            <Button
+              asChild
+              variant="ghost"
+              size="icon-sm"
+              className="text-brand-dark"
             >
-              <img
-                src={iconeLapisEditar}
-                alt=""
-                aria-hidden="true"
-                className="size-5"
-              />
-            </Link>
-          </Button>
-        )}
-      />
+              <Link
+                to={'#'}
+                aria-label={`Editar inscrição ${inscricao.nome_participante}`}
+              >
+                <img
+                  src={iconeLapisEditar}
+                  alt=""
+                  aria-hidden="true"
+                  className="size-5"
+                />
+              </Link>
+            </Button>
+          )}
+        />
+      )}
     </>
   )
 }

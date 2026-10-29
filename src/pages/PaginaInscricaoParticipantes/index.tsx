@@ -43,7 +43,7 @@ export default function PaginaInscricaoParticipantes() {
                   variant="default"
                   aria-label="Cadastrar Participante"
                   className="h-9.5 rounded-sm border-brand-dark px-4 font-bold text-white hover:bg-accent hover:text-brand-dark"
-                  onClick={() => navigate('/inscricoes-participantes/cadastro')}
+                  onClick={() => navigate('/cadastrar-participante')}
                 >
                   Cadastrar Participante
                 </Button>

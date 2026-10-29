@@ -4,9 +4,10 @@ import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { grupoExigeEstudanteDaRede, TIPO_ESTUDANTE_REDE } from './constantes'
 import { InformacoesBasicas } from './InformacoesBasicas'
+import { InformacoesPorGrupo } from './InformacoesPorGrupo'
 import { SecaoFormulario } from './SecaoFormulario'
 import type { FormValues } from './schema'
-import formSchema from './schema'
+import formSchema, { formSchemaRascunho } from './schema'
 
 import { BlocoTexto } from '@/components/BlocoTexto'
 import { Button } from '@/components/ui/button'
@@ -18,19 +19,25 @@ import { useGetPolosElegiveis } from '@/hooks/useGetPolosElegiveis'
 import { useGetValoresChoices } from '@/hooks/useGetValoresChoices'
 import { usePostInscricao } from '@/hooks/usePostInscricao'
 import { useToast } from '@/hooks/useToast'
-import type { ParticipanteEol } from '@/services/inscricao/types'
+import { extrairMensagemDeErro } from '@/services/api/extrairMensagemDeErro'
+import type {
+  DadosCadastroInscricao,
+  ParticipanteEol,
+} from '@/services/inscricao/types'
+import { InformacoesSaude } from './InformacoesSaude/index'
 
 function impedirBlurAntesDoClique(evento: MouseEvent<HTMLButtonElement>) {
   evento.preventDefault()
 }
 
-const CAMPOS_DO_PARTICIPANTE_VAZIOS = {
+const CAMPOS_DO_PARTICIPANTE_VAZIOS: Partial<FormValues> = {
   nomeCompleto: '',
   dataNascimento: '',
   nomeResponsavel: '',
   nomeSocialResponsavel: '',
   cep: '',
   logradouro: '',
+  tipoLogradouro: '',
   numero: '',
   complemento: '',
   bairro: '',
@@ -38,12 +45,54 @@ const CAMPOS_DO_PARTICIPANTE_VAZIOS = {
   telefone1: '',
   telefone2: '',
   email: '',
+  criancaComDeficiencia: '',
+  qualDeficiencia: [],
+  outraDeficiencia: '',
+  criancaComProblemaSaude: '',
+  qualProblemaSaude: [],
+  outroProblemaSaude: '',
+  medicacaoTratamentoContinuo: '',
+  qualMedicacaoTratamentoContinuo: '',
+  restricaoMedicamentoProntoAtendimento: '',
+  qualRestricaoMedicamentoProntoAtendimento: '',
+  temConvenioMedico: '',
+  qualConvenioMedico: '',
+  unidadeEducacional: '',
+  unidadeEducacionalCodigoEol: '',
+  unidadeEducacionalTipo: '',
+  nomeTurma: '',
+  ano: '',
+  podeIrEmboraSozinho: '',
+  responsavelRetirada: '',
+  autorizaUsoPiscina: '',
 }
+
+const CAMPOS_DO_GRUPO: (keyof FormValues)[] = [
+  'podeIrEmboraSozinho',
+  'responsavelRetirada',
+  'autorizaUsoPiscina',
+]
+
+const CAMPOS_DE_SAUDE: (keyof FormValues)[] = [
+  'criancaComDeficiencia',
+  'qualDeficiencia',
+  'outraDeficiencia',
+  'criancaComProblemaSaude',
+  'qualProblemaSaude',
+  'outroProblemaSaude',
+  'medicacaoTratamentoContinuo',
+  'qualMedicacaoTratamentoContinuo',
+  'restricaoMedicamentoProntoAtendimento',
+  'qualRestricaoMedicamentoProntoAtendimento',
+  'temConvenioMedico',
+  'qualConvenioMedico',
+]
 
 export function ParticipanteForm() {
   const navigate = useNavigate()
   const { showToast } = useToast()
   const cadastroMutation = usePostInscricao()
+  const schemaEnvio = useRef(formSchema)
   const buscaVigente = useRef<'codigoEol' | 'cpf' | null>(null)
   const [codigoEolConsulta, setCodigoEolConsulta] = useState<string>()
   const [cpfConsulta, setCpfConsulta] = useState<string>()
@@ -56,6 +105,9 @@ export function ParticipanteForm() {
     string | null
   >(null)
   const [cpfSincronizado, setCpfSincronizado] = useState<string | null>(null)
+  const [informacoesPorGrupoAberta, setInformacoesPorGrupoAberta] =
+    useState(false)
+  const [informacoesSaudeAberta, setInformacoesSaudeAberta] = useState(false)
   const eolDesabilitado = useMemo(
     () => origemConsulta === 'cpf',
     [origemConsulta],
@@ -65,7 +117,8 @@ export function ParticipanteForm() {
     [origemConsulta],
   )
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: (valores, contexto, opcoes) =>
+      zodResolver(schemaEnvio.current)(valores, contexto, opcoes),
     defaultValues: {
       grupo: '',
       tipoEstudante: '',
@@ -76,6 +129,7 @@ export function ParticipanteForm() {
       nomeResponsavel: '',
       nomeSocialResponsavel: '',
       cep: '',
+      tipoLogradouro: '',
       logradouro: '',
       numero: '',
       complemento: '',
@@ -86,6 +140,26 @@ export function ParticipanteForm() {
       email: '',
       dreCodigoEol: '',
       polo: '',
+      criancaComDeficiencia: '',
+      qualDeficiencia: [],
+      outraDeficiencia: '',
+      criancaComProblemaSaude: '',
+      qualProblemaSaude: [],
+      outroProblemaSaude: '',
+      medicacaoTratamentoContinuo: '',
+      qualMedicacaoTratamentoContinuo: '',
+      restricaoMedicamentoProntoAtendimento: '',
+      qualRestricaoMedicamentoProntoAtendimento: '',
+      temConvenioMedico: '',
+      qualConvenioMedico: '',
+      unidadeEducacional: '',
+      unidadeEducacionalCodigoEol: '',
+      unidadeEducacionalTipo: '',
+      nomeTurma: '',
+      ano: '',
+      podeIrEmboraSozinho: '',
+      responsavelRetirada: '',
+      autorizaUsoPiscina: '',
     },
   })
   const [grupo, tipoEstudante, dreCodigoEol] = useWatch({
@@ -142,8 +216,8 @@ export function ParticipanteForm() {
   ) {
     const codigoEol =
       origemConsulta === 'cpf'
-        ? form.getValues('codigoEol')
-        : participante.codigo_eol
+        ? participante.codigo_eol
+        : form.getValues('codigoEol')
 
     form.reset({
       ...form.getValues(),
@@ -154,6 +228,7 @@ export function ParticipanteForm() {
       nomeResponsavel: participante.responsavel_nome,
       nomeSocialResponsavel: participante.responsavel_nome_social,
       cep: participante.cep,
+      tipoLogradouro: participante.tipo_logradouro,
       logradouro: participante.logradouro,
       numero: participante.numero,
       complemento: participante.complemento,
@@ -162,6 +237,11 @@ export function ParticipanteForm() {
       telefone1: participante.telefone_contato_1,
       telefone2: participante.telefone_contato_2,
       email: participante.email,
+      unidadeEducacional: participante.unidade_educacional,
+      unidadeEducacionalCodigoEol: participante.unidade_educacional_codigo_eol,
+      unidadeEducacionalTipo: participante.unidade_educacional_tipo,
+      nomeTurma: participante.nome_turma,
+      ano: participante.ano,
     })
     setCodigoEolSincronizado(origemConsulta === 'cpf' ? null : codigoEol)
   }
@@ -239,6 +319,8 @@ export function ParticipanteForm() {
 
     if (cpfAlteradoAposConsulta) {
       limparCamposDoParticipante('', valor)
+      form.setValue('dreCodigoEol', '')
+      form.setValue('polo', '')
       setCpfConsulta(undefined)
       return
     }
@@ -247,6 +329,36 @@ export function ParticipanteForm() {
       setCpfConsulta(undefined)
     }
   }
+
+  const erroApi = useMemo(() => {
+    return (
+      consultaCpf.error ??
+      consultaParticipante.error ??
+      dresQuery.error ??
+      polosQuery.error ??
+      choicesQuery.error ??
+      cadastroMutation.error
+    )
+  }, [
+    consultaCpf.error,
+    consultaParticipante.error,
+    dresQuery.error,
+    polosQuery.error,
+    choicesQuery.error,
+    cadastroMutation.error,
+  ])
+
+  useEffect(() => {
+    if (erroApi && extrairMensagemDeErro(erroApi)) {
+      const mensagem = extrairMensagemDeErro(erroApi)
+      showToast({
+        id: 'erro-api',
+        title: 'Erro ao processar a inscrição',
+        variant: 'destructive',
+        description: mensagem,
+      })
+    }
+  }, [erroApi, showToast])
 
   useEffect(() => {
     if (!codigoEolConsulta || buscaVigente.current !== 'codigoEol') return
@@ -303,29 +415,91 @@ export function ParticipanteForm() {
 
     const dreNome =
       dres.find((dre) => dre.codigo_dre === dados.dreCodigoEol)?.nome_dre ?? ''
+    const {
+      criancaComDeficiencia,
+      qualDeficiencia,
+      outraDeficiencia,
+      criancaComProblemaSaude,
+      qualProblemaSaude,
+      outroProblemaSaude,
+      medicacaoTratamentoContinuo,
+      qualMedicacaoTratamentoContinuo,
+      restricaoMedicamentoProntoAtendimento,
+      qualRestricaoMedicamentoProntoAtendimento,
+      temConvenioMedico,
+      qualConvenioMedico,
+      ...dadosInscricao
+    } = dados
+    const textoOuVazio = (valor: string) => valor.trim() || ''
+    const dadosCadastro: DadosCadastroInscricao = {
+      ...dadosInscricao,
+      dreNome,
+      possui_deficiencia: criancaComDeficiencia === 'sim',
+      deficiencias:
+        criancaComDeficiencia === 'sim'
+          ? qualDeficiencia.map((opcao) => opcao.value)
+          : [],
+      outra_deficiencia:
+        criancaComDeficiencia === 'sim' ? textoOuVazio(outraDeficiencia) : '',
+      possui_problema_saude: criancaComProblemaSaude === 'sim',
+      problemas_saude:
+        criancaComProblemaSaude === 'sim'
+          ? qualProblemaSaude.map((opcao) => opcao.value)
+          : [],
+      outro_problema_saude:
+        criancaComProblemaSaude === 'sim'
+          ? textoOuVazio(outroProblemaSaude)
+          : '',
+      usuario_medicacao_ou_tratamento_continuo:
+        medicacaoTratamentoContinuo === 'sim',
+      medicacao_ou_tratamento_continuo:
+        medicacaoTratamentoContinuo === 'sim'
+          ? textoOuVazio(qualMedicacaoTratamentoContinuo)
+          : '',
+      possui_restricao_medicamento_pronto_atendimento:
+        restricaoMedicamentoProntoAtendimento === 'sim',
+      restricao_medicamento_pronto_atendimento:
+        restricaoMedicamentoProntoAtendimento === 'sim'
+          ? textoOuVazio(qualRestricaoMedicamentoProntoAtendimento)
+          : '',
+      possui_convenio_medico: temConvenioMedico === 'sim',
+      convenio_medico:
+        temConvenioMedico === 'sim' ? textoOuVazio(qualConvenioMedico) : '',
+    }
 
-    cadastroMutation.mutate(
-      {
-        ...dados,
-        dreNome,
+    cadastroMutation.mutate(dadosCadastro, {
+      onSuccess: (inscricao) => {
+        showToast({
+          id: 'inscricao-salva',
+          title: 'Inscrição salva com sucesso',
+          description: `Sua inscrição foi salva com o status: ${inscricao.status_label}`,
+          variant: 'success',
+        })
+        void navigate('/inscricoes-participantes')
       },
-      {
-        onSuccess: (inscricao) => {
-          showToast({
-            id: 'inscricao-salva',
-            description: inscricao.status_label,
-          })
-          navigate('/inscricoes-participantes')
-        },
-      },
-    )
+    })
   }
 
   return (
     <form
       noValidate
       aria-label="Formulário de cadastro de participante"
-      onSubmit={form.handleSubmit(salvar)}
+      onSubmit={(evento) => {
+        const submitter = evento.nativeEvent.submitter
+        schemaEnvio.current =
+          submitter instanceof HTMLElement &&
+          submitter.dataset.acao === 'rascunho'
+            ? formSchemaRascunho
+            : formSchema
+        void form.handleSubmit(salvar, (erros) => {
+          if (CAMPOS_DO_GRUPO.some((campo) => erros[campo])) {
+            setInformacoesPorGrupoAberta(true)
+          }
+          if (CAMPOS_DE_SAUDE.some((campo) => erros[campo])) {
+            setInformacoesSaudeAberta(true)
+          }
+        })(evento)
+      }}
       className="rounded-sm bg-background p-8 shadow-card max-md:p-4"
     >
       <FieldGroup className="gap-8">
@@ -347,14 +521,6 @@ export function ParticipanteForm() {
               polos={polos}
               tiposEstudante={tiposEstudante}
               grupos={grupos}
-              erro={
-                consultaCpf.error ??
-                consultaParticipante.error ??
-                cadastroMutation.error ??
-                dresQuery.error ??
-                polosQuery.error ??
-                choicesQuery.error
-              }
               consultandoCodigoEol={consultaParticipante.isFetching}
               consultandoCpf={consultaCpf.isFetching}
               onBuscarCodigoEol={consultarParticipante}
@@ -367,6 +533,29 @@ export function ParticipanteForm() {
               cpfDesabilitado={cpfDesabilitado}
             />
           </SecaoFormulario>
+
+          {camposLiberados && tipoEstudante === TIPO_ESTUDANTE_REDE && (
+            <SecaoFormulario
+              titulo="Informações por Grupo"
+              aberta={informacoesPorGrupoAberta}
+              aoMudarAbertura={setInformacoesPorGrupoAberta}
+            >
+              <InformacoesPorGrupo control={form.control} grupos={grupos} />
+            </SecaoFormulario>
+          )}
+
+          {camposLiberados && (
+            <SecaoFormulario
+              titulo="Informações de Saúde"
+              aberta={informacoesSaudeAberta}
+              aoMudarAbertura={setInformacoesSaudeAberta}
+            >
+              <InformacoesSaude
+                control={form.control}
+                setValue={form.setValue}
+              />
+            </SecaoFormulario>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2 max-md:flex-col-reverse max-md:[&>button]:w-full">
@@ -383,6 +572,7 @@ export function ParticipanteForm() {
             variant="outline"
             disabled={cadastroMutation.isPending}
             className="h-9.5 rounded-sm border-brand-dark px-4 font-bold text-brand-dark hover:bg-accent hover:text-brand-dark"
+            data-acao="rascunho"
             onMouseDown={impedirBlurAntesDoClique}
           >
             Salvar Rascunho
@@ -393,7 +583,7 @@ export function ParticipanteForm() {
             className="h-9.5 rounded-sm bg-brand-dark px-4 font-bold text-background hover:bg-brand-dark-hover disabled:bg-button-primary-disabled-bg disabled:opacity-100"
             onMouseDown={impedirBlurAntesDoClique}
           >
-            Salvar
+            Finalizar Inscrição
           </Button>
         </div>
       </FieldGroup>

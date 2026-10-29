@@ -21,6 +21,7 @@ export type DadosCadastroInscricao = {
   nomeSocialResponsavel: string
   cep: string
   logradouro: string
+  tipoLogradouro: string
   numero: string
   complemento: string
   bairro: string
@@ -30,6 +31,26 @@ export type DadosCadastroInscricao = {
   email: string
   dreCodigoEol: string
   dreNome: string
+  possui_deficiencia: boolean
+  deficiencias: string[]
+  outra_deficiencia: string | null
+  possui_problema_saude: boolean
+  problemas_saude: string[]
+  outro_problema_saude: string | null
+  usuario_medicacao_ou_tratamento_continuo: boolean
+  medicacao_ou_tratamento_continuo: string | null
+  possui_restricao_medicamento_pronto_atendimento: boolean
+  restricao_medicamento_pronto_atendimento: string | null
+  possui_convenio_medico: boolean
+  convenio_medico: string | null
+  unidadeEducacional: string
+  unidadeEducacionalCodigoEol: string
+  unidadeEducacionalTipo: string
+  nomeTurma: string
+  ano: string
+  podeIrEmboraSozinho: '' | 'sim' | 'nao'
+  responsavelRetirada: string
+  autorizaUsoPiscina: '' | 'sim' | 'nao'
 }
 
 export type Inscricao = {
@@ -61,6 +82,26 @@ export type Inscricao = {
   status: StatusInscricao
   status_label: string
   ativo: boolean
+  possui_deficiencia: boolean
+  deficiencias: string[]
+  outra_deficiencia: string
+  possui_problema_saude: boolean
+  problemas_saude: string[]
+  outro_problema_saude: string
+  usuario_medicacao_ou_tratamento_continuo: boolean
+  medicacao_ou_tratamento_continuo: string
+  possui_restricao_medicamento_pronto_atendimento: boolean
+  restricao_medicamento_pronto_atendimento: string
+  possui_convenio_medico: boolean
+  convenio_medico: string
+  unidade_educacional: string
+  unidade_educacional_codigo_eol: string
+  unidade_educacional_tipo: string
+  nome_turma: string
+  ano: string
+  pode_ir_embora_sozinho: boolean | null
+  responsavel_retirada: string
+  autoriza_uso_piscina: boolean | null
 }
 
 export type FiltrosIncricoesParticipantes = {
@@ -84,7 +125,13 @@ export const FILTROS_LISTAGEM_INSCRICOES_PARTICIPANTES_INICIAIS: FiltrosIncricoe
     tipo_estudante: '',
   }
 
-export type InscricaoApi = Inscricao & {
+export type EdicaoResumoInscricao = {
+  uuid: string
+  nome: string
+}
+
+export type InscricaoApi = Omit<Inscricao, 'edicao'> & {
+  edicao: EdicaoResumoInscricao | null
   grupo_label: string
   status_label: string
   polo_nome: string
@@ -107,6 +154,8 @@ export type ValoresChoicesInscricao = {
   grupo_inscricao: OpcaoChoice[]
   tipo_estudante: OpcaoChoice[]
   status_inscricao: OpcaoChoice[]
+  deficiencias: OpcaoChoice[]
+  problemas_saude: OpcaoChoice[]
 }
 
 export type PoloElegivel = {
@@ -124,6 +173,7 @@ export type ParticipanteEol = {
   responsavel_nome: string
   responsavel_nome_social: string
   cep: string
+  tipo_logradouro: string
   logradouro: string
   numero: string
   complemento: string
@@ -132,4 +182,10 @@ export type ParticipanteEol = {
   telefone_contato_1: string
   telefone_contato_2: string
   email: string
+  nome_turma: string
+  ano: string
+  unidade_educacional: string
+  unidade_educacional_codigo_eol: string
+  unidade_educacional_tipo: string
+  idade: number | null
 }

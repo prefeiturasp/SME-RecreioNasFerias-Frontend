@@ -21,6 +21,7 @@ const dadosInscricaoExemplo: DadosCadastroInscricao = {
   nomeSocialResponsavel: '',
   cep: '05508000',
   logradouro: 'Exemplo',
+  tipoLogradouro: 'Rua',
   numero: '100',
   complemento: '',
   bairro: 'Centro',
@@ -30,6 +31,26 @@ const dadosInscricaoExemplo: DadosCadastroInscricao = {
   email: 'maria@example.com',
   dreCodigoEol: '108100',
   dreNome: 'DRE Butantã',
+  possui_deficiencia: true,
+  deficiencias: ['DEFICIENCIA_A', 'OUTRO'],
+  outra_deficiencia: 'Deficiência informada pela família',
+  possui_problema_saude: false,
+  problemas_saude: [],
+  outro_problema_saude: null,
+  usuario_medicacao_ou_tratamento_continuo: false,
+  medicacao_ou_tratamento_continuo: null,
+  possui_restricao_medicamento_pronto_atendimento: false,
+  restricao_medicamento_pronto_atendimento: null,
+  possui_convenio_medico: false,
+  convenio_medico: null,
+  unidadeEducacional: 'EMEF - EMEF Professora Teste',
+  unidadeEducacionalCodigoEol: '094633',
+  unidadeEducacionalTipo: 'EMEF',
+  nomeTurma: '7C',
+  ano: '7',
+  podeIrEmboraSozinho: 'nao',
+  responsavelRetirada: 'Maria Fernanda Santos',
+  autorizaUsoPiscina: 'sim',
 }
 
 const payloadEsperado = {
@@ -45,6 +66,7 @@ const payloadEsperado = {
   responsavel_nome_social: '',
   cep: '05508000',
   logradouro: 'Exemplo',
+  tipo_logradouro: 'Rua',
   numero: '100',
   complemento: '',
   bairro: 'Centro',
@@ -54,17 +76,44 @@ const payloadEsperado = {
   email: 'maria@example.com',
   dre_codigo_eol: '108100',
   dre_nome: 'DRE Butantã',
+  possui_deficiencia: true,
+  deficiencias: ['DEFICIENCIA_A', 'OUTRO'] as string[],
+  outra_deficiencia: 'Deficiência informada pela família',
+  possui_problema_saude: false,
+  problemas_saude: [],
+  outro_problema_saude: null,
+  usuario_medicacao_ou_tratamento_continuo: false,
+  medicacao_ou_tratamento_continuo: null,
+  possui_restricao_medicamento_pronto_atendimento: false,
+  restricao_medicamento_pronto_atendimento: null,
+  possui_convenio_medico: false,
+  convenio_medico: null,
+  unidade_educacional: 'EMEF - EMEF Professora Teste',
+  unidade_educacional_codigo_eol: '094633',
+  unidade_educacional_tipo: 'EMEF',
+  nome_turma: '7C',
+  ano: '7',
+  pode_ir_embora_sozinho: false,
+  responsavel_retirada: 'Maria Fernanda Santos',
+  autoriza_uso_piscina: true,
 } as const
 
 const respostaCadastroExemplo: Inscricao = {
   uuid: '22222222-2222-2222-2222-222222222222',
   ...payloadEsperado,
-  tipo_logradouro: '',
+  tipo_logradouro: 'Rua',
   tipo_estudante_label: 'Estudante da rede',
   grupo_label: 'Berçário I',
   status: 'RASCUNHO',
   status_label: 'Rascunho',
   ativo: true,
+  problemas_saude: [],
+  deficiencias: [],
+  outro_problema_saude: '',
+  outra_deficiencia: '',
+  medicacao_ou_tratamento_continuo: '',
+  restricao_medicamento_pronto_atendimento: '',
+  convenio_medico: '',
 }
 
 describe('cadastrarInscricao', () => {
@@ -95,6 +144,8 @@ describe('cadastrarInscricao', () => {
       dataNascimento: '',
       tipoEstudante: 'ESTUDANTE_EXTERNO',
       grupo: 'MINI_GRUPO_I',
+      podeIrEmboraSozinho: '',
+      autorizaUsoPiscina: '',
     })
 
     expect(apiPostMock).toHaveBeenCalledWith(
@@ -104,9 +155,10 @@ describe('cadastrarInscricao', () => {
         data_nascimento: null,
         tipo_estudante: 'ESTUDANTE_EXTERNO',
         grupo: 'MINI_GRUPO_I',
+        pode_ir_embora_sozinho: null,
+        autoriza_uso_piscina: null,
       }),
     )
-    expect(apiPostMock.mock.calls[0]?.[1]).not.toHaveProperty('tipo_logradouro')
   })
 
   it('não envia campos que ficam só no formulário', async () => {
