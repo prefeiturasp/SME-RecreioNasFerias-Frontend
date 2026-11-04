@@ -10,6 +10,11 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ProvedorEstadoMenuLateral } from '@/contexts/EstadoMenuLateralContext'
+import {
+  definirSessaoAutenticacao,
+  limparSessaoAutenticacao,
+  PERMISSOES,
+} from '@/services/autenticacao'
 import { MenuLateral } from './index'
 
 vi.mock('@/assets/logo-sme-branco.png', () => ({
@@ -90,10 +95,25 @@ async function abrirMenuCompleto(usuario: ReturnType<typeof userEvent.setup>) {
 describe('MenuLateral', () => {
   beforeEach(() => {
     vi.useRealTimers()
+    limparSessaoAutenticacao()
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [
+        PERMISSOES.visualizarEdicoes,
+        PERMISSOES.visualizarDefinicoesPolos,
+        PERMISSOES.visualizarPolos,
+        PERMISSOES.visualizarInscricoesParticipantes,
+      ],
+    })
   })
 
   afterEach(() => {
     vi.useRealTimers()
+    limparSessaoAutenticacao()
   })
 
   it('inicia com o menu fechado e exibe o botão hambúrguer', () => {

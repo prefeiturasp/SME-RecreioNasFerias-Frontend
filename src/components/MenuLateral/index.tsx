@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { iconeCadastro } from '@/assets'
 import logoSmeBranco from '@/assets/logo-sme-branco.png'
 import { CloseIcon, IconeModuloInscricoes, MenuIcon } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { useEstadoMenuLateral } from '@/contexts/useEstadoMenuLateral'
+import { usePermissoesUsuario } from '@/hooks/usePermissoesUsuario'
 import { cn } from '@/lib/utils'
+import { PERMISSOES } from '@/services/autenticacao'
 import { useLocation } from 'react-router-dom'
 import { GrupoMenu } from './GrupoMenu'
 import { IconeCartaoMenu } from './IconeCartaoMenu'
@@ -16,33 +18,29 @@ const tituloMenu = (
   </h3>
 )
 
-const ROTAS_CADASTROS = [
-  '/edicoes-programa',
-  '/definicoes-polo',
-  '/polos-parceiros',
-] as const
-
-const SUBITENS_CADASTROS = [
+const ITENS_CADASTROS = [
   {
     rotulo: 'Cadastro de Edições',
     caminho: '/edicoes-programa',
+    permissao: PERMISSOES.visualizarEdicoes,
   },
   {
     rotulo: 'Definições de Polo',
     caminho: '/definicoes-polo',
+    permissao: PERMISSOES.visualizarDefinicoesPolos,
   },
   {
     rotulo: 'Cadastro de Polos Parceiros',
     caminho: '/polos-parceiros',
+    permissao: PERMISSOES.visualizarPolos,
   },
 ] as const
 
-const ROTAS_INSCRICOES = ['/inscricoes-participantes'] as const
-
-const SUBITENS_INSCRICOES = [
+const ITENS_INSCRICOES = [
   {
     rotulo: 'Inscrições de Participantes',
     caminho: '/inscricoes-participantes',
+    permissao: PERMISSOES.visualizarInscricoesParticipantes,
   },
 ] as const
 
@@ -50,6 +48,15 @@ const MENU_TRANSITION_MS = 200
 
 export function MenuLateral() {
   const location = useLocation()
+  const { possuiPermissao } = usePermissoesUsuario()
+  const subitensCadastros = useMemo(
+    () => ITENS_CADASTROS.filter((item) => possuiPermissao(item.permissao)),
+    [possuiPermissao],
+  )
+  const subitensInscricoes = useMemo(
+    () => ITENS_INSCRICOES.filter((item) => possuiPermissao(item.permissao)),
+    [possuiPermissao],
+  )
   const {
     menuAberto,
     abrirMenu: abrirMenuGlobal,
@@ -66,13 +73,21 @@ export function MenuLateral() {
   }, [menuAberto])
 
   useEffect(() => {
-    if (ROTAS_CADASTROS.some((rota) => location.pathname.startsWith(rota))) {
+    if (
+      subitensCadastros.some((item) =>
+        location.pathname.startsWith(item.caminho),
+      )
+    ) {
       setCadastrosExpandido(true)
     }
-    if (ROTAS_INSCRICOES.some((rota) => location.pathname.startsWith(rota))) {
+    if (
+      subitensInscricoes.some((item) =>
+        location.pathname.startsWith(item.caminho),
+      )
+    ) {
       setInscricoesExpandido(true)
     }
-  }, [location.pathname])
+  }, [location.pathname, subitensCadastros, subitensInscricoes])
 
   const abrirMenu = () => {
     setConteudoMenuVisivel(false)
@@ -139,32 +154,36 @@ export function MenuLateral() {
             </div>
 
             <ul className="m-0 flex list-none flex-col gap-2 px-1 pt-2.5">
-              <li>
-                <GrupoMenu
-                  rotulo="Cadastros"
-                  idSubmenu="submenu-cadastros"
-                  expandido={cadastrosExpandido}
-                  onExpandidoChange={setCadastrosExpandido}
-                  icone={<IconeCartaoMenu icone={iconeCadastro} />}
-                  subitens={SUBITENS_CADASTROS}
-                  pathname={location.pathname}
-                />
-              </li>
-              <li>
-                <GrupoMenu
-                  rotulo="Inscrições"
-                  idSubmenu="submenu-inscricoes"
-                  expandido={inscricoesExpandido}
-                  onExpandidoChange={setInscricoesExpandido}
-                  icone={
-                    <span className="flex size-6 shrink-0 items-center justify-center text-brand-dark [&_svg]:size-6">
-                      <IconeModuloInscricoes />
-                    </span>
-                  }
-                  subitens={SUBITENS_INSCRICOES}
-                  pathname={location.pathname}
-                />
-              </li>
+              {subitensCadastros.length > 0 && (
+                <li>
+                  <GrupoMenu
+                    rotulo="Cadastros"
+                    idSubmenu="submenu-cadastros"
+                    expandido={cadastrosExpandido}
+                    onExpandidoChange={setCadastrosExpandido}
+                    icone={<IconeCartaoMenu icone={iconeCadastro} />}
+                    subitens={subitensCadastros}
+                    pathname={location.pathname}
+                  />
+                </li>
+              )}
+              {subitensInscricoes.length > 0 && (
+                <li>
+                  <GrupoMenu
+                    rotulo="Inscrições"
+                    idSubmenu="submenu-inscricoes"
+                    expandido={inscricoesExpandido}
+                    onExpandidoChange={setInscricoesExpandido}
+                    icone={
+                      <span className="flex size-6 shrink-0 items-center justify-center text-brand-dark [&_svg]:size-6">
+                        <IconeModuloInscricoes />
+                      </span>
+                    }
+                    subitens={subitensInscricoes}
+                    pathname={location.pathname}
+                  />
+                </li>
+              )}
             </ul>
           </div>
 
