@@ -29,6 +29,8 @@ const respostaLoginExemplo = {
   ],
   nome: 'USUARIO TESTE',
   inexistenteEol: false,
+  perfis: ['USUARIO_UE'],
+  permissoes: ['core.visualizar_edicoes'],
   token: 'eyJ-token-exemplo',
 }
 
@@ -43,6 +45,8 @@ describe('autenticacao storage', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
 
     expect(obterSessaoAutenticacao()).toEqual({
@@ -50,6 +54,8 @@ describe('autenticacao storage', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
     expect(obterTokenAutenticacao()).toBe('eyJ-token')
     expect(estaAutenticado()).toBe(true)
@@ -61,6 +67,8 @@ describe('autenticacao storage', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
 
     const armazenado = localStorage.getItem('sme-recreio-auth-session')
@@ -69,6 +77,8 @@ describe('autenticacao storage', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
   })
 
@@ -78,6 +88,8 @@ describe('autenticacao storage', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO',
+      perfis: [],
+      permissoes: [],
     })
     limparSessaoAutenticacao()
     expect(obterSessaoAutenticacao()).toBeNull()
@@ -91,6 +103,8 @@ describe('autenticacao storage', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO',
+      perfis: [],
+      permissoes: [],
     })
 
     definirTokenAutenticacao('eyJ-token-renovado')
@@ -101,6 +115,8 @@ describe('autenticacao storage', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO',
+      perfis: [],
+      permissoes: [],
     })
   })
 })
@@ -112,6 +128,8 @@ describe('interpretarRespostaLogin', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: ['USUARIO_UE'],
+      permissoes: ['core.visualizar_edicoes'],
     })
   })
 
@@ -141,6 +159,8 @@ describe('extrairPerfilUsuario', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: ['USUARIO_UE'],
+      permissoes: ['core.visualizar_edicoes'],
     })
   })
 
@@ -176,6 +196,8 @@ describe('obterPerfilUsuario validação', () => {
         rf: '1234567',
         nome: 'USUARIO TESTE',
         descricaoCargo: 'CARGO',
+        perfis: [],
+        permissoes: [],
       }),
     )
 
@@ -183,6 +205,8 @@ describe('obterPerfilUsuario validação', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO',
+      perfis: [],
+      permissoes: [],
     })
     expect(obterSessaoAutenticacao()).toBeNull()
   })

@@ -29,6 +29,8 @@ const respostaMeExemplo = {
       descricaoCargo: 'CARGO TESTE',
     },
   ],
+  perfis: ['USUARIO_UE'],
+  permissoes: ['core.visualizar_inscricoes_participantes'],
 }
 
 describe('restaurarSessaoAutenticacao', () => {
@@ -45,6 +47,8 @@ describe('restaurarSessaoAutenticacao', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO',
+      perfis: [],
+      permissoes: [],
     })
 
     await restaurarSessaoAutenticacao()
@@ -65,6 +69,8 @@ describe('restaurarSessaoAutenticacao', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: ['USUARIO_UE'],
+      permissoes: ['core.visualizar_inscricoes_participantes'],
     })
     expect(sessaoVerificadaRecentemente()).toBe(true)
     expect(axiosPostMock).toHaveBeenCalledTimes(1)

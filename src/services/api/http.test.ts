@@ -83,6 +83,8 @@ describe('api (client HTTP principal)', () => {
       rf: '1234567',
       nome: 'Usuário Teste',
       descricaoCargo: 'Cargo Teste',
+      perfis: [],
+      permissoes: [],
     })
 
     const configs: InternalAxiosRequestConfig[] = []
@@ -130,6 +132,8 @@ describe('api (client HTTP principal)', () => {
       rf: '1234567',
       nome: 'Usuário Teste',
       descricaoCargo: 'Cargo Teste',
+      perfis: [],
+      permissoes: [],
     })
     atualizarTokenAutenticacaoViaRefreshMock.mockImplementation(async () => {
       modulos.definirTokenAutenticacao('eyJ-token-novo')
@@ -177,6 +181,8 @@ describe('api (client HTTP principal)', () => {
       rf: '1234567',
       nome: 'Usuário Teste',
       descricaoCargo: 'Cargo Teste',
+      perfis: [],
+      permissoes: [],
     })
     atualizarTokenAutenticacaoViaRefreshMock.mockResolvedValue(null)
 
@@ -204,6 +210,8 @@ describe('api (client HTTP principal)', () => {
       rf: '1234567',
       nome: 'Usuário Teste',
       descricaoCargo: 'Cargo Teste',
+      perfis: [],
+      permissoes: [],
     })
     atualizarTokenAutenticacaoViaRefreshMock.mockImplementation(async () => {
       modulos.definirTokenAutenticacao('eyJ-token-novo')
@@ -237,6 +245,8 @@ describe('api (client HTTP principal)', () => {
       rf: '1234567',
       nome: 'Usuário Teste',
       descricaoCargo: 'Cargo Teste',
+      perfis: [],
+      permissoes: [],
     })
     atualizarTokenAutenticacaoViaRefreshMock.mockResolvedValue(null)
 

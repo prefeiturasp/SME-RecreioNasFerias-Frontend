@@ -56,6 +56,8 @@ describe('RotaProtegida', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO',
+      perfis: [],
+      permissoes: [],
     })
 
     render(

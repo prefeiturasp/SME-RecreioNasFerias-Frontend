@@ -197,6 +197,8 @@ describe('RotasAplicacao', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
 
     render(
@@ -224,6 +226,8 @@ describe('RotasAplicacao', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
 
     renderRotas('/edicoes-programa')
@@ -243,6 +247,8 @@ describe('RotasAplicacao', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
 
     renderRotas('/polos-parceiros')
@@ -269,6 +275,8 @@ describe('RotasAplicacao', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
 
     renderRotas('/cadastrar-polo-parceiro')
@@ -286,6 +294,8 @@ describe('RotasAplicacao', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
 
     renderRotas('/editar-polo-parceiro/11111111-1111-1111-1111-111111111111')
@@ -303,6 +313,8 @@ describe('RotasAplicacao', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
 
     renderRotas('/definicoes-polo')
@@ -331,6 +343,8 @@ describe('RotasAplicacao', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
 
     renderRotas('/definicoes-polo/11c43c20-dfcb-4a26-a677-30703b7de766')
@@ -366,6 +380,8 @@ describe('RotasAplicacao', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
 
     renderRotas('/cadastrar-participante')
