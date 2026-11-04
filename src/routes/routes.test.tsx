@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   definirSessaoAutenticacao,
   limparSessaoAutenticacao,
+  PERMISSOES,
 } from '../services/autenticacao'
 import { ToastProvider } from '@/contexts/ToastContext'
 import { RotasAplicacao } from './index'
@@ -201,11 +202,7 @@ describe('RotasAplicacao', () => {
       permissoes: [],
     })
 
-    render(
-      <MemoryRouter initialEntries={['/inicio']}>
-        <RotasAplicacao />
-      </MemoryRouter>,
-    )
+    renderRotas('/inicio')
 
     const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
     expect(mapa).toHaveTextContent('Início')
@@ -227,7 +224,7 @@ describe('RotasAplicacao', () => {
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
       perfis: [],
-      permissoes: [],
+      permissoes: [PERMISSOES.visualizarEdicoes],
     })
 
     renderRotas('/edicoes-programa')
@@ -248,7 +245,7 @@ describe('RotasAplicacao', () => {
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
       perfis: [],
-      permissoes: [],
+      permissoes: [PERMISSOES.visualizarPolos],
     })
 
     renderRotas('/polos-parceiros')
@@ -276,7 +273,7 @@ describe('RotasAplicacao', () => {
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
       perfis: [],
-      permissoes: [],
+      permissoes: [PERMISSOES.criarPolos],
     })
 
     renderRotas('/cadastrar-polo-parceiro')
@@ -295,7 +292,7 @@ describe('RotasAplicacao', () => {
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
       perfis: [],
-      permissoes: [],
+      permissoes: [PERMISSOES.editarPolos],
     })
 
     renderRotas('/editar-polo-parceiro/11111111-1111-1111-1111-111111111111')
@@ -314,7 +311,7 @@ describe('RotasAplicacao', () => {
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
       perfis: [],
-      permissoes: [],
+      permissoes: [PERMISSOES.visualizarDefinicoesPolos],
     })
 
     renderRotas('/definicoes-polo')
@@ -344,7 +341,7 @@ describe('RotasAplicacao', () => {
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
       perfis: [],
-      permissoes: [],
+      permissoes: [PERMISSOES.visualizarDefinicoesPolos],
     })
 
     renderRotas('/definicoes-polo/11c43c20-dfcb-4a26-a677-30703b7de766')
@@ -381,7 +378,7 @@ describe('RotasAplicacao', () => {
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
       perfis: [],
-      permissoes: [],
+      permissoes: [PERMISSOES.criarInscricoesParticipantes],
     })
 
     renderRotas('/cadastrar-participante')

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { iconeCadastro } from '@/assets'
 import logoSmeBranco from '@/assets/logo-sme-branco.png'
@@ -49,13 +49,11 @@ const MENU_TRANSITION_MS = 200
 export function MenuLateral() {
   const location = useLocation()
   const { possuiPermissao } = usePermissoesUsuario()
-  const subitensCadastros = useMemo(
-    () => ITENS_CADASTROS.filter((item) => possuiPermissao(item.permissao)),
-    [possuiPermissao],
+  const subitensCadastros = ITENS_CADASTROS.filter((item) =>
+    possuiPermissao(item.permissao),
   )
-  const subitensInscricoes = useMemo(
-    () => ITENS_INSCRICOES.filter((item) => possuiPermissao(item.permissao)),
-    [possuiPermissao],
+  const subitensInscricoes = ITENS_INSCRICOES.filter((item) =>
+    possuiPermissao(item.permissao),
   )
   const {
     menuAberto,
@@ -74,20 +72,18 @@ export function MenuLateral() {
 
   useEffect(() => {
     if (
-      subitensCadastros.some((item) =>
-        location.pathname.startsWith(item.caminho),
-      )
+      ITENS_CADASTROS.some((item) => location.pathname.startsWith(item.caminho))
     ) {
       setCadastrosExpandido(true)
     }
     if (
-      subitensInscricoes.some((item) =>
+      ITENS_INSCRICOES.some((item) =>
         location.pathname.startsWith(item.caminho),
       )
     ) {
       setInscricoesExpandido(true)
     }
-  }, [location.pathname, subitensCadastros, subitensInscricoes])
+  }, [location.pathname])
 
   const abrirMenu = () => {
     setConteudoMenuVisivel(false)
