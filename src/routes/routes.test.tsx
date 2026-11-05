@@ -238,6 +238,26 @@ describe('RotasAplicacao', () => {
     ).toBeInTheDocument()
   })
 
+  it('redireciona para /inicio quando a sessão não tem a permissão da URL', () => {
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [PERMISSOES.visualizarInscricoesParticipantes],
+    })
+
+    renderRotas('/edicoes-programa')
+
+    const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
+    expect(mapa).toHaveTextContent('Início')
+    expect(mapa).not.toHaveTextContent('Edições do programa')
+    expect(
+      screen.queryByRole('heading', { name: /edições do programa/i }),
+    ).not.toBeInTheDocument()
+  })
+
   it('renderiza a página Cadastro de Polos Parceiros na rota /polos-parceiros quando autenticado', async () => {
     definirSessaoAutenticacao({
       token: 'eyJ-token',
