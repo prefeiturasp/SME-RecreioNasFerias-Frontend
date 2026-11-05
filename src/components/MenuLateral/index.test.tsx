@@ -10,6 +10,11 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ProvedorEstadoMenuLateral } from '@/contexts/EstadoMenuLateralContext'
+import {
+  definirSessaoAutenticacao,
+  limparSessaoAutenticacao,
+  PERMISSOES,
+} from '@/services/autenticacao'
 import { MenuLateral } from './index'
 
 vi.mock('@/assets/logo-sme-branco.png', () => ({
@@ -90,10 +95,25 @@ async function abrirMenuCompleto(usuario: ReturnType<typeof userEvent.setup>) {
 describe('MenuLateral', () => {
   beforeEach(() => {
     vi.useRealTimers()
+    limparSessaoAutenticacao()
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [
+        PERMISSOES.visualizarEdicoes,
+        PERMISSOES.visualizarDefinicoesPolos,
+        PERMISSOES.visualizarPolos,
+        PERMISSOES.visualizarInscricoesParticipantes,
+      ],
+    })
   })
 
   afterEach(() => {
     vi.useRealTimers()
+    limparSessaoAutenticacao()
   })
 
   it('inicia com o menu fechado e exibe o botão hambúrguer', () => {
@@ -148,6 +168,57 @@ describe('MenuLateral', () => {
     expect(
       screen.getByRole('link', { name: /inscrições de participantes/i }),
     ).toBeInTheDocument()
+  })
+
+  it('não renderiza Cadastros quando a sessão só pode ver inscrições', async () => {
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [PERMISSOES.visualizarInscricoesParticipantes],
+    })
+    const usuario = userEvent.setup()
+    renderMenuLateral()
+    await abrirMenuCompleto(usuario)
+
+    expect(
+      screen.queryByRole('button', { name: /cadastros/i }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /^inscrições$/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: /inscrições de participantes/i }),
+    ).toBeInTheDocument()
+  })
+
+  it('não renderiza Inscrições nem os outros cadastros quando a sessão só pode ver edições', async () => {
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [PERMISSOES.visualizarEdicoes],
+    })
+    const usuario = userEvent.setup()
+    renderMenuLateral()
+    await abrirMenuCompleto(usuario)
+
+    expect(
+      screen.getByRole('link', { name: /cadastro de edições/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: /definições de polo/i }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: /cadastro de polos parceiros/i }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /^inscrições$/i }),
+    ).not.toBeInTheDocument()
   })
 
   it('navega para /inscricoes-participantes ao clicar em Inscrições de Participantes', async () => {

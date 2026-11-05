@@ -4,6 +4,24 @@ function textoValido(valor: unknown): valor is string {
   return typeof valor === 'string' && valor.trim().length > 0
 }
 
+function extrairListaDeTextos(valor: unknown): string[] | null {
+  if (!Array.isArray(valor)) {
+    return null
+  }
+
+  const textos: string[] = []
+
+  for (const item of valor) {
+    if (!textoValido(item)) {
+      return null
+    }
+
+    textos.push(item.trim())
+  }
+
+  return textos
+}
+
 function extrairDescricaoCargo(cargos: unknown): string | null {
   if (!Array.isArray(cargos) || cargos.length === 0) {
     return null
@@ -28,8 +46,16 @@ export function extrairPerfilUsuario(dados: unknown): PerfilUsuario | null {
   const rf = resposta.rf
   const nome = resposta.nome
   const descricaoCargo = extrairDescricaoCargo(resposta.cargos)
+  const perfis = extrairListaDeTextos(resposta.perfis)
+  const permissoes = extrairListaDeTextos(resposta.permissoes)
 
-  if (!textoValido(rf) || !textoValido(nome) || !descricaoCargo) {
+  if (
+    !textoValido(rf) ||
+    !textoValido(nome) ||
+    !descricaoCargo ||
+    !perfis ||
+    !permissoes
+  ) {
     return null
   }
 
@@ -37,6 +63,8 @@ export function extrairPerfilUsuario(dados: unknown): PerfilUsuario | null {
     rf: rf.trim(),
     nome: nome.trim(),
     descricaoCargo,
+    perfis,
+    permissoes,
   }
 }
 

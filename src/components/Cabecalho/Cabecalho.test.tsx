@@ -19,6 +19,8 @@ const sessaoExemplo = {
   rf: '1234567',
   nome: 'USUARIO TESTE',
   descricaoCargo: 'CARGO TESTE',
+  perfis: [],
+  permissoes: [],
 }
 
 describe('Cabecalho', () => {

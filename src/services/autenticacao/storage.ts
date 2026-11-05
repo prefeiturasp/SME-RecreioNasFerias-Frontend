@@ -5,12 +5,32 @@ const AUTH_SESSION_STORAGE_KEY = 'sme-recreio-auth-session'
 
 let tokenAutenticacaoEmMemoria: string | null = null
 
+function extrairListaDeTextos(valor: unknown): string[] | null {
+  if (!Array.isArray(valor)) {
+    return null
+  }
+
+  const textos: string[] = []
+
+  for (const item of valor) {
+    if (typeof item !== 'string' || item.trim().length === 0) {
+      return null
+    }
+
+    textos.push(item.trim())
+  }
+
+  return textos
+}
+
 function validarPerfilUsuario(dados: unknown): PerfilUsuario | null {
   if (!dados || typeof dados !== 'object') {
     return null
   }
 
   const perfil = dados as Partial<PerfilUsuario>
+  const perfis = extrairListaDeTextos(perfil.perfis)
+  const permissoes = extrairListaDeTextos(perfil.permissoes)
 
   if (
     typeof perfil.rf === 'string' &&
@@ -18,12 +38,16 @@ function validarPerfilUsuario(dados: unknown): PerfilUsuario | null {
     typeof perfil.nome === 'string' &&
     perfil.nome.trim() &&
     typeof perfil.descricaoCargo === 'string' &&
-    perfil.descricaoCargo.trim()
+    perfil.descricaoCargo.trim() &&
+    perfis &&
+    permissoes
   ) {
     return {
       rf: perfil.rf.trim(),
       nome: perfil.nome.trim(),
       descricaoCargo: perfil.descricaoCargo.trim(),
+      perfis,
+      permissoes,
     }
   }
 
@@ -61,6 +85,8 @@ export function definirSessaoAutenticacao(session: SessaoAutenticacao): void {
     rf: session.rf,
     nome: session.nome,
     descricaoCargo: session.descricaoCargo,
+    perfis: session.perfis,
+    permissoes: session.permissoes,
   })
 }
 

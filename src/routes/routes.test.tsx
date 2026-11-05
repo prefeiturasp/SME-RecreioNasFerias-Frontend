@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   definirSessaoAutenticacao,
   limparSessaoAutenticacao,
+  PERMISSOES,
 } from '../services/autenticacao'
 import { ToastProvider } from '@/contexts/ToastContext'
 import { RotasAplicacao } from './index'
@@ -197,13 +198,11 @@ describe('RotasAplicacao', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
 
-    render(
-      <MemoryRouter initialEntries={['/inicio']}>
-        <RotasAplicacao />
-      </MemoryRouter>,
-    )
+    renderRotas('/inicio')
 
     const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
     expect(mapa).toHaveTextContent('Início')
@@ -224,6 +223,8 @@ describe('RotasAplicacao', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [PERMISSOES.visualizarEdicoes],
     })
 
     renderRotas('/edicoes-programa')
@@ -237,12 +238,34 @@ describe('RotasAplicacao', () => {
     ).toBeInTheDocument()
   })
 
+  it('redireciona para /inicio quando a sessão não tem a permissão da URL', () => {
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [PERMISSOES.visualizarInscricoesParticipantes],
+    })
+
+    renderRotas('/edicoes-programa')
+
+    const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
+    expect(mapa).toHaveTextContent('Início')
+    expect(mapa).not.toHaveTextContent('Edições do programa')
+    expect(
+      screen.queryByRole('heading', { name: /edições do programa/i }),
+    ).not.toBeInTheDocument()
+  })
+
   it('renderiza a página Cadastro de Polos Parceiros na rota /polos-parceiros quando autenticado', async () => {
     definirSessaoAutenticacao({
       token: 'eyJ-token',
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [PERMISSOES.visualizarPolos],
     })
 
     renderRotas('/polos-parceiros')
@@ -269,6 +292,8 @@ describe('RotasAplicacao', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [PERMISSOES.criarPolos],
     })
 
     renderRotas('/cadastrar-polo-parceiro')
@@ -286,6 +311,8 @@ describe('RotasAplicacao', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [PERMISSOES.editarPolos],
     })
 
     renderRotas('/editar-polo-parceiro/11111111-1111-1111-1111-111111111111')
@@ -303,6 +330,8 @@ describe('RotasAplicacao', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [PERMISSOES.visualizarDefinicoesPolos],
     })
 
     renderRotas('/definicoes-polo')
@@ -331,6 +360,8 @@ describe('RotasAplicacao', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [PERMISSOES.visualizarDefinicoesPolos],
     })
 
     renderRotas('/definicoes-polo/11c43c20-dfcb-4a26-a677-30703b7de766')
@@ -366,6 +397,8 @@ describe('RotasAplicacao', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [PERMISSOES.criarInscricoesParticipantes],
     })
 
     renderRotas('/cadastrar-participante')

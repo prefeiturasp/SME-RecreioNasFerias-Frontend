@@ -20,6 +20,8 @@ const respostaLoginValida = {
   ],
   nome: 'USUARIO TESTE',
   inexistenteEol: false,
+  perfis: [' USUARIO_UE '],
+  permissoes: [' core.visualizar_inscricoes_participantes '],
   token: 'eyJ-token-exemplo',
 }
 
@@ -30,6 +32,8 @@ describe('interpretarRespostaLogin', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: ['USUARIO_UE'],
+      permissoes: ['core.visualizar_inscricoes_participantes'],
     })
   })
 
@@ -41,12 +45,16 @@ describe('interpretarRespostaLogin', () => {
         rf: ' 1234567 ',
         nome: ' USUARIO TESTE ',
         cargos: [{ descricaoCargo: ' CARGO TESTE ' }],
+        perfis: [' USUARIO_UE '],
+        permissoes: [' core.visualizar_inscricoes_participantes '],
       }),
     ).toEqual({
       token: 'eyJ-token',
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: ['USUARIO_UE'],
+      permissoes: ['core.visualizar_inscricoes_participantes'],
     })
   })
 
@@ -84,6 +92,15 @@ describe('interpretarRespostaLogin', () => {
         cargos: [{ descricaoCargo: '' }],
       }),
     ).toBeNull()
+    expect(
+      interpretarRespostaLogin({ ...respostaLoginValida, perfis: 'UE' }),
+    ).toBeNull()
+    expect(
+      interpretarRespostaLogin({
+        ...respostaLoginValida,
+        permissoes: [1],
+      }),
+    ).toBeNull()
   })
 
   it('retorna null quando o primeiro cargo não é válido', () => {
@@ -105,6 +122,24 @@ describe('extrairPerfilUsuario', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: ['USUARIO_UE'],
+      permissoes: ['core.visualizar_inscricoes_participantes'],
+    })
+  })
+
+  it('aceita listas vazias de perfis e permissões', () => {
+    expect(
+      extrairPerfilUsuario({
+        ...respostaLoginValida,
+        perfis: [],
+        permissoes: [],
+      }),
+    ).toEqual({
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
   })
 
