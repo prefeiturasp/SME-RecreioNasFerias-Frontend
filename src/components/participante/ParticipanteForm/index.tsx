@@ -504,6 +504,8 @@ export function ParticipanteForm() {
       possui_convenio_medico: temConvenioMedico === 'sim',
       convenio_medico:
         temConvenioMedico === 'sim' ? textoOuVazio(qualConvenioMedico) : '',
+      tipoEscola:
+        dados.tipoEstudante === TIPO_ESTUDANTE_EXTERNO ? dados.tipoEscola : '',
     }
 
     cadastroMutation.mutate(dadosCadastro, {
