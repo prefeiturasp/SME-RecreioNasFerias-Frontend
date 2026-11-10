@@ -1577,8 +1577,8 @@ describe('ParticipanteForm', () => {
       screen.queryByRole('textbox', { name: /cpf do responsável/i }),
     ).not.toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: /informações por grupo/i }),
-    ).toBeInTheDocument()
+      screen.getByRole('button', { name: /informações por grupo/i }),
+    ).toHaveAttribute('aria-expanded', 'false')
     expect(
       screen.getByRole('button', { name: /informações de saúde/i }),
     ).toBeInTheDocument()
