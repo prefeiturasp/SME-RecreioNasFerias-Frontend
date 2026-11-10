@@ -129,12 +129,12 @@ export function InformacoesBasicas({
               onBuscarCpf={onBuscarCpf}
               aoMudarCpf={aoMudarCpf}
             />
-          ) : tipoEstudante === TIPO_ESTUDANTE_EXTERNO ? (
+          ) : (
             <CPFParticipanteEstudanteExterno
               control={control}
               setValue={setValue}
             />
-          ) : null}
+          )}
 
           <FormField
             control={control}

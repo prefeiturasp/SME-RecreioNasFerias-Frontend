@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import formSchema, { formSchemaRascunho } from './schema'
+import { MENSAGEM_DUPLICIDADE_CPF_PARTICIPANTE } from './constantes'
 
 const vazio = {
   grupo: '',
   tipoEstudante: '',
   codigoEol: '',
   cpf: '',
+  cpf_participante: '',
+  possuiInscricaoCpfParticipante: false,
   nomeCompleto: '',
   dataNascimento: '',
   nomeResponsavel: '',
@@ -88,6 +91,70 @@ describe('ParticipanteForm schema', () => {
         ...identificador,
       }).success,
     ).toBe(true)
+  })
+
+  it('exige o CPF do participante externo e não exige a identificação EOL', () => {
+    const resultado = formSchema.safeParse({
+      ...vazio,
+      grupo: 'QUATRO_A_14_ANOS',
+      tipoEstudante: 'ESTUDANTE_EXTERNO',
+      cpf_participante: '12345678901',
+      nomeCompleto: 'Ana Souza',
+      dataNascimento: '2018-01-01',
+      cpf: '12345678901',
+      nomeResponsavel: 'Maria Souza',
+      cep: '01001000',
+      logradouro: 'Praça da Sé',
+      numero: '1',
+      bairro: 'Sé',
+      cidade: 'São Paulo',
+      telefone1: '11999999999',
+      email: 'ana@email.com',
+      dreCodigoEol: 'dre',
+      polo: 'polo',
+    })
+
+    expect(resultado.success).toBe(true)
+  })
+
+  it('rejeita CPF de estudante externo com inscrição na edição vigente', () => {
+    const resultado = formSchema.safeParse({
+      ...vazio,
+      tipoEstudante: 'ESTUDANTE_EXTERNO',
+      cpf_participante: '12345678901',
+      possuiInscricaoCpfParticipante: true,
+    })
+
+    expect(resultado.success).toBe(false)
+    if (resultado.success) return
+    expect(resultado.error.issues).toContainEqual(
+      expect.objectContaining({
+        path: ['cpf_participante'],
+        message: MENSAGEM_DUPLICIDADE_CPF_PARTICIPANTE,
+      }),
+    )
+  })
+
+  it('exige CPF do participante somente para estudante externo', () => {
+    const resultado = formSchema.safeParse({
+      ...vazio,
+      tipoEstudante: 'ESTUDANTE_EXTERNO',
+      cpf_participante: '',
+    })
+
+    expect(resultado.success).toBe(false)
+    if (resultado.success) return
+    expect(resultado.error.issues).toContainEqual(
+      expect.objectContaining({
+        path: ['cpf_participante'],
+        message: 'Este campo é obrigatório.',
+      }),
+    )
+    const caminhosDosErros = resultado.error.issues.map(
+      (issue) => issue.path[0],
+    )
+    expect(caminhosDosErros).not.toContain('codigoEol')
+    expect(caminhosDosErros).toContain('cpf')
   })
 
   it.each(['codigoEol', 'cpf'] as const)(
@@ -305,13 +372,47 @@ describe('ParticipanteForm schema', () => {
     ).toBe(true)
   })
 
+  it('rejeita a finalização com idade igual ou superior a 15 anos', () => {
+    const dataNascimento = `${new Date().getFullYear() - 16}-01-01`
+    const resultado = formSchema.safeParse({
+      ...vazio,
+      dataNascimento,
+    })
+
+    expect(resultado.success).toBe(false)
+    if (resultado.success) return
+    expect(resultado.error.issues).toContainEqual(
+      expect.objectContaining({
+        path: ['dataNascimento'],
+        message:
+          'A data de nascimento informada excede a faixa etária permitida para participação no Recreio nas Férias.',
+      }),
+    )
+  })
+
+  it('mantém a validação de idade fora do rascunho', () => {
+    const dataNascimento = `${new Date().getFullYear() - 16}-01-01`
+    expect(
+      formSchemaRascunho.safeParse({ ...vazio, dataNascimento }).success,
+    ).toBe(true)
+  })
+
   it('não exige informações por grupo de quem não é estudante da rede', () => {
     expect(
       formSchema.safeParse({
         ...vazio,
         grupo: 'QUATRO_A_14_ANOS',
         tipoEstudante: 'ESTUDANTE_EXTERNO',
+        cpf_participante: '12345678901',
+        nomeCompleto: 'Ana Souza',
+        dataNascimento: '2018-01-01',
         cpf: '12345678901',
+        nomeResponsavel: 'Maria Souza',
+        cep: '01001000',
+        logradouro: 'Praça da Sé',
+        numero: '1',
+        bairro: 'Sé',
+        cidade: 'São Paulo',
         telefone1: '11999999999',
         email: 'ana@email.com',
         dreCodigoEol: 'dre',

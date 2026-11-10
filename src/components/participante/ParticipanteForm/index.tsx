@@ -441,6 +441,11 @@ export function ParticipanteForm() {
 
     const dreNome =
       dres.find((dre) => dre.codigo_dre === dados.dreCodigoEol)?.nome_dre ?? ''
+    const dadosSemInscricaoCpfParticipante = { ...dados }
+    Reflect.deleteProperty(
+      dadosSemInscricaoCpfParticipante,
+      'possuiInscricaoCpfParticipante',
+    )
     const {
       criancaComDeficiencia,
       qualDeficiencia,
@@ -454,10 +459,8 @@ export function ParticipanteForm() {
       qualRestricaoMedicamentoProntoAtendimento,
       temConvenioMedico,
       qualConvenioMedico,
-      possuiInscricaoCpfParticipante,
       ...dadosInscricao
-    } = dados
-    void possuiInscricaoCpfParticipante
+    } = dadosSemInscricaoCpfParticipante
     const textoOuVazio = (valor: string) => valor.trim() || ''
     const dadosCadastro: DadosCadastroInscricao = {
       ...dadosInscricao,
