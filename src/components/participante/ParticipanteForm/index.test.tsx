@@ -17,6 +17,7 @@ import type {
 } from '@/services/inscricao/types'
 import {
   MENSAGEM_DUPLICIDADE_CPF_PARTICIPANTE,
+  TIPO_ESTUDANTE_EXTERNO,
   TIPO_ESTUDANTE_REDE,
 } from './constantes'
 import { ParticipanteForm } from './index'
@@ -222,6 +223,16 @@ function nascimentoComUmAno() {
   const hoje = new Date()
   const mes = String(hoje.getMonth() + 1).padStart(2, '0')
   return `${hoje.getFullYear() - 1}-${mes}-01`
+}
+
+async function escolherEstudanteExterno(
+  usuario: ReturnType<typeof userEvent.setup>,
+) {
+  await escolherGrupo(usuario, ROTULO_QUATRO_A_14)
+  await usuario.click(screen.getByLabelText(/tipo de estudante/i))
+  await usuario.click(
+    screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
+  )
 }
 
 async function responderInformacoesPorGrupo(
@@ -1954,6 +1965,9 @@ describe('ParticipanteForm', () => {
     expect(within(alunoRede).getByRole('radio', { name: 'Sim' })).toBeDisabled()
     expect(within(alunoRede).getByRole('radio', { name: 'Não' })).toBeDisabled()
     expect(
+      screen.queryByRole('radiogroup', { name: /tipo de escola/i }),
+    ).not.toBeInTheDocument()
+    expect(
       screen.getByLabelText(/unidade educacional do participante/i),
     ).toHaveValue('')
     expect(screen.getByLabelText(/turma \/ ano/i)).toHaveValue('')
@@ -2048,5 +2062,153 @@ describe('ParticipanteForm', () => {
     })
     expect(screen.getAllByText('Este campo é obrigatório.')).toHaveLength(3)
     expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
+  }, 15000)
+
+  it('exibe tipo de escola para o estudante externo e aceita a escolha', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await escolherEstudanteExterno(usuario)
+    await usuario.click(
+      screen.getByRole('button', { name: /informações por grupo/i }),
+    )
+
+    expect(
+      screen.queryByRole('radiogroup', { name: /é aluno da rede municipal/i }),
+    ).not.toBeInTheDocument()
+    const tipoEscola = screen.getByRole('radiogroup', {
+      name: /tipo de escola/i,
+    })
+    const estadual = within(tipoEscola).getByRole('radio', { name: 'Estadual' })
+    const particular = within(tipoEscola).getByRole('radio', {
+      name: 'Particular',
+    })
+
+    await usuario.click(estadual)
+    expect(estadual).toBeChecked()
+    expect(particular).not.toBeChecked()
+
+    await usuario.click(particular)
+    expect(particular).toBeChecked()
+    expect(estadual).not.toBeChecked()
+
+    await usuario.click(
+      screen.getByRole('button', { name: /salvar rascunho/i }),
+    )
+    await waitFor(() => {
+      expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tipoEstudante: TIPO_ESTUDANTE_EXTERNO,
+          tipoEscola: 'PARTICULAR',
+        }),
+        expect.anything(),
+      )
+    })
+  }, 15000)
+
+  it('impede finalizar o estudante externo sem tipo de escola', async () => {
+    const usuario = userEvent.setup()
+    listarDresMock.mockResolvedValue([
+      {
+        codigo_dre: '108100',
+        nome_dre: 'DRE Butantã',
+        sigla_dre: 'BT',
+      },
+    ])
+    listarPolosElegiveisMock.mockImplementation(
+      async (dreCodigoEol: string) => [
+        {
+          uuid: `polo-${dreCodigoEol}`,
+          codigo_eol: '123456',
+          nome_polo: `Polo ${dreCodigoEol}`,
+          dre_codigo_eol: dreCodigoEol,
+          dre_nome: 'DRE Butantã',
+        },
+      ],
+    )
+    renderFormulario()
+
+    await escolherEstudanteExterno(usuario)
+    await responderPerguntasSaudeComoNao(usuario)
+    await usuario.type(
+      screen.getByRole('textbox', { name: /cpf do\(a\) participante/i }),
+      '12345678901',
+    )
+    await usuario.type(
+      screen.getByRole('textbox', {
+        name: /nome completo do\(a\) participante/i,
+      }),
+      'Ana Souza',
+    )
+    await usuario.type(
+      screen.getByRole('textbox', {
+        name: /data de nascimento do\(a\) participante/i,
+      }),
+      `01/01/${new Date().getFullYear() - 8}`,
+    )
+    await usuario.type(
+      screen.getByRole('textbox', { name: /cpf do\(a\) responsável/i }),
+      '10987654321',
+    )
+    await usuario.type(
+      screen.getByRole('textbox', {
+        name: /nome completo do\(a\) responsável/i,
+      }),
+      'Maria Souza',
+    )
+    await usuario.type(screen.getByLabelText(/\bcep\b/i), '01310100')
+    await usuario.type(screen.getByLabelText(/\blogradouro\b/i), 'Rua A')
+    await usuario.type(screen.getByLabelText(/\bnúmero\b/i), '10')
+    await usuario.type(screen.getByLabelText(/\bbairro\b/i), 'Centro')
+    await usuario.type(screen.getByLabelText(/\bcidade\b/i), 'São Paulo')
+    await usuario.click(screen.getByLabelText(/\bdre\b/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: 'DRE Butantã' }),
+    )
+    await usuario.click(screen.getByLabelText(/polo de inscrição/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: 'Polo 108100' }),
+    )
+    await usuario.type(
+      screen.getByLabelText(/telefone de contato\/emergência 1/i),
+      '11988887777',
+    )
+    await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'ana@email.com')
+    await usuario.click(
+      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
+    )
+
+    const secao = screen.getByRole('button', {
+      name: /informações por grupo/i,
+    })
+    await waitFor(() => {
+      expect(secao).toHaveAttribute('aria-expanded', 'true')
+    })
+    expect(screen.getByText('Este campo é obrigatório.')).toBeInTheDocument()
+    expect(
+      screen.getByRole('radiogroup', { name: /tipo de escola/i }),
+    ).toBeInTheDocument()
+    expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
+  }, 15000)
+
+  it('salva o rascunho do estudante externo sem tipo de escola', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await escolherEstudanteExterno(usuario)
+    await usuario.click(
+      screen.getByRole('button', { name: /salvar rascunho/i }),
+    )
+
+    await waitFor(() => {
+      expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tipoEstudante: TIPO_ESTUDANTE_EXTERNO,
+          grupo: 'QUATRO_A_14_ANOS',
+          tipoEscola: '',
+        }),
+        expect.anything(),
+      )
+    })
   }, 15000)
 })
