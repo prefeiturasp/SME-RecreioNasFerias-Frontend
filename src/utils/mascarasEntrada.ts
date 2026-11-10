@@ -2,6 +2,13 @@ export function extrairDigitos(valor: string): string {
   return valor.replaceAll(/\D/g, '')
 }
 
+export function aplicarMascaraData(valor: string): string {
+  const digitos = extrairDigitos(valor).slice(0, 8)
+  if (digitos.length <= 2) return digitos
+  if (digitos.length <= 4) return `${digitos.slice(0, 2)}/${digitos.slice(2)}`
+  return `${digitos.slice(0, 2)}/${digitos.slice(2, 4)}/${digitos.slice(4)}`
+}
+
 export function aplicarMascaraCep(valor: string): string {
   const digitos = extrairDigitos(valor).slice(0, 8)
 
