@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import formSchema, { formSchemaRascunho } from './schema'
+import { MENSAGEM_DUPLICIDADE_CPF_PARTICIPANTE } from './constantes'
 
 const vazio = {
   grupo: '',
   tipoEstudante: '',
   codigoEol: '',
   cpf: '',
+  cpf_participante: '',
+  possuiInscricaoCpfParticipante: false,
   nomeCompleto: '',
   dataNascimento: '',
   nomeResponsavel: '',
@@ -88,6 +91,136 @@ describe('ParticipanteForm schema', () => {
         ...identificador,
       }).success,
     ).toBe(true)
+  })
+
+  it('exige o CPF do participante externo e não exige a identificação EOL', () => {
+    const resultado = formSchema.safeParse({
+      ...vazio,
+      grupo: 'QUATRO_A_14_ANOS',
+      tipoEstudante: 'ESTUDANTE_EXTERNO',
+      cpf_participante: '12345678901',
+      nomeCompleto: 'Ana Souza',
+      dataNascimento: '2018-01-01',
+      cpf: '12345678901',
+      nomeResponsavel: 'Maria Souza',
+      cep: '01001000',
+      logradouro: 'Praça da Sé',
+      numero: '1',
+      bairro: 'Sé',
+      cidade: 'São Paulo',
+      telefone1: '11999999999',
+      email: 'ana@email.com',
+      dreCodigoEol: 'dre',
+      polo: 'polo',
+    })
+
+    expect(resultado.success).toBe(true)
+  })
+
+  it('rejeita CPF de estudante externo com inscrição na edição vigente', () => {
+    const resultado = formSchema.safeParse({
+      ...vazio,
+      tipoEstudante: 'ESTUDANTE_EXTERNO',
+      cpf_participante: '12345678901',
+      possuiInscricaoCpfParticipante: true,
+    })
+
+    expect(resultado.success).toBe(false)
+    if (resultado.success) return
+    expect(resultado.error.issues).toContainEqual(
+      expect.objectContaining({
+        path: ['cpf_participante'],
+        message: MENSAGEM_DUPLICIDADE_CPF_PARTICIPANTE,
+      }),
+    )
+  })
+
+  it.each([
+    ['', 'Este campo é obrigatório.'],
+    ['123', 'Informe um CPF válido.'],
+  ])(
+    'mantém os erros de CPF e duplicidade para estudante externo com CPF %s',
+    (cpfParticipante, mensagem) => {
+      const resultado = formSchema.safeParse({
+        ...vazio,
+        tipoEstudante: 'ESTUDANTE_EXTERNO',
+        cpf_participante: cpfParticipante,
+        possuiInscricaoCpfParticipante: true,
+      })
+
+      expect(resultado.success).toBe(false)
+      if (resultado.success) return
+      expect(
+        resultado.error.issues
+          .filter(
+            (issue) =>
+              issue.code === 'custom' && issue.path[0] === 'cpf_participante',
+          )
+          .map((issue) => issue.message),
+      ).toEqual([mensagem, MENSAGEM_DUPLICIDADE_CPF_PARTICIPANTE])
+    },
+  )
+
+  it('exige todos os dados de identificação do estudante externo na ordem prevista', () => {
+    const resultado = formSchema.safeParse({
+      ...vazio,
+      tipoEstudante: 'ESTUDANTE_EXTERNO',
+      cpf_participante: '12345678901',
+    })
+
+    expect(resultado.success).toBe(false)
+    if (resultado.success) return
+    expect(
+      resultado.error.issues
+        .filter((issue) =>
+          [
+            'nomeCompleto',
+            'dataNascimento',
+            'cpf',
+            'nomeResponsavel',
+            'cep',
+            'logradouro',
+            'numero',
+            'bairro',
+            'cidade',
+          ].includes(String(issue.path[0])),
+        )
+        .map((issue) => [issue.path[0], issue.message]),
+    ).toEqual(
+      [
+        'nomeCompleto',
+        'dataNascimento',
+        'cpf',
+        'nomeResponsavel',
+        'cep',
+        'logradouro',
+        'numero',
+        'bairro',
+        'cidade',
+      ].map((campo) => [campo, 'Este campo é obrigatório.']),
+    )
+  })
+
+  it('exige CPF do participante somente para estudante externo', () => {
+    const resultado = formSchema.safeParse({
+      ...vazio,
+      tipoEstudante: 'ESTUDANTE_EXTERNO',
+      cpf_participante: '',
+    })
+
+    expect(resultado.success).toBe(false)
+    if (resultado.success) return
+    expect(resultado.error.issues).toContainEqual(
+      expect.objectContaining({
+        path: ['cpf_participante'],
+        message: 'Este campo é obrigatório.',
+      }),
+    )
+    const caminhosDosErros = resultado.error.issues.map(
+      (issue) => issue.path[0],
+    )
+    expect(caminhosDosErros).not.toContain('codigoEol')
+    expect(caminhosDosErros).toContain('cpf')
   })
 
   it.each(['codigoEol', 'cpf'] as const)(
@@ -305,13 +438,47 @@ describe('ParticipanteForm schema', () => {
     ).toBe(true)
   })
 
+  it('rejeita a finalização com idade igual ou superior a 15 anos', () => {
+    const dataNascimento = `${new Date().getFullYear() - 16}-01-01`
+    const resultado = formSchema.safeParse({
+      ...vazio,
+      dataNascimento,
+    })
+
+    expect(resultado.success).toBe(false)
+    if (resultado.success) return
+    expect(resultado.error.issues).toContainEqual(
+      expect.objectContaining({
+        path: ['dataNascimento'],
+        message:
+          'A data de nascimento informada excede a faixa etária permitida para participação no Recreio nas Férias.',
+      }),
+    )
+  })
+
+  it('mantém a validação de idade fora do rascunho', () => {
+    const dataNascimento = `${new Date().getFullYear() - 16}-01-01`
+    expect(
+      formSchemaRascunho.safeParse({ ...vazio, dataNascimento }).success,
+    ).toBe(true)
+  })
+
   it('não exige informações por grupo de quem não é estudante da rede', () => {
     expect(
       formSchema.safeParse({
         ...vazio,
         grupo: 'QUATRO_A_14_ANOS',
         tipoEstudante: 'ESTUDANTE_EXTERNO',
+        cpf_participante: '12345678901',
+        nomeCompleto: 'Ana Souza',
+        dataNascimento: '2018-01-01',
         cpf: '12345678901',
+        nomeResponsavel: 'Maria Souza',
+        cep: '01001000',
+        logradouro: 'Praça da Sé',
+        numero: '1',
+        bairro: 'Sé',
+        cidade: 'São Paulo',
         telefone1: '11999999999',
         email: 'ana@email.com',
         dreCodigoEol: 'dre',

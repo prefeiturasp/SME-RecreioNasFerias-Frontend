@@ -15,6 +15,7 @@ export type DadosCadastroInscricao = {
   grupo: string
   codigoEol: string
   cpf: string
+  cpf_participante: string
   nomeCompleto: string
   dataNascimento: string
   nomeResponsavel: string
@@ -63,6 +64,7 @@ export type Inscricao = {
   grupo_label: string
   codigo_eol: string
   cpf: string
+  cpf_participante: string
   nome_participante: string
   data_nascimento: string | null
   responsavel_nome: string

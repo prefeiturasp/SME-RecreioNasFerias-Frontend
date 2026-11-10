@@ -15,6 +15,7 @@ const dadosInscricaoExemplo: DadosCadastroInscricao = {
   grupo: 'BERCARIO_I',
   codigoEol: '1234567',
   cpf: '12345678901',
+  cpf_participante: '',
   nomeCompleto: 'Ana Souza',
   dataNascimento: '2020-03-15',
   nomeResponsavel: 'Maria Souza',
@@ -60,6 +61,7 @@ const payloadEsperado = {
   grupo: 'BERCARIO_I',
   codigo_eol: '1234567',
   cpf: '12345678901',
+  cpf_participante: '',
   nome_participante: 'Ana Souza',
   data_nascimento: '2020-03-15',
   responsavel_nome: 'Maria Souza',
@@ -157,6 +159,24 @@ describe('cadastrarInscricao', () => {
         grupo: 'MINI_GRUPO_I',
         pode_ir_embora_sozinho: null,
         autoriza_uso_piscina: null,
+      }),
+    )
+  })
+
+  it('envia o CPF do participante externo', async () => {
+    apiPostMock.mockResolvedValue({ data: respostaCadastroExemplo })
+
+    await cadastrarInscricao({
+      ...dadosInscricaoExemplo,
+      tipoEstudante: 'ESTUDANTE_EXTERNO',
+      cpf_participante: '12345678901',
+    })
+
+    expect(apiPostMock).toHaveBeenCalledWith(
+      '/api/v1/inscricoes/',
+      expect.objectContaining({
+        cpf_participante: '12345678901',
+        cpf: '12345678901',
       }),
     )
   })
