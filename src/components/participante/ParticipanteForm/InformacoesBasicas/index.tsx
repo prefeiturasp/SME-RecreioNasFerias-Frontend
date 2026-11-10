@@ -40,6 +40,96 @@ type InformacoesBasicasProps = {
   aoMudarDre?: (valor: string) => void
 }
 
+type CampoTipoEstudanteProps = {
+  control: Control<FormValues>
+  tipoTravado: boolean
+  rotulo: string
+  opcoes: OpcaoChoice[]
+  onChange?: (valor: string) => void
+}
+
+function CampoTipoEstudante({
+  control,
+  tipoTravado,
+  rotulo,
+  opcoes,
+  onChange,
+}: Readonly<CampoTipoEstudanteProps>) {
+  const label = (
+    <>
+      <span className="text-destructive">*</span> Tipo de estudante
+    </>
+  )
+
+  if (tipoTravado) {
+    return (
+      <FormField
+        control={control}
+        name="tipoEstudante"
+        label={label}
+        readOnly
+        valorExibicao={rotulo}
+      />
+    )
+  }
+
+  return (
+    <FormField
+      control={control}
+      name="tipoEstudante"
+      label={label}
+      type="select"
+      options={opcoes}
+      placeholder="Selecione o tipo de estudante"
+      onChange={onChange}
+    />
+  )
+}
+
+type CamposNascimentoECpfProps = {
+  control: Control<FormValues>
+  tipoEstudante: string
+  dataNascimento: string
+}
+
+function CamposNascimentoECpf({
+  control,
+  tipoEstudante,
+  dataNascimento,
+}: Readonly<CamposNascimentoECpfProps>) {
+  if (tipoEstudante === TIPO_ESTUDANTE_REDE) {
+    return (
+      <FormField
+        control={control}
+        name="dataNascimento"
+        label={
+          <>
+            <span className="text-destructive">*</span> Data de nascimento
+            do(a) participante
+          </>
+        }
+        placeholder="DD/MM/AAAA"
+        valorExibicao={formatarDataBr(dataNascimento)}
+        readOnly
+      />
+    )
+  }
+
+  if (tipoEstudante === TIPO_ESTUDANTE_EXTERNO) {
+    return (
+      <>
+        <div className="lg:col-start-1">
+          <DataNascimentoEstudanteExterno control={control} />
+        </div>
+        <br />
+        <CPFResponsavelEstudanteExterno control={control} />
+      </>
+    )
+  }
+
+  return null
+}
+
 export function InformacoesBasicas({
   control,
   setValue,
@@ -87,31 +177,12 @@ export function InformacoesBasicas({
         placeholder="Selecione o Agrupamento"
         onChange={aoMudarGrupo}
       />
-      {grupo && tipoTravado ? (
-        <FormField
+      {grupo ? (
+        <CampoTipoEstudante
           control={control}
-          name="tipoEstudante"
-          label={
-            <>
-              <span className="text-destructive">*</span> Tipo de estudante
-            </>
-          }
-          readOnly
-          valorExibicao={rotuloTipoEstudante}
-        />
-      ) : null}
-      {grupo && !tipoTravado ? (
-        <FormField
-          control={control}
-          name="tipoEstudante"
-          label={
-            <>
-              <span className="text-destructive">*</span> Tipo de estudante
-            </>
-          }
-          type="select"
-          options={tiposEstudante}
-          placeholder="Selecione o tipo de estudante"
+          tipoTravado={tipoTravado}
+          rotulo={rotuloTipoEstudante}
+          opcoes={tiposEstudante}
           onChange={aoMudarTipoEstudante}
         />
       ) : null}
@@ -148,32 +219,11 @@ export function InformacoesBasicas({
             placeholder="Nome completo do(a) participante"
             readOnly={tipoEstudante === TIPO_ESTUDANTE_REDE}
           />
-          {tipoEstudante === TIPO_ESTUDANTE_REDE ? (
-            <FormField
-              control={control}
-              name="dataNascimento"
-              label={
-                <>
-                  <span className="text-destructive">*</span> Data de nascimento
-                  do(a) participante
-                </>
-              }
-              placeholder="DD/MM/AAAA"
-              valorExibicao={formatarDataBr(dataNascimento)}
-              readOnly
-            />
-          ) : null}
-          {tipoEstudante === TIPO_ESTUDANTE_EXTERNO ? (
-            <div className="lg:col-start-1">
-              <DataNascimentoEstudanteExterno control={control} />
-            </div>
-          ) : null}
-          {tipoEstudante === TIPO_ESTUDANTE_EXTERNO ? (
-            <>
-              <br />
-              <CPFResponsavelEstudanteExterno control={control} />
-            </>
-          ) : null}
+          <CamposNascimentoECpf
+            control={control}
+            tipoEstudante={tipoEstudante}
+            dataNascimento={dataNascimento}
+          />
           <FormField
             control={control}
             name="nomeResponsavel"
