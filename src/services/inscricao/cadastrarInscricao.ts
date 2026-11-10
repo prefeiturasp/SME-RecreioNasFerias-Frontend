@@ -11,6 +11,7 @@ export async function cadastrarInscricao(
     grupo: dados.grupo,
     codigo_eol: dados.codigoEol,
     cpf: dados.cpf,
+    cpf_participante: dados.cpf_participante,
     nome_participante: dados.nomeCompleto,
     data_nascimento:
       dados.dataNascimento.trim() === '' ? null : dados.dataNascimento,

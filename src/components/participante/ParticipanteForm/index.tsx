@@ -2,7 +2,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
-import { grupoExigeEstudanteDaRede, TIPO_ESTUDANTE_REDE } from './constantes'
+import {
+  grupoExigeEstudanteDaRede,
+  TIPO_ESTUDANTE_EXTERNO,
+  TIPO_ESTUDANTE_REDE,
+} from './constantes'
 import { InformacoesBasicas } from './InformacoesBasicas'
 import { InformacoesPorGrupo } from './InformacoesPorGrupo'
 import { SecaoFormulario } from './SecaoFormulario'
@@ -45,6 +49,8 @@ const CAMPOS_DO_PARTICIPANTE_VAZIOS: Partial<FormValues> = {
   telefone1: '',
   telefone2: '',
   email: '',
+  cpf_participante: '',
+  possuiInscricaoCpfParticipante: false,
   criancaComDeficiencia: '',
   qualDeficiencia: [],
   outraDeficiencia: '',
@@ -124,6 +130,8 @@ export function ParticipanteForm() {
       tipoEstudante: '',
       codigoEol: '',
       cpf: '',
+      cpf_participante: '',
+      possuiInscricaoCpfParticipante: false,
       nomeCompleto: '',
       dataNascimento: '',
       nomeResponsavel: '',
@@ -194,6 +202,24 @@ export function ParticipanteForm() {
 
   function aoMudarDre() {
     form.setValue('polo', '')
+  }
+
+  function aoMudarTipoEstudante(valor: string) {
+    form.reset({
+      ...CAMPOS_DO_PARTICIPANTE_VAZIOS,
+      grupo: form.getValues('grupo'),
+      tipoEstudante: valor,
+      codigoEol: '',
+      cpf: '',
+      dreCodigoEol: '',
+      polo: '',
+    })
+    setOrigemConsulta(null)
+    setCodigoEolConsulta(undefined)
+    setCpfConsulta(undefined)
+    setCodigoEolSincronizado(null)
+    setCpfSincronizado(null)
+    buscaVigente.current = null
   }
 
   function limparCamposDoParticipante(
@@ -428,11 +454,18 @@ export function ParticipanteForm() {
       qualRestricaoMedicamentoProntoAtendimento,
       temConvenioMedico,
       qualConvenioMedico,
+      possuiInscricaoCpfParticipante,
       ...dadosInscricao
     } = dados
+    void possuiInscricaoCpfParticipante
     const textoOuVazio = (valor: string) => valor.trim() || ''
     const dadosCadastro: DadosCadastroInscricao = {
       ...dadosInscricao,
+      cpf: dados.cpf,
+      cpf_participante:
+        dados.tipoEstudante === TIPO_ESTUDANTE_EXTERNO
+          ? dados.cpf_participante
+          : '',
       dreNome,
       possui_deficiencia: criancaComDeficiencia === 'sim',
       deficiencias:
@@ -512,6 +545,7 @@ export function ParticipanteForm() {
           <SecaoFormulario titulo="Informações Básicas" aberta>
             <InformacoesBasicas
               control={form.control}
+              setValue={form.setValue}
               grupo={grupo}
               tipoTravado={tipoTravado}
               camposLiberados={camposLiberados}
@@ -528,19 +562,24 @@ export function ParticipanteForm() {
               onBuscarCpf={consultarPorCpf}
               aoMudarCpf={aoMudarCpf}
               aoMudarGrupo={aoMudarGrupo}
+              aoMudarTipoEstudante={aoMudarTipoEstudante}
               aoMudarDre={aoMudarDre}
               eolDesabilitado={eolDesabilitado}
               cpfDesabilitado={cpfDesabilitado}
             />
           </SecaoFormulario>
 
-          {camposLiberados && tipoEstudante === TIPO_ESTUDANTE_REDE && (
+          {camposLiberados && (
             <SecaoFormulario
               titulo="Informações por Grupo"
               aberta={informacoesPorGrupoAberta}
               aoMudarAbertura={setInformacoesPorGrupoAberta}
             >
-              <InformacoesPorGrupo control={form.control} grupos={grupos} />
+              <InformacoesPorGrupo
+                control={form.control}
+                grupos={grupos}
+                tipoEstudante={tipoEstudante}
+              />
             </SecaoFormulario>
           )}
 

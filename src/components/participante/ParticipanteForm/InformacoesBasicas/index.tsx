@@ -1,15 +1,22 @@
 import { useMemo } from 'react'
-import { useWatch, type Control } from 'react-hook-form'
+import type { Control, UseFormSetValue } from 'react-hook-form'
+import { useWatch } from 'react-hook-form'
 import type { FormValues } from '../schema'
 import { FormField } from '@/components/ui/form-field'
-import { FormFieldEol } from '@/components/ui/form-field-eol'
-import { formatarDataBr } from '@/lib/formatarPeriodo'
 import type { Dre } from '@/services/dre/types'
 import type { OpcaoChoice, PoloElegivel } from '@/services/inscricao/types'
-import { aplicarMascaraCpf } from '@/utils/mascarasEntrada'
+import { TIPO_ESTUDANTE_EXTERNO, TIPO_ESTUDANTE_REDE } from '../constantes'
+import { InformacoesBasicasEstudanteRede } from './InformacoesBasicasEstudanteRede'
+import {
+  CPFParticipanteEstudanteExterno,
+  CPFResponsavelEstudanteExterno,
+  DataNascimentoEstudanteExterno,
+} from './InformacoesBasicasEstudanteExterno'
+import { formatarDataBr } from '@/lib/formatarPeriodo'
 
 type InformacoesBasicasProps = {
   control: Control<FormValues>
+  setValue: UseFormSetValue<FormValues>
   grupo: string
   tipoTravado: boolean
   camposLiberados: boolean
@@ -29,11 +36,13 @@ type InformacoesBasicasProps = {
   eolDesabilitado?: boolean
   cpfDesabilitado?: boolean
   aoMudarGrupo?: (valor: string) => void
+  aoMudarTipoEstudante?: (valor: string) => void
   aoMudarDre?: (valor: string) => void
 }
 
 export function InformacoesBasicas({
   control,
+  setValue,
   grupo,
   tipoTravado,
   camposLiberados,
@@ -50,17 +59,18 @@ export function InformacoesBasicas({
   onBuscarCpf,
   aoMudarCpf,
   aoMudarGrupo,
+  aoMudarTipoEstudante,
   aoMudarDre,
   eolDesabilitado = false,
   cpfDesabilitado = false,
 }: Readonly<InformacoesBasicasProps>) {
-  const dataNascimento = useWatch({ control, name: 'dataNascimento' })
   const rotuloTipoEstudante = useMemo(
     () =>
       tiposEstudante.find((opcao) => opcao.value === tipoEstudante)?.label ??
       '',
     [tipoEstudante, tiposEstudante],
   )
+  const dataNascimento = useWatch({ control, name: 'dataNascimento' })
 
   return (
     <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
@@ -102,46 +112,30 @@ export function InformacoesBasicas({
           type="select"
           options={tiposEstudante}
           placeholder="Selecione o tipo de estudante"
+          onChange={aoMudarTipoEstudante}
         />
       ) : null}
       {camposLiberados ? (
         <>
-          <FormFieldEol
-            control={control}
-            name="codigoEol"
-            label={
-              <>
-                <span className="text-destructive">*</span> Consultar por código
-                EOL
-              </>
-            }
-            placeholder="Código EOL"
-            buscarAoSair
-            readOnly={eolDesabilitado}
-            isLoading={consultandoCodigoEol}
-            onSearch={onBuscarCodigoEol}
-            onChange={aoMudarCodigoEol}
-          />
-          <FormFieldEol
-            control={control}
-            name="cpf"
-            label={
-              <>
-                <span className="text-destructive">*</span> Consultar por CPF do
-                responsável
-              </>
-            }
-            placeholder="Digite o CPF"
-            buscarAoSair
-            readOnly={cpfDesabilitado}
-            maxLength={11}
-            maxLengthExibicao={14}
-            rotuloBusca="CPF do responsável"
-            formatarExibicao={aplicarMascaraCpf}
-            isLoading={consultandoCpf}
-            onSearch={onBuscarCpf}
-            onChange={aoMudarCpf}
-          />
+          {tipoEstudante === TIPO_ESTUDANTE_REDE ? (
+            <InformacoesBasicasEstudanteRede
+              control={control}
+              eolDesabilitado={eolDesabilitado}
+              consultandoCodigoEol={consultandoCodigoEol}
+              onBuscarCodigoEol={onBuscarCodigoEol}
+              aoMudarCodigoEol={aoMudarCodigoEol}
+              cpfDesabilitado={cpfDesabilitado}
+              consultandoCpf={consultandoCpf}
+              onBuscarCpf={onBuscarCpf}
+              aoMudarCpf={aoMudarCpf}
+            />
+          ) : tipoEstudante === TIPO_ESTUDANTE_EXTERNO ? (
+            <CPFParticipanteEstudanteExterno
+              control={control}
+              setValue={setValue}
+            />
+          ) : null}
+
           <FormField
             control={control}
             name="nomeCompleto"
@@ -152,39 +146,54 @@ export function InformacoesBasicas({
               </>
             }
             placeholder="Nome completo do(a) participante"
-            readOnly
+            readOnly={tipoEstudante === TIPO_ESTUDANTE_REDE}
           />
-          <FormField
-            control={control}
-            name="dataNascimento"
-            label={
-              <>
-                <span className="text-destructive">*</span> Data de nascimento
-              </>
-            }
-            placeholder="DD/MM/AAAA"
-            readOnly
-            valorExibicao={formatarDataBr(dataNascimento)}
-          />
+          {tipoEstudante === TIPO_ESTUDANTE_REDE ? (
+            <FormField
+              control={control}
+              name="dataNascimento"
+              label={
+                <>
+                  <span className="text-destructive">*</span> Data de nascimento
+                  do(a) participante
+                </>
+              }
+              placeholder="DD/MM/AAAA"
+              valorExibicao={formatarDataBr(dataNascimento)}
+              readOnly
+            />
+          ) : null}
+          {tipoEstudante === TIPO_ESTUDANTE_EXTERNO ? (
+            <div className="lg:col-start-1">
+              <DataNascimentoEstudanteExterno control={control} />
+            </div>
+          ) : null}
+          {tipoEstudante === TIPO_ESTUDANTE_EXTERNO ? (
+            <>
+              <br />
+              <CPFResponsavelEstudanteExterno control={control} />
+            </>
+          ) : null}
           <FormField
             control={control}
             name="nomeResponsavel"
             label={
               <>
-                <span className="text-destructive">*</span> Nome completo do
+                <span className="text-destructive">*</span> Nome completo do(a)
                 responsável
               </>
             }
-            placeholder="Nome Completo do Responsável"
-            readOnly
+            placeholder="Nome Completo do(a) responsável"
+            readOnly={tipoEstudante === TIPO_ESTUDANTE_REDE}
           />
           <FormField
             control={control}
             name="nomeSocialResponsavel"
             label="Nome social do(a) responsável"
             placeholder="Nome Social do(a) Responsável"
-            readOnly
+            readOnly={tipoEstudante === TIPO_ESTUDANTE_REDE}
           />
+          {tipoEstudante === TIPO_ESTUDANTE_EXTERNO ? <br /> : null}
           <FormField
             control={control}
             name="cep"
@@ -194,7 +203,7 @@ export function InformacoesBasicas({
               </>
             }
             placeholder="CEP"
-            readOnly
+            readOnly={tipoEstudante === TIPO_ESTUDANTE_REDE}
           />
           <FormField
             control={control}
@@ -205,7 +214,7 @@ export function InformacoesBasicas({
               </>
             }
             placeholder="Logradouro"
-            readOnly
+            readOnly={tipoEstudante === TIPO_ESTUDANTE_REDE}
           />
           <FormField
             control={control}
@@ -216,14 +225,14 @@ export function InformacoesBasicas({
               </>
             }
             placeholder="Número"
-            readOnly
+            readOnly={tipoEstudante === TIPO_ESTUDANTE_REDE}
           />
           <FormField
             control={control}
             name="complemento"
             label="Complemento"
             placeholder="Complemento"
-            readOnly
+            readOnly={tipoEstudante === TIPO_ESTUDANTE_REDE}
           />
           <FormField
             control={control}
@@ -234,7 +243,7 @@ export function InformacoesBasicas({
               </>
             }
             placeholder="Bairro"
-            readOnly
+            readOnly={tipoEstudante === TIPO_ESTUDANTE_REDE}
           />
           <FormField
             control={control}
@@ -245,7 +254,7 @@ export function InformacoesBasicas({
               </>
             }
             placeholder="Cidade"
-            readOnly
+            readOnly={tipoEstudante === TIPO_ESTUDANTE_REDE}
           />
           <FormField
             control={control}
