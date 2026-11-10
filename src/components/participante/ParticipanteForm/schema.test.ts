@@ -48,6 +48,25 @@ const vazio = {
   tipoEscola: '',
 }
 
+const externoProntoParaFinalizar = {
+  grupo: 'QUATRO_A_14_ANOS',
+  tipoEstudante: 'ESTUDANTE_EXTERNO',
+  cpf_participante: '12345678901',
+  nomeCompleto: 'Ana Souza',
+  dataNascimento: '2018-01-01',
+  cpf: '12345678901',
+  nomeResponsavel: 'Maria Souza',
+  cep: '01001000',
+  logradouro: 'Praça da Sé',
+  numero: '1',
+  bairro: 'Sé',
+  cidade: 'São Paulo',
+  telefone1: '11999999999',
+  email: 'ana@email.com',
+  dreCodigoEol: 'dre',
+  polo: 'polo',
+}
+
 describe('ParticipanteForm schema', () => {
   it('aceita o formulário vazio apenas como rascunho', () => {
     expect(formSchemaRascunho.safeParse(vazio).success).toBe(true)
@@ -113,6 +132,7 @@ describe('ParticipanteForm schema', () => {
       email: 'ana@email.com',
       dreCodigoEol: 'dre',
       polo: 'polo',
+      tipoEscola: 'ESTADUAL',
     })
 
     expect(resultado.success).toBe(true)
@@ -464,27 +484,39 @@ describe('ParticipanteForm schema', () => {
     ).toBe(true)
   })
 
-  it('não exige informações por grupo de quem não é estudante da rede', () => {
+  it('aceita tipo de escola vazio no rascunho do estudante externo', () => {
     expect(
-      formSchema.safeParse({
+      formSchemaRascunho.safeParse({
         ...vazio,
-        grupo: 'QUATRO_A_14_ANOS',
         tipoEstudante: 'ESTUDANTE_EXTERNO',
-        cpf_participante: '12345678901',
-        nomeCompleto: 'Ana Souza',
-        dataNascimento: '2018-01-01',
-        cpf: '12345678901',
-        nomeResponsavel: 'Maria Souza',
-        cep: '01001000',
-        logradouro: 'Praça da Sé',
-        numero: '1',
-        bairro: 'Sé',
-        cidade: 'São Paulo',
-        telefone1: '11999999999',
-        email: 'ana@email.com',
-        dreCodigoEol: 'dre',
-        polo: 'polo',
       }).success,
     ).toBe(true)
   })
+
+  it('exige tipo de escola ao finalizar estudante externo', () => {
+    const resultado = formSchema.safeParse({
+      ...vazio,
+      ...externoProntoParaFinalizar,
+    })
+
+    expect(resultado.success).toBe(false)
+    if (resultado.success) return
+    expect(resultado.error.issues.map((issue) => issue.path[0])).toEqual([
+      'tipoEscola',
+    ])
+    expect(resultado.error.issues[0]?.message).toBe('Este campo é obrigatório.')
+  })
+
+  it.each(['ESTADUAL', 'PARTICULAR'] as const)(
+    'aceita %s ao finalizar estudante externo',
+    (tipoEscola) => {
+      expect(
+        formSchema.safeParse({
+          ...vazio,
+          ...externoProntoParaFinalizar,
+          tipoEscola,
+        }).success,
+      ).toBe(true)
+    },
+  )
 })

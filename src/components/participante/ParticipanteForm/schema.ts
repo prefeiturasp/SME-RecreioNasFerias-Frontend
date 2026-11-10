@@ -272,6 +272,11 @@ const formSchema = formSchemaRascunho.superRefine((dados, contexto) => {
       preenchido: false,
       caminho: 'autorizaUsoPiscina',
     },
+    {
+      condicao: dados.tipoEstudante === TIPO_ESTUDANTE_EXTERNO,
+      preenchido: Boolean(dados.tipoEscola),
+      caminho: 'tipoEscola',
+    },
   ]
 
   for (const { condicao, preenchido, caminho } of camposObrigatorios) {
