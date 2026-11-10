@@ -45,6 +45,7 @@ const vazio = {
   podeIrEmboraSozinho: '',
   responsavelRetirada: '',
   autorizaUsoPiscina: '',
+  tipoEscola: '',
 }
 
 describe('ParticipanteForm schema', () => {

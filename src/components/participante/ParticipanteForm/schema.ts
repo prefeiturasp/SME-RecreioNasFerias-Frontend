@@ -70,6 +70,7 @@ export const formSchemaRascunho = z.object({
   podeIrEmboraSozinho: z.enum(['sim', 'nao', '']),
   responsavelRetirada: z.string(),
   autorizaUsoPiscina: z.enum(['sim', 'nao', '']),
+  tipoEscola: z.enum(['ESTADUAL', 'PARTICULAR', '']),
 })
 
 type DadosFormulario = z.infer<typeof formSchemaRascunho>

@@ -71,12 +71,14 @@ const CAMPOS_DO_PARTICIPANTE_VAZIOS: Partial<FormValues> = {
   podeIrEmboraSozinho: '',
   responsavelRetirada: '',
   autorizaUsoPiscina: '',
+  tipoEscola: '',
 }
 
 const CAMPOS_DO_GRUPO: (keyof FormValues)[] = [
   'podeIrEmboraSozinho',
   'responsavelRetirada',
   'autorizaUsoPiscina',
+  'tipoEscola',
 ]
 
 const CAMPOS_DE_SAUDE: (keyof FormValues)[] = [
@@ -168,6 +170,7 @@ export function ParticipanteForm() {
       podeIrEmboraSozinho: '',
       responsavelRetirada: '',
       autorizaUsoPiscina: '',
+      tipoEscola: '',
     },
   })
   const [grupo, tipoEstudante, dreCodigoEol] = useWatch({
