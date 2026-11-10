@@ -72,6 +72,62 @@ export const formSchemaRascunho = z.object({
   autorizaUsoPiscina: z.enum(['sim', 'nao', '']),
 })
 
+type DadosFormulario = z.infer<typeof formSchemaRascunho>
+type AdicionarCampoObrigatorio = (caminho: string, mensagem?: string) => void
+
+function validarEstudanteExterno(
+  dados: DadosFormulario,
+  adicionarCampoObrigatorio: AdicionarCampoObrigatorio,
+) {
+  if (!dados.cpf_participante) {
+    adicionarCampoObrigatorio('cpf_participante')
+  } else if (!/^\d{11}$/.test(dados.cpf_participante)) {
+    adicionarCampoObrigatorio('cpf_participante', 'Informe um CPF válido.')
+  }
+
+  if (dados.possuiInscricaoCpfParticipante) {
+    adicionarCampoObrigatorio(
+      'cpf_participante',
+      MENSAGEM_DUPLICIDADE_CPF_PARTICIPANTE,
+    )
+  }
+
+  const camposObrigatoriosEstudanteExterno = [
+    'nomeCompleto',
+    'dataNascimento',
+    'cpf',
+    'nomeResponsavel',
+    'cep',
+    'logradouro',
+    'numero',
+    'bairro',
+    'cidade',
+  ] as const
+
+  for (const campo of camposObrigatoriosEstudanteExterno) {
+    if (!dados[campo]) adicionarCampoObrigatorio(campo)
+  }
+}
+
+function validarIdentificacao(
+  dados: DadosFormulario,
+  adicionarCampoObrigatorio: AdicionarCampoObrigatorio,
+) {
+  if (dados.tipoEstudante === TIPO_ESTUDANTE_EXTERNO) {
+    validarEstudanteExterno(dados, adicionarCampoObrigatorio)
+    return
+  }
+
+  const codigoEolValido = /^\d{6,7}$/.test(dados.codigoEol)
+  const cpfValido = /^\d{11}$/.test(dados.cpf)
+
+  if (!codigoEolValido && !cpfValido) {
+    for (const caminho of ['codigoEol', 'cpf']) {
+      adicionarCampoObrigatorio(caminho, 'Informe um CPF ou código EOL válido.')
+    }
+  }
+}
+
 const formSchema = formSchemaRascunho.superRefine((dados, contexto) => {
   const adicionarCampoObrigatorio = (
     caminho: string,
@@ -89,49 +145,7 @@ const formSchema = formSchemaRascunho.superRefine((dados, contexto) => {
     adicionarCampoObrigatorio('dataNascimento', MENSAGEM_IDADE_FORA_DA_FAIXA)
   }
 
-  if (dados.tipoEstudante === TIPO_ESTUDANTE_EXTERNO) {
-    if (!dados.cpf_participante) {
-      adicionarCampoObrigatorio('cpf_participante')
-    } else if (!/^\d{11}$/.test(dados.cpf_participante)) {
-      adicionarCampoObrigatorio('cpf_participante', 'Informe um CPF válido.')
-    }
-
-    if (dados.possuiInscricaoCpfParticipante) {
-      adicionarCampoObrigatorio(
-        'cpf_participante',
-        MENSAGEM_DUPLICIDADE_CPF_PARTICIPANTE,
-      )
-    }
-
-    const camposObrigatoriosEstudanteExterno = [
-      'nomeCompleto',
-      'dataNascimento',
-      'cpf',
-      'nomeResponsavel',
-      'cep',
-      'logradouro',
-      'numero',
-      'bairro',
-      'cidade',
-    ] as const
-
-    for (const campo of camposObrigatoriosEstudanteExterno) {
-      if (!dados[campo]) adicionarCampoObrigatorio(campo)
-    }
-  } else {
-    const codigoEolValido = /^\d{6,7}$/.test(dados.codigoEol)
-    const cpfValido = /^\d{11}$/.test(dados.cpf)
-
-    if (!codigoEolValido && !cpfValido) {
-      for (const caminho of ['codigoEol', 'cpf']) {
-        contexto.addIssue({
-          code: 'custom',
-          path: [caminho],
-          message: 'Informe um CPF ou código EOL válido.',
-        })
-      }
-    }
-  }
+  validarIdentificacao(dados, adicionarCampoObrigatorio)
 
   const camposObrigatorios = [
     {

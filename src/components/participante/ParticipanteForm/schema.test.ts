@@ -135,6 +135,72 @@ describe('ParticipanteForm schema', () => {
     )
   })
 
+  it.each([
+    ['', 'Este campo é obrigatório.'],
+    ['123', 'Informe um CPF válido.'],
+  ])(
+    'mantém os erros de CPF e duplicidade para estudante externo com CPF %s',
+    (cpfParticipante, mensagem) => {
+      const resultado = formSchema.safeParse({
+        ...vazio,
+        tipoEstudante: 'ESTUDANTE_EXTERNO',
+        cpf_participante: cpfParticipante,
+        possuiInscricaoCpfParticipante: true,
+      })
+
+      expect(resultado.success).toBe(false)
+      if (resultado.success) return
+      expect(
+        resultado.error.issues
+          .filter(
+            (issue) =>
+              issue.code === 'custom' && issue.path[0] === 'cpf_participante',
+          )
+          .map((issue) => issue.message),
+      ).toEqual([mensagem, MENSAGEM_DUPLICIDADE_CPF_PARTICIPANTE])
+    },
+  )
+
+  it('exige todos os dados de identificação do estudante externo na ordem prevista', () => {
+    const resultado = formSchema.safeParse({
+      ...vazio,
+      tipoEstudante: 'ESTUDANTE_EXTERNO',
+      cpf_participante: '12345678901',
+    })
+
+    expect(resultado.success).toBe(false)
+    if (resultado.success) return
+    expect(
+      resultado.error.issues
+        .filter((issue) =>
+          [
+            'nomeCompleto',
+            'dataNascimento',
+            'cpf',
+            'nomeResponsavel',
+            'cep',
+            'logradouro',
+            'numero',
+            'bairro',
+            'cidade',
+          ].includes(String(issue.path[0])),
+        )
+        .map((issue) => [issue.path[0], issue.message]),
+    ).toEqual(
+      [
+        'nomeCompleto',
+        'dataNascimento',
+        'cpf',
+        'nomeResponsavel',
+        'cep',
+        'logradouro',
+        'numero',
+        'bairro',
+        'cidade',
+      ].map((campo) => [campo, 'Este campo é obrigatório.']),
+    )
+  })
+
   it('exige CPF do participante somente para estudante externo', () => {
     const resultado = formSchema.safeParse({
       ...vazio,
