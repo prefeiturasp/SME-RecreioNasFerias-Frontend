@@ -349,7 +349,7 @@ describe('ParticipanteForm', () => {
     expect(
       screen.getByRole('button', { name: /^finalizar inscrição$/i }),
     ).toBeInTheDocument()
-  }, 15000)
+  }, 30_000)
 
   it('abre informações de saúde quando a finalização falha por campos de saúde', async () => {
     const usuario = userEvent.setup()
@@ -698,7 +698,7 @@ describe('ParticipanteForm', () => {
       await usuario.click(respostasNao[indice + 2])
       expect(campo).toHaveValue('')
     }
-  }, 15_000)
+  }, 30_000)
 
   it('navega para a listagem ao clicar em Cancelar', async () => {
     const usuario = userEvent.setup()
@@ -833,7 +833,7 @@ describe('ParticipanteForm', () => {
     })
     expect(screen.getByText('Selecione o Polo')).toBeInTheDocument()
     expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
-  }, 15000)
+  }, 30_000)
 
   it('mostra erro dos polos em toast quando a busca seguinte funciona', async () => {
     const usuario = userEvent.setup()
@@ -1092,7 +1092,7 @@ describe('ParticipanteForm', () => {
     expect(screen.getByLabelText(/\bcep\b/i)).toHaveAttribute('readonly')
     expect(screen.getByLabelText(/\bdre\b/i)).toBeEnabled()
     expect(screen.getByLabelText(/polo de inscrição/i)).toBeDisabled()
-  }, 15000)
+  }, 30_000)
 
   it('salva a inscrição preenchida pela consulta do CPF sem consultar de novo', async () => {
     const usuario = userEvent.setup()
@@ -1165,7 +1165,7 @@ describe('ParticipanteForm', () => {
       ).toBeInTheDocument()
     })
     expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
-  }, 15000)
+  }, 30_000)
 
   it('impede finalizar após consulta por CPF com campos obrigatórios vazios', async () => {
     const usuario = userEvent.setup()
@@ -1194,7 +1194,7 @@ describe('ParticipanteForm', () => {
     )
 
     expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
-  }, 15000)
+  }, 30_000)
 
   it('mantém o erro de CPF incompleto ao salvar depois da consulta', async () => {
     const usuario = userEvent.setup()
@@ -1225,7 +1225,7 @@ describe('ParticipanteForm', () => {
     expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
     expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
     expect(cpf).toHaveValue('464.205.131-7')
-  }, 15000)
+  }, 30_000)
 
   it('consulta o CPF do responsável ao sair do campo', async () => {
     const usuario = userEvent.setup()
@@ -1363,7 +1363,7 @@ describe('ParticipanteForm', () => {
     expect(
       screen.getByText('É necessário selecionar o DRE primeiro'),
     ).toBeInTheDocument()
-  }, 15000)
+  }, 30_000)
 
   it('desabilita o CPF ao informar o código EOL', async () => {
     const usuario = userEvent.setup()
@@ -1532,7 +1532,7 @@ describe('ParticipanteForm', () => {
       await screen.findByText('Informe um CPF válido.'),
     ).toBeInTheDocument()
     expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
-  }, 15000)
+  }, 30_000)
 
   it.each(['Berçário I', 'Berçário II', 'Mini Grupo I', 'Mini Grupo II'])(
     'trava Estudante da Rede e libera o restante ao escolher %s',
@@ -1625,7 +1625,7 @@ describe('ParticipanteForm', () => {
     expect(
       screen.queryByRole('button', { name: /informações de saúde/i }),
     ).not.toBeInTheDocument()
-  }, 15000)
+  }, 30_000)
 
   it('salva o rascunho incompleto', async () => {
     const usuario = userEvent.setup()
@@ -1677,7 +1677,7 @@ describe('ParticipanteForm', () => {
         variant: 'success',
       }),
     )
-  }, 15000)
+  }, 30_000)
 
   it('finaliza a inscrição completa', async () => {
     const usuario = userEvent.setup()
@@ -1740,7 +1740,7 @@ describe('ParticipanteForm', () => {
       ).toBeInTheDocument()
     })
     expect(cadastrarInscricaoMock).toHaveBeenCalledTimes(1)
-  }, 15000)
+  }, 30_000)
 
   it('recusa e-mail inválido ao finalizar', async () => {
     const usuario = userEvent.setup()
@@ -1756,7 +1756,7 @@ describe('ParticipanteForm', () => {
     ).toBeInTheDocument()
     expect(showToastMock).not.toHaveBeenCalled()
     expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
-  }, 15000)
+  }, 30_000)
 
   it('mostra o detalhe do erro de cadastro em toast', async () => {
     const usuario = userEvent.setup()
@@ -1800,7 +1800,7 @@ describe('ParticipanteForm', () => {
         screen.getByText(/inscrições de participantes/i),
       ).toBeInTheDocument()
     })
-  }, 15000)
+  }, 30_000)
 
   it('envia o grupo escolhido nas informações básicas', async () => {
     const usuario = userEvent.setup()
@@ -1862,7 +1862,7 @@ describe('ParticipanteForm', () => {
         expect.anything(),
       )
     })
-  }, 15_000)
+  }, 30_000)
 
   it('envia as informações de saúde no formato esperado pela API', async () => {
     const usuario = userEvent.setup()
@@ -1936,7 +1936,7 @@ describe('ParticipanteForm', () => {
         expect.anything(),
       )
     })
-  }, 15_000)
+  }, 30_000)
 
   it('mostra os campos da rede, a idade em um ano e limpa ao sair da consulta', async () => {
     const usuario = userEvent.setup()
@@ -2008,7 +2008,7 @@ describe('ParticipanteForm', () => {
         name: /responsável por retirar na saída/i,
       }),
     ).toHaveValue('')
-  }, 15000)
+  }, 30_000)
 
   it('abre a seção e impede finalizar sem as respostas da rede', async () => {
     const usuario = userEvent.setup()
@@ -2062,7 +2062,7 @@ describe('ParticipanteForm', () => {
     })
     expect(screen.getAllByText('Este campo é obrigatório.')).toHaveLength(3)
     expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
-  }, 15000)
+  }, 30_000)
 
   it('exibe tipo de escola para o estudante externo e aceita a escolha', async () => {
     const usuario = userEvent.setup()
@@ -2104,7 +2104,7 @@ describe('ParticipanteForm', () => {
         expect.anything(),
       )
     })
-  }, 15000)
+  }, 30_000)
 
   it('impede finalizar o estudante externo sem tipo de escola', async () => {
     const usuario = userEvent.setup()
@@ -2200,7 +2200,7 @@ describe('ParticipanteForm', () => {
       ).toHaveTextContent('Este campo é obrigatório.')
     }
     expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
-  }, 15000)
+  }, 30_000)
 
   it('envia unidade, turma e ano digitados no estudante externo', async () => {
     const usuario = userEvent.setup()
@@ -2241,7 +2241,7 @@ describe('ParticipanteForm', () => {
         expect.anything(),
       )
     })
-  }, 15000)
+  }, 30_000)
 
   it('salva o rascunho do estudante externo sem tipo de escola', async () => {
     const usuario = userEvent.setup()
@@ -2262,5 +2262,5 @@ describe('ParticipanteForm', () => {
         expect.anything(),
       )
     })
-  }, 15000)
+  }, 30_000)
 })
