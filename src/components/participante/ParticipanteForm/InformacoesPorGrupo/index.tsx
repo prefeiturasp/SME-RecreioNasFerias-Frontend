@@ -122,27 +122,68 @@ export function InformacoesPorGrupo({
       )}
 
       <div className="mt-4 grid grid-cols-1 items-start gap-4 md:grid-cols-2">
-        <FormField
-          control={control}
-          name="unidadeEducacional"
-          label={
-            <>
-              <span className="text-destructive">*</span> Unidade Educacional do
-              participante
-            </>
-          }
-          readOnly
-          placeholder="Unidade Educacional"
-        />
-        <FormFieldLeitura
-          id="turmaAno"
-          label={
-            <>
-              <span className="text-destructive">*</span> Turma / Ano
-            </>
-          }
-          value={turmaAno}
-        />
+        {estudanteExterno ? (
+          <>
+            <FormField
+              control={control}
+              name="unidadeEducacional"
+              label={
+                <>
+                  <span className="text-destructive">*</span> Unidade
+                  Educacional do participante
+                </>
+              }
+              placeholder="Unidade Educacional"
+              maxLength={255}
+            />
+            <FormField
+              control={control}
+              name="nomeTurma"
+              label={
+                <>
+                  <span className="text-destructive">*</span> Turma
+                </>
+              }
+              placeholder="Turma"
+              maxLength={100}
+            />
+            <FormField
+              control={control}
+              name="ano"
+              label={
+                <>
+                  <span className="text-destructive">*</span> Ano
+                </>
+              }
+              placeholder="Ano"
+              maxLength={50}
+            />
+          </>
+        ) : (
+          <>
+            <FormField
+              control={control}
+              name="unidadeEducacional"
+              label={
+                <>
+                  <span className="text-destructive">*</span> Unidade
+                  Educacional do participante
+                </>
+              }
+              readOnly
+              placeholder="Unidade Educacional"
+            />
+            <FormFieldLeitura
+              id="turmaAno"
+              label={
+                <>
+                  <span className="text-destructive">*</span> Turma / Ano
+                </>
+              }
+              value={turmaAno}
+            />
+          </>
+        )}
       </div>
 
       <div className="mt-4 grid grid-cols-1 items-start gap-4 md:grid-cols-2">
