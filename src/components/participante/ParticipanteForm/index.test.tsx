@@ -2190,7 +2190,7 @@ describe('ParticipanteForm', () => {
     ).toBeInTheDocument()
     for (const nome of [
       /unidade educacional do participante/i,
-      '* Turma',
+      '* Turma / Ano',
       '* Ano',
     ]) {
       expect(
@@ -2211,12 +2211,12 @@ describe('ParticipanteForm', () => {
       screen.getByRole('button', { name: /informações por grupo/i }),
     )
 
-    expect(screen.queryByLabelText(/turma \/ ano/i)).not.toBeInTheDocument()
+    expect(screen.getByLabelText(/agrupamento do participante/i)).toBeDisabled()
 
     const unidade = screen.getByRole('textbox', {
       name: /unidade educacional do participante/i,
     })
-    const turma = screen.getByRole('textbox', { name: '* Turma' })
+    const turma = screen.getByRole('textbox', { name: '* Turma / Ano' })
     const ano = screen.getByRole('textbox', { name: '* Ano' })
 
     expect(unidade).not.toHaveAttribute('readonly')

@@ -58,9 +58,17 @@ export function InformacoesPorGrupo({
           name="grupo"
           id="grupoDoParticipante"
           label={
-            <>
-              <span className="text-destructive">*</span> Grupo do Participante
-            </>
+            estudanteExterno ? (
+              <>
+                <span className="text-destructive">*</span> Agrupamento do
+                Participante
+              </>
+            ) : (
+              <>
+                <span className="text-destructive">*</span> Grupo do
+                Participante
+              </>
+            )
           }
           type="select"
           options={grupos}
@@ -141,7 +149,7 @@ export function InformacoesPorGrupo({
               name="nomeTurma"
               label={
                 <>
-                  <span className="text-destructive">*</span> Turma
+                  <span className="text-destructive">*</span> Turma / Ano
                 </>
               }
               placeholder="Turma"
