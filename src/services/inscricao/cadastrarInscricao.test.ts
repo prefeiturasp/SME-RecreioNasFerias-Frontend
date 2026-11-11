@@ -52,6 +52,7 @@ const dadosInscricaoExemplo: DadosCadastroInscricao = {
   podeIrEmboraSozinho: 'nao',
   responsavelRetirada: 'Maria Fernanda Santos',
   autorizaUsoPiscina: 'sim',
+  tipoEscola: '',
 }
 
 const payloadEsperado = {
@@ -98,6 +99,7 @@ const payloadEsperado = {
   pode_ir_embora_sozinho: false,
   responsavel_retirada: 'Maria Fernanda Santos',
   autoriza_uso_piscina: true,
+  tipo_escola: '',
 } as const
 
 const respostaCadastroExemplo: Inscricao = {
@@ -105,6 +107,7 @@ const respostaCadastroExemplo: Inscricao = {
   ...payloadEsperado,
   tipo_logradouro: 'Rua',
   tipo_estudante_label: 'Estudante da rede',
+  tipo_escola_label: '',
   grupo_label: 'Berçário I',
   status: 'RASCUNHO',
   status_label: 'Rascunho',
@@ -148,6 +151,7 @@ describe('cadastrarInscricao', () => {
       grupo: 'MINI_GRUPO_I',
       podeIrEmboraSozinho: '',
       autorizaUsoPiscina: '',
+      tipoEscola: 'ESTADUAL',
     })
 
     expect(apiPostMock).toHaveBeenCalledWith(
@@ -159,6 +163,7 @@ describe('cadastrarInscricao', () => {
         grupo: 'MINI_GRUPO_I',
         pode_ir_embora_sozinho: null,
         autoriza_uso_piscina: null,
+        tipo_escola: 'ESTADUAL',
       }),
     )
   })

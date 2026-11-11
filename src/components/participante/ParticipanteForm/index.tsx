@@ -71,12 +71,17 @@ const CAMPOS_DO_PARTICIPANTE_VAZIOS: Partial<FormValues> = {
   podeIrEmboraSozinho: '',
   responsavelRetirada: '',
   autorizaUsoPiscina: '',
+  tipoEscola: '',
 }
 
 const CAMPOS_DO_GRUPO: (keyof FormValues)[] = [
   'podeIrEmboraSozinho',
   'responsavelRetirada',
   'autorizaUsoPiscina',
+  'tipoEscola',
+  'unidadeEducacional',
+  'nomeTurma',
+  'ano',
 ]
 
 const CAMPOS_DE_SAUDE: (keyof FormValues)[] = [
@@ -168,6 +173,7 @@ export function ParticipanteForm() {
       podeIrEmboraSozinho: '',
       responsavelRetirada: '',
       autorizaUsoPiscina: '',
+      tipoEscola: '',
     },
   })
   const [grupo, tipoEstudante, dreCodigoEol] = useWatch({
@@ -501,6 +507,8 @@ export function ParticipanteForm() {
       possui_convenio_medico: temConvenioMedico === 'sim',
       convenio_medico:
         temConvenioMedico === 'sim' ? textoOuVazio(qualConvenioMedico) : '',
+      tipoEscola:
+        dados.tipoEstudante === TIPO_ESTUDANTE_EXTERNO ? dados.tipoEscola : '',
     }
 
     cadastroMutation.mutate(dadosCadastro, {

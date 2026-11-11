@@ -70,6 +70,7 @@ export const formSchemaRascunho = z.object({
   podeIrEmboraSozinho: z.enum(['sim', 'nao', '']),
   responsavelRetirada: z.string(),
   autorizaUsoPiscina: z.enum(['sim', 'nao', '']),
+  tipoEscola: z.enum(['ESTADUAL', 'PARTICULAR', '']),
 })
 
 type DadosFormulario = z.infer<typeof formSchemaRascunho>
@@ -270,6 +271,26 @@ const formSchema = formSchemaRascunho.superRefine((dados, contexto) => {
         !dados.autorizaUsoPiscina,
       preenchido: false,
       caminho: 'autorizaUsoPiscina',
+    },
+    {
+      condicao: dados.tipoEstudante === TIPO_ESTUDANTE_EXTERNO,
+      preenchido: Boolean(dados.tipoEscola),
+      caminho: 'tipoEscola',
+    },
+    {
+      condicao: dados.tipoEstudante === TIPO_ESTUDANTE_EXTERNO,
+      preenchido: Boolean(dados.unidadeEducacional.trim()),
+      caminho: 'unidadeEducacional',
+    },
+    {
+      condicao: dados.tipoEstudante === TIPO_ESTUDANTE_EXTERNO,
+      preenchido: Boolean(dados.nomeTurma.trim()),
+      caminho: 'nomeTurma',
+    },
+    {
+      condicao: dados.tipoEstudante === TIPO_ESTUDANTE_EXTERNO,
+      preenchido: Boolean(dados.ano.trim()),
+      caminho: 'ano',
     },
   ]
 

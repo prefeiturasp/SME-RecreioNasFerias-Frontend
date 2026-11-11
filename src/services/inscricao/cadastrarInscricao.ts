@@ -44,6 +44,7 @@ export async function cadastrarInscricao(
       dados.restricao_medicamento_pronto_atendimento,
     possui_convenio_medico: dados.possui_convenio_medico,
     convenio_medico: dados.convenio_medico,
+    tipo_escola: dados.tipoEscola,
     unidade_educacional: dados.unidadeEducacional,
     unidade_educacional_codigo_eol: dados.unidadeEducacionalCodigoEol,
     unidade_educacional_tipo: dados.unidadeEducacionalTipo,

@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useWatch, type Control } from 'react-hook-form'
 import type { FormValues } from '../schema'
+import { TIPO_ESTUDANTE_EXTERNO } from '../constantes'
 
 import { FormField } from '@/components/ui/form-field'
 import { FormFieldLeitura } from '@/components/ui/form-field-leitura'
@@ -9,7 +10,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import type { OpcaoChoice } from '@/services/inscricao/types'
 import { calcularIdadeCheia } from '@/utils/calcularIdadeCheia'
 import { formatarIdadeDetalhada } from '@/utils/calcularIdadeDetalhada'
-import { TIPO_ESTUDANTE_EXTERNO } from '../constantes'
 
 type InformacoesPorGrupoProps = {
   control: Control<FormValues>
@@ -26,6 +26,7 @@ export function InformacoesPorGrupo({
     control,
     name: ['dataNascimento', 'nomeTurma', 'ano'],
   })
+  const estudanteExterno = tipoEstudante === TIPO_ESTUDANTE_EXTERNO
   const textoIdade = useMemo(() => {
     if (tipoEstudante === TIPO_ESTUDANTE_EXTERNO) {
       return formatarIdadeDetalhada(dataNascimento)
@@ -57,9 +58,17 @@ export function InformacoesPorGrupo({
           name="grupo"
           id="grupoDoParticipante"
           label={
-            <>
-              <span className="text-destructive">*</span> Grupo do Participante
-            </>
+            estudanteExterno ? (
+              <>
+                <span className="text-destructive">*</span> Agrupamento do
+                Participante
+              </>
+            ) : (
+              <>
+                <span className="text-destructive">*</span> Grupo do
+                Participante
+              </>
+            )
           }
           type="select"
           options={grupos}
@@ -67,62 +76,122 @@ export function InformacoesPorGrupo({
         />
       </div>
 
-      <div className="mt-4 grid grid-cols-1 items-start gap-4 md:grid-cols-2">
-        <Field>
-          <FieldLabel id="alunoRedeMunicipal-rotulo" className="font-bold">
-            <span className="text-destructive">*</span> É aluno da Rede
-            Municipal?
-          </FieldLabel>
-          <RadioGroup
-            aria-labelledby="alunoRedeMunicipal-rotulo"
-            value="sim"
-            disabled
-            className="flex flex-wrap gap-4"
-          >
-            <div className="flex items-center gap-2">
-              <RadioGroupItem value="sim" id="alunoRedeMunicipal-sim" />
-              <FieldLabel
-                htmlFor="alunoRedeMunicipal-sim"
-                className="font-normal"
-              >
-                Sim
-              </FieldLabel>
-            </div>
-            <div className="flex items-center gap-2">
-              <RadioGroupItem value="nao" id="alunoRedeMunicipal-nao" />
-              <FieldLabel
-                htmlFor="alunoRedeMunicipal-nao"
-                className="font-normal"
-              >
-                Não
-              </FieldLabel>
-            </div>
-          </RadioGroup>
-        </Field>
-      </div>
+      {estudanteExterno ? (
+        <div className="mt-4 grid grid-cols-1 items-start gap-4 md:grid-cols-2">
+          <FormField
+            control={control}
+            name="tipoEscola"
+            label={
+              <>
+                <span className="text-destructive">*</span> Tipo de Escola
+              </>
+            }
+            type="radio"
+            options={[
+              { value: 'ESTADUAL', label: 'Estadual' },
+              { value: 'PARTICULAR', label: 'Particular' },
+            ]}
+          />
+        </div>
+      ) : (
+        <div className="mt-4 grid grid-cols-1 items-start gap-4 md:grid-cols-2">
+          <Field>
+            <FieldLabel id="alunoRedeMunicipal-rotulo" className="font-bold">
+              <span className="text-destructive">*</span> É aluno da Rede
+              Municipal?
+            </FieldLabel>
+            <RadioGroup
+              aria-labelledby="alunoRedeMunicipal-rotulo"
+              value="sim"
+              disabled
+              className="flex flex-wrap gap-4"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="sim" id="alunoRedeMunicipal-sim" />
+                <FieldLabel
+                  htmlFor="alunoRedeMunicipal-sim"
+                  className="font-normal"
+                >
+                  Sim
+                </FieldLabel>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="nao" id="alunoRedeMunicipal-nao" />
+                <FieldLabel
+                  htmlFor="alunoRedeMunicipal-nao"
+                  className="font-normal"
+                >
+                  Não
+                </FieldLabel>
+              </div>
+            </RadioGroup>
+          </Field>
+        </div>
+      )}
 
       <div className="mt-4 grid grid-cols-1 items-start gap-4 md:grid-cols-2">
-        <FormField
-          control={control}
-          name="unidadeEducacional"
-          label={
-            <>
-              <span className="text-destructive">*</span> Unidade Educacional do
-              participante
-            </>
-          }
-          readOnly
-          placeholder="Unidade Educacional"
-        />
-        <FormFieldLeitura
-          id="turmaAno"
-          label={
-            <>
-              <span className="text-destructive">*</span> Turma / Ano
-            </>
-          }
-          value={turmaAno}
-        />
+        {estudanteExterno ? (
+          <>
+            <FormField
+              control={control}
+              name="unidadeEducacional"
+              label={
+                <>
+                  <span className="text-destructive">*</span> Unidade
+                  Educacional do participante
+                </>
+              }
+              placeholder="Unidade Educacional"
+              maxLength={255}
+            />
+            <FormField
+              control={control}
+              name="nomeTurma"
+              label={
+                <>
+                  <span className="text-destructive">*</span> Turma / Ano
+                </>
+              }
+              placeholder="Turma"
+              maxLength={100}
+            />
+            <FormField
+              control={control}
+              name="ano"
+              label={
+                <>
+                  <span className="text-destructive">*</span> Ano
+                </>
+              }
+              placeholder="Ano"
+              maxLength={50}
+            />
+          </>
+        ) : (
+          <>
+            <FormField
+              control={control}
+              name="unidadeEducacional"
+              label={
+                <>
+                  <span className="text-destructive">*</span> Unidade
+                  Educacional do participante
+                </>
+              }
+              readOnly
+              placeholder="Unidade Educacional"
+            />
+            <FormFieldLeitura
+              id="turmaAno"
+              label={
+                <>
+                  <span className="text-destructive">*</span> Turma / Ano
+                </>
+              }
+              value={turmaAno}
+            />
+          </>
+        )}
       </div>
 
       <div className="mt-4 grid grid-cols-1 items-start gap-4 md:grid-cols-2">

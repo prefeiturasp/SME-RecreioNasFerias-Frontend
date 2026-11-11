@@ -52,6 +52,7 @@ export type DadosCadastroInscricao = {
   podeIrEmboraSozinho: '' | 'sim' | 'nao'
   responsavelRetirada: string
   autorizaUsoPiscina: '' | 'sim' | 'nao'
+  tipoEscola: '' | 'ESTADUAL' | 'PARTICULAR'
 }
 
 export type Inscricao = {
@@ -96,6 +97,8 @@ export type Inscricao = {
   restricao_medicamento_pronto_atendimento: string
   possui_convenio_medico: boolean
   convenio_medico: string
+  tipo_escola: '' | 'ESTADUAL' | 'PARTICULAR'
+  tipo_escola_label: string
   unidade_educacional: string
   unidade_educacional_codigo_eol: string
   unidade_educacional_tipo: string
