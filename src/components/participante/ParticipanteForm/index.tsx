@@ -79,6 +79,9 @@ const CAMPOS_DO_GRUPO: (keyof FormValues)[] = [
   'responsavelRetirada',
   'autorizaUsoPiscina',
   'tipoEscola',
+  'unidadeEducacional',
+  'nomeTurma',
+  'ano',
 ]
 
 const CAMPOS_DE_SAUDE: (keyof FormValues)[] = [

@@ -2184,7 +2184,7 @@ describe('ParticipanteForm', () => {
     await waitFor(() => {
       expect(secao).toHaveAttribute('aria-expanded', 'true')
     })
-    expect(screen.getByText('Este campo é obrigatório.')).toBeInTheDocument()
+    expect(screen.getAllByText('Este campo é obrigatório.')).toHaveLength(4)
     expect(
       screen.getByRole('radiogroup', { name: /tipo de escola/i }),
     ).toBeInTheDocument()

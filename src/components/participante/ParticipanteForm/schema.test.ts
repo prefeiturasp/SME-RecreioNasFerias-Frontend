@@ -65,6 +65,9 @@ const externoProntoParaFinalizar = {
   email: 'ana@email.com',
   dreCodigoEol: 'dre',
   polo: 'polo',
+  unidadeEducacional: 'Escola Estadual Modelo',
+  nomeTurma: '7A',
+  ano: '7',
 }
 
 describe('ParticipanteForm schema', () => {
@@ -133,6 +136,9 @@ describe('ParticipanteForm schema', () => {
       dreCodigoEol: 'dre',
       polo: 'polo',
       tipoEscola: 'ESTADUAL',
+      unidadeEducacional: 'Escola Estadual Modelo',
+      nomeTurma: '7A',
+      ano: '7',
     })
 
     expect(resultado.success).toBe(true)

@@ -277,6 +277,21 @@ const formSchema = formSchemaRascunho.superRefine((dados, contexto) => {
       preenchido: Boolean(dados.tipoEscola),
       caminho: 'tipoEscola',
     },
+    {
+      condicao: dados.tipoEstudante === TIPO_ESTUDANTE_EXTERNO,
+      preenchido: Boolean(dados.unidadeEducacional.trim()),
+      caminho: 'unidadeEducacional',
+    },
+    {
+      condicao: dados.tipoEstudante === TIPO_ESTUDANTE_EXTERNO,
+      preenchido: Boolean(dados.nomeTurma.trim()),
+      caminho: 'nomeTurma',
+    },
+    {
+      condicao: dados.tipoEstudante === TIPO_ESTUDANTE_EXTERNO,
+      preenchido: Boolean(dados.ano.trim()),
+      caminho: 'ano',
+    },
   ]
 
   for (const { condicao, preenchido, caminho } of camposObrigatorios) {
