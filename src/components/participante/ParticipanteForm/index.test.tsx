@@ -2188,7 +2188,59 @@ describe('ParticipanteForm', () => {
     expect(
       screen.getByRole('radiogroup', { name: /tipo de escola/i }),
     ).toBeInTheDocument()
+    for (const nome of [
+      /unidade educacional do participante/i,
+      '* Turma',
+      '* Ano',
+    ]) {
+      expect(
+        screen
+          .getByRole('textbox', { name: nome })
+          .closest('[data-slot="field"]'),
+      ).toHaveTextContent('Este campo é obrigatório.')
+    }
     expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
+  }, 15000)
+
+  it('envia unidade, turma e ano digitados no estudante externo', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await escolherEstudanteExterno(usuario)
+    await usuario.click(
+      screen.getByRole('button', { name: /informações por grupo/i }),
+    )
+
+    expect(screen.queryByLabelText(/turma \/ ano/i)).not.toBeInTheDocument()
+
+    const unidade = screen.getByRole('textbox', {
+      name: /unidade educacional do participante/i,
+    })
+    const turma = screen.getByRole('textbox', { name: '* Turma' })
+    const ano = screen.getByRole('textbox', { name: '* Ano' })
+
+    expect(unidade).not.toHaveAttribute('readonly')
+    expect(turma).not.toHaveAttribute('readonly')
+    expect(ano).not.toHaveAttribute('readonly')
+
+    await usuario.type(unidade, 'Escola Estadual Modelo')
+    await usuario.type(turma, '7A')
+    await usuario.type(ano, '7')
+    await usuario.click(
+      screen.getByRole('button', { name: /salvar rascunho/i }),
+    )
+
+    await waitFor(() => {
+      expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tipoEstudante: TIPO_ESTUDANTE_EXTERNO,
+          unidadeEducacional: 'Escola Estadual Modelo',
+          nomeTurma: '7A',
+          ano: '7',
+        }),
+        expect.anything(),
+      )
+    })
   }, 15000)
 
   it('salva o rascunho do estudante externo sem tipo de escola', async () => {

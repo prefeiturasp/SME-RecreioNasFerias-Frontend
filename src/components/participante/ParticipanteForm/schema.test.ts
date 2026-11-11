@@ -525,4 +525,41 @@ describe('ParticipanteForm schema', () => {
       ).toBe(true)
     },
   )
+
+  it.each([
+    ['unidadeEducacional', { unidadeEducacional: '' }],
+    ['nomeTurma', { nomeTurma: '   ' }],
+    ['ano', { ano: '' }],
+  ] as const)(
+    'exige %s ao finalizar estudante externo',
+    (campo, valorVazio) => {
+      const resultado = formSchema.safeParse({
+        ...vazio,
+        ...externoProntoParaFinalizar,
+        tipoEscola: 'ESTADUAL',
+        ...valorVazio,
+      })
+
+      expect(resultado.success).toBe(false)
+      if (resultado.success) return
+      expect(resultado.error.issues.map((issue) => issue.path[0])).toEqual([
+        campo,
+      ])
+      expect(resultado.error.issues[0]?.message).toBe(
+        'Este campo é obrigatório.',
+      )
+    },
+  )
+
+  it('aceita unidade, turma e ano vazios no rascunho do estudante externo', () => {
+    expect(
+      formSchemaRascunho.safeParse({
+        ...vazio,
+        tipoEstudante: 'ESTUDANTE_EXTERNO',
+        unidadeEducacional: '',
+        nomeTurma: '',
+        ano: '',
+      }).success,
+    ).toBe(true)
+  })
 })
