@@ -8,6 +8,7 @@ import { TabelaListagem } from '@/components/TabelaListagem'
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
 import { iconeLapisEditar } from '@/assets/'
+import { TIPO_ESTUDANTE_REDE } from '@/components/participante/ParticipanteForm/constantes'
 import type { InscricaoApi } from '@/services/inscricao/types'
 import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 
@@ -133,7 +134,11 @@ export function InscricoesParticipantesListagem() {
               className="text-brand-dark"
             >
               <Link
-                to={'#'}
+                to={
+                  inscricao.tipo_estudante === TIPO_ESTUDANTE_REDE
+                    ? `/editar-participante/${inscricao.uuid}`
+                    : '#'
+                }
                 aria-label={`Editar inscrição ${inscricao.nome_participante}`}
               >
                 <img

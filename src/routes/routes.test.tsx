@@ -415,4 +415,29 @@ describe('RotasAplicacao', () => {
       screen.getByRole('button', { name: /voltar para o início/i }),
     ).toBeInTheDocument()
   })
+
+  it('renderiza a página Editar Participante na rota /editar-participante/:idInscricao quando autenticado', () => {
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [PERMISSOES.visualizarInscricoesParticipantes],
+    })
+
+    renderRotas('/editar-participante/11111111-1111-1111-1111-111111111111')
+
+    const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
+    expect(mapa).toHaveTextContent('Início')
+    expect(mapa).toHaveTextContent('Inscrições')
+    expect(mapa).toHaveTextContent('Inscrições de Participantes')
+    expect(mapa).toHaveTextContent('Editar Participante')
+    expect(
+      screen.getByRole('heading', { name: /editar participante/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /voltar para o início/i }),
+    ).toBeInTheDocument()
+  })
 })

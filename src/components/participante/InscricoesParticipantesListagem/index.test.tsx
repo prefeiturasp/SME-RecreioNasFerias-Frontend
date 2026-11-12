@@ -99,6 +99,29 @@ describe('InscricoesParticipantesListagem', () => {
     expect(botaoEditar).toHaveAttribute('href', '/')
   })
 
+  it('aponta a edição do estudante da rede para a rota do participante', () => {
+    vi.mocked(useGetInscricoes).mockReturnValue({
+      data: {
+        count: 1,
+        results: [
+          {
+            ...dadosMock.results[0],
+            uuid: 'inscricao-rede',
+            tipo_estudante: 'ESTUDANTE_DA_REDE',
+            nome_participante: 'Maria da Rede',
+          },
+        ],
+      },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useGetInscricoes>)
+
+    renderInscricoesParticipantesListagem()
+
+    expect(
+      screen.getByRole('link', { name: /editar inscrição maria da rede/i }),
+    ).toHaveAttribute('href', '/editar-participante/inscricao-rede')
+  })
+
   it('deve chamar a função de alterar página ao interagir com a paginação', async () => {
     const user = userEvent.setup()
 
