@@ -6,6 +6,7 @@ import {
   IDADE_MINIMA_INVALIDA,
   MENSAGEM_DUPLICIDADE_CPF_PARTICIPANTE,
   MENSAGEM_IDADE_FORA_DA_FAIXA,
+  MENSAGEM_INSCRICAO_EOL_EXISTENTE,
   TIPO_ESTUDANTE_EXTERNO,
   TIPO_ESTUDANTE_REDE,
 } from './constantes'
@@ -26,6 +27,7 @@ export const formSchemaRascunho = z.object({
   cpf: z.string().regex(/^(\d{11})?$/, 'Informe um CPF válido.'),
   cpf_participante: z.string().regex(/^(\d{11})?$/, 'Informe um CPF válido.'),
   possuiInscricaoCpfParticipante: z.boolean(),
+  possuiInscricaoEolParticipante: z.boolean(),
   nomeCompleto: z.string(),
   dataNascimento: z.string(),
   nomeResponsavel: z.string(),
@@ -117,6 +119,10 @@ function validarIdentificacao(
   if (dados.tipoEstudante === TIPO_ESTUDANTE_EXTERNO) {
     validarEstudanteExterno(dados, adicionarCampoObrigatorio)
     return
+  }
+
+  if (dados.possuiInscricaoEolParticipante) {
+    adicionarCampoObrigatorio('codigoEol', MENSAGEM_INSCRICAO_EOL_EXISTENTE)
   }
 
   const codigoEolValido = /^\d{6,7}$/.test(dados.codigoEol)
