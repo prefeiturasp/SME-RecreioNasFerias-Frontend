@@ -9,6 +9,7 @@ const vazio = {
   cpf: '',
   cpf_participante: '',
   possuiInscricaoCpfParticipante: false,
+  possuiInscricaoEolParticipante: false,
   nomeCompleto: '',
   dataNascimento: '',
   nomeResponsavel: '',
