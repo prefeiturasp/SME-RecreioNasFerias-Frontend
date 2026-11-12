@@ -15,14 +15,17 @@ import type { FormValues } from './schema'
 import formSchema, { formSchemaRascunho } from './schema'
 
 import { BlocoTexto } from '@/components/BlocoTexto'
+import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
 import { useGetDres } from '@/hooks/useGetDres'
+import { useGetInscricao } from '@/hooks/useGetInscricao'
 import { useGetParticipanteCpf } from '@/hooks/useGetParticipanteCpf'
 import { useGetParticipanteEol } from '@/hooks/useGetParticipanteEol'
 import { useGetPolosElegiveis } from '@/hooks/useGetPolosElegiveis'
 import { useGetValoresChoices } from '@/hooks/useGetValoresChoices'
 import { usePostInscricao } from '@/hooks/usePostInscricao'
+import { usePutInscricao } from '@/hooks/usePutInscricao'
 import { useToast } from '@/hooks/useToast'
 import { extrairMensagemDeErro } from '@/services/api/extrairMensagemDeErro'
 import type {
@@ -30,6 +33,11 @@ import type {
   ParticipanteEol,
 } from '@/services/inscricao/types'
 import { InformacoesSaude } from './InformacoesSaude/index'
+import { valoresFormularioDaInscricao } from './valoresFormulario'
+
+type ParticipanteFormProps = {
+  inscricaoId?: string
+}
 
 function impedirBlurAntesDoClique(evento: MouseEvent<HTMLButtonElement>) {
   evento.preventDefault()
@@ -100,10 +108,13 @@ const CAMPOS_DE_SAUDE: (keyof FormValues)[] = [
   'qualConvenioMedico',
 ]
 
-export function ParticipanteForm() {
+export function ParticipanteForm({ inscricaoId }: ParticipanteFormProps) {
   const navigate = useNavigate()
   const { showToast } = useToast()
   const cadastroMutation = usePostInscricao()
+  const atualizacaoMutation = usePutInscricao(inscricaoId)
+  const inscricaoQuery = useGetInscricao(inscricaoId)
+  const [uuidAplicado, setUuidAplicado] = useState<string | null>(null)
   const schemaEnvio = useRef(formSchema)
   const buscaVigente = useRef<'codigoEol' | 'cpf' | null>(null)
   const [codigoEolConsulta, setCodigoEolConsulta] = useState<string>()
@@ -122,13 +133,14 @@ export function ParticipanteForm() {
   const [informacoesSaudeAberta, setInformacoesSaudeAberta] = useState(false)
   const [temErroInscricaoEolDuplicada, setTemErroInscricaoEolDuplicada] =
     useState(false)
+  const editando = useMemo(() => Boolean(inscricaoId), [inscricaoId])
   const eolDesabilitado = useMemo(
-    () => origemConsulta === 'cpf',
-    [origemConsulta],
+    () => editando || origemConsulta === 'cpf',
+    [editando, origemConsulta],
   )
   const cpfDesabilitado = useMemo(
-    () => origemConsulta === 'codigoEol',
-    [origemConsulta],
+    () => editando || origemConsulta === 'codigoEol',
+    [editando, origemConsulta],
   )
   const form = useForm<FormValues>({
     resolver: (valores, contexto, opcoes) =>
@@ -197,7 +209,17 @@ export function ParticipanteForm() {
     () => choicesQuery.data?.grupo_inscricao ?? [],
     [choicesQuery.data?.grupo_inscricao],
   )
-  const tipoTravado = useMemo(() => grupoExigeEstudanteDaRede(grupo), [grupo])
+  const tipoTravado = useMemo(
+    () => editando || grupoExigeEstudanteDaRede(grupo),
+    [editando, grupo],
+  )
+  const aguardandoEdicao = useMemo(
+    () =>
+      editando &&
+      !inscricaoQuery.isError &&
+      uuidAplicado !== inscricaoQuery.data?.uuid,
+    [editando, inscricaoQuery.data?.uuid, inscricaoQuery.isError, uuidAplicado],
+  )
   const camposLiberados = useMemo(
     () => Boolean(grupo) && Boolean(tipoEstudante),
     [grupo, tipoEstudante],
@@ -377,7 +399,9 @@ export function ParticipanteForm() {
       dresQuery.error ??
       polosQuery.error ??
       choicesQuery.error ??
-      cadastroMutation.error
+      inscricaoQuery.error ??
+      cadastroMutation.error ??
+      atualizacaoMutation.error
     )
   }, [
     consultaCpf.error,
@@ -385,7 +409,9 @@ export function ParticipanteForm() {
     dresQuery.error,
     polosQuery.error,
     choicesQuery.error,
+    inscricaoQuery.error,
     cadastroMutation.error,
+    atualizacaoMutation.error,
   ])
 
   useEffect(() => {
@@ -421,6 +447,22 @@ export function ParticipanteForm() {
       },
     )
   }, [temErroInscricaoEolDuplicada, form])
+
+  useEffect(() => {
+    if (!inscricaoQuery.data || choicesQuery.isPending) return
+    if (uuidAplicado === inscricaoQuery.data.uuid) return
+
+    form.reset(
+      valoresFormularioDaInscricao(inscricaoQuery.data, choicesQuery.data),
+    )
+    setUuidAplicado(inscricaoQuery.data.uuid)
+  }, [
+    choicesQuery.data,
+    choicesQuery.isPending,
+    form,
+    inscricaoQuery.data,
+    uuidAplicado,
+  ])
 
   useEffect(() => {
     if (!codigoEolConsulta || buscaVigente.current !== 'codigoEol') return
@@ -471,8 +513,11 @@ export function ParticipanteForm() {
   ])
 
   function salvar(dados: FormValues) {
-    if (cadastroMutation.isError) {
-      cadastroMutation.reset()
+    const gravacaoMutation = inscricaoId
+      ? atualizacaoMutation
+      : cadastroMutation
+    if (gravacaoMutation.isError) {
+      gravacaoMutation.reset()
     }
 
     const dreNome =
@@ -541,7 +586,7 @@ export function ParticipanteForm() {
         dados.tipoEstudante === TIPO_ESTUDANTE_EXTERNO ? dados.tipoEscola : '',
     }
 
-    cadastroMutation.mutate(dadosCadastro, {
+    gravacaoMutation.mutate(dadosCadastro, {
       onSuccess: (inscricao) => {
         showToast({
           id: 'inscricao-salva',
@@ -554,17 +599,32 @@ export function ParticipanteForm() {
     })
   }
 
+  if (inscricaoId && inscricaoQuery.isError) {
+    return null
+  }
+
+  if (aguardandoEdicao) {
+    return <IndicadorCarregamento mensagem="Carregando inscrição..." />
+  }
+
   return (
     <form
       noValidate
-      aria-label="Formulário de cadastro de participante"
+      aria-label={
+        inscricaoId
+          ? 'Formulário de edição de participante'
+          : 'Formulário de cadastro de participante'
+      }
       onSubmit={(evento) => {
         const submitter = evento.nativeEvent.submitter
         schemaEnvio.current =
-          submitter instanceof HTMLElement &&
-          submitter.dataset.acao === 'rascunho'
-            ? formSchemaRascunho
-            : formSchema
+          inscricaoId ||
+          !(
+            submitter instanceof HTMLElement &&
+            submitter.dataset.acao === 'rascunho'
+          )
+            ? formSchema
+            : formSchemaRascunho
         void form.handleSubmit(salvar, (erros) => {
           if (CAMPOS_DO_GRUPO.some((campo) => erros[campo])) {
             setInformacoesPorGrupoAberta(true)
@@ -607,6 +667,7 @@ export function ParticipanteForm() {
               aoMudarDre={aoMudarDre}
               eolDesabilitado={eolDesabilitado}
               cpfDesabilitado={cpfDesabilitado}
+              identificacaoBloqueada={editando}
             />
           </SecaoFormulario>
 
@@ -647,19 +708,25 @@ export function ParticipanteForm() {
           >
             Cancelar
           </Button>
+          {editando ? null : (
+            <Button
+              type="submit"
+              variant="outline"
+              disabled={
+                cadastroMutation.isPending || atualizacaoMutation.isPending
+              }
+              className="h-9.5 rounded-sm border-brand-dark px-4 font-bold text-brand-dark hover:bg-accent hover:text-brand-dark"
+              data-acao="rascunho"
+              onMouseDown={impedirBlurAntesDoClique}
+            >
+              Salvar Rascunho
+            </Button>
+          )}
           <Button
             type="submit"
-            variant="outline"
-            disabled={cadastroMutation.isPending}
-            className="h-9.5 rounded-sm border-brand-dark px-4 font-bold text-brand-dark hover:bg-accent hover:text-brand-dark"
-            data-acao="rascunho"
-            onMouseDown={impedirBlurAntesDoClique}
-          >
-            Salvar Rascunho
-          </Button>
-          <Button
-            type="submit"
-            disabled={cadastroMutation.isPending}
+            disabled={
+              cadastroMutation.isPending || atualizacaoMutation.isPending
+            }
             className="h-9.5 rounded-sm bg-brand-dark px-4 font-bold text-background hover:bg-brand-dark-hover disabled:bg-button-primary-disabled-bg disabled:opacity-100"
             onMouseDown={impedirBlurAntesDoClique}
           >

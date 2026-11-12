@@ -2,8 +2,9 @@ import IconeSetaVoltar from '@/assets/icone-seta-voltar.png'
 import { Cabecalho } from '@/components/Cabecalho'
 import { MapaVisual } from '@/components/MapaVisual'
 import { MenuLateral } from '@/components/MenuLateral'
+import { ParticipanteForm } from '@/components/participante/ParticipanteForm'
 import { Button } from '@/components/ui/button'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 const NIVEIS_MAPA_VISUAL = [
   { rotulo: 'Início', caminho: '/inicio' },
@@ -14,6 +15,7 @@ const NIVEIS_MAPA_VISUAL = [
 
 export default function PaginaEditarParticipante() {
   const navigate = useNavigate()
+  const { idInscricao } = useParams()
 
   return (
     <main className="flex h-full w-full overflow-hidden">
@@ -39,6 +41,9 @@ export default function PaginaEditarParticipante() {
                 </Button>
               </div>
             </div>
+            {idInscricao ? (
+              <ParticipanteForm inscricaoId={idInscricao} />
+            ) : null}
           </section>
         </div>
       </section>
