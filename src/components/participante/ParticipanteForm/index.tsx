@@ -6,6 +6,7 @@ import {
   grupoExigeEstudanteDaRede,
   TIPO_ESTUDANTE_EXTERNO,
   TIPO_ESTUDANTE_REDE,
+  MENSAGEM_INSCRICAO_EOL_EXISTENTE,
 } from './constantes'
 import { InformacoesBasicas } from './InformacoesBasicas'
 import { InformacoesPorGrupo } from './InformacoesPorGrupo'
@@ -119,6 +120,8 @@ export function ParticipanteForm() {
   const [informacoesPorGrupoAberta, setInformacoesPorGrupoAberta] =
     useState(false)
   const [informacoesSaudeAberta, setInformacoesSaudeAberta] = useState(false)
+  const [temErroInscricaoEolDuplicada, setTemErroInscricaoEolDuplicada] =
+    useState(false)
   const eolDesabilitado = useMemo(
     () => origemConsulta === 'cpf',
     [origemConsulta],
@@ -137,6 +140,7 @@ export function ParticipanteForm() {
       cpf: '',
       cpf_participante: '',
       possuiInscricaoCpfParticipante: false,
+      possuiInscricaoEolParticipante: false,
       nomeCompleto: '',
       dataNascimento: '',
       nomeResponsavel: '',
@@ -219,6 +223,7 @@ export function ParticipanteForm() {
       cpf: '',
       dreCodigoEol: '',
       polo: '',
+      possuiInscricaoEolParticipante: false,
     })
     setOrigemConsulta(null)
     setCodigoEolConsulta(undefined)
@@ -317,6 +322,9 @@ export function ParticipanteForm() {
   function aoMudarCodigoEol(valor: string) {
     if (origemConsulta === 'cpf') return
 
+    // Limpa o erro de inscrição duplicada quando o usuário modifica o código EOL
+    setTemErroInscricaoEolDuplicada(false)
+
     if (valor) {
       setOrigemConsulta('codigoEol')
     } else if (origemConsulta === 'codigoEol') {
@@ -383,6 +391,18 @@ export function ParticipanteForm() {
   useEffect(() => {
     if (erroApi && extrairMensagemDeErro(erroApi)) {
       const mensagem = extrairMensagemDeErro(erroApi)
+
+      if (mensagem === MENSAGEM_INSCRICAO_EOL_EXISTENTE) {
+        setTemErroInscricaoEolDuplicada(true)
+        showToast({
+          id: 'erro-api',
+          title: 'Erro ao processar a inscrição',
+          variant: 'destructive',
+          description: mensagem,
+        })
+        return
+      }
+
       showToast({
         id: 'erro-api',
         title: 'Erro ao processar a inscrição',
@@ -391,6 +411,16 @@ export function ParticipanteForm() {
       })
     }
   }, [erroApi, showToast])
+
+  useEffect(() => {
+    form.setValue(
+      'possuiInscricaoEolParticipante',
+      temErroInscricaoEolDuplicada,
+      {
+        shouldValidate: false,
+      },
+    )
+  }, [temErroInscricaoEolDuplicada, form])
 
   useEffect(() => {
     if (!codigoEolConsulta || buscaVigente.current !== 'codigoEol') return
