@@ -69,6 +69,9 @@ const externoProntoParaFinalizar = {
   unidadeEducacional: 'Escola Estadual Modelo',
   nomeTurma: '7A',
   ano: '7',
+  podeIrEmboraSozinho: 'nao',
+  responsavelRetirada: 'Maria Souza',
+  autorizaUsoPiscina: 'sim',
 }
 
 describe('ParticipanteForm schema', () => {
@@ -140,6 +143,9 @@ describe('ParticipanteForm schema', () => {
       unidadeEducacional: 'Escola Estadual Modelo',
       nomeTurma: '7A',
       ano: '7',
+      podeIrEmboraSozinho: 'nao',
+      responsavelRetirada: 'Maria Souza',
+      autorizaUsoPiscina: 'sim',
     })
 
     expect(resultado.success).toBe(true)
@@ -500,6 +506,27 @@ describe('ParticipanteForm schema', () => {
         tipoEstudante: 'ESTUDANTE_EXTERNO',
       }).success,
     ).toBe(true)
+  })
+
+  it('exige saída, retirada e piscina ao finalizar estudante externo', () => {
+    const resultado = formSchema.safeParse({
+      ...vazio,
+      ...externoProntoParaFinalizar,
+      tipoEscola: 'ESTADUAL',
+      podeIrEmboraSozinho: '',
+      responsavelRetirada: '   ',
+      autorizaUsoPiscina: '',
+    })
+
+    expect(resultado.success).toBe(false)
+    if (resultado.success) return
+    expect(resultado.error.issues.map((issue) => issue.path[0])).toEqual(
+      expect.arrayContaining([
+        'podeIrEmboraSozinho',
+        'responsavelRetirada',
+        'autorizaUsoPiscina',
+      ]),
+    )
   })
 
   it('exige tipo de escola ao finalizar estudante externo', () => {

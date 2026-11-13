@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   calcularIdadeDetalhada,
-  formatarIdadeDetalhada,
+  formatarIdadePorExtenso,
 } from './calcularIdadeDetalhada'
 
 describe('calcularIdadeDetalhada', () => {
@@ -36,16 +36,23 @@ describe('calcularIdadeDetalhada', () => {
   })
 })
 
-describe('formatarIdadeDetalhada', () => {
-  it('devolve vazio sem data válida', () => {
-    expect(formatarIdadeDetalhada('')).toBe('')
+describe('formatarIdadePorExtenso', () => {
+  const hoje = new Date(2026, 9, 18)
+
+  it('flexiona ano, mês e dia no singular e no plural', () => {
+    expect(formatarIdadePorExtenso('2025-09-17', hoje)).toBe(
+      '1 ano, 1 mês e 1 dia',
+    )
+    expect(formatarIdadePorExtenso('2025-05-19', hoje)).toBe(
+      '1 ano, 4 meses e 29 dias',
+    )
+    expect(formatarIdadePorExtenso('2019-10-18', hoje)).toBe(
+      '7 anos, 0 meses e 0 dias',
+    )
   })
 
-  it('formata com singular e plural', () => {
-    const nascimento = new Date()
-    nascimento.setFullYear(nascimento.getFullYear() - 1)
-    const iso = `${nascimento.getFullYear()}-${String(nascimento.getMonth() + 1).padStart(2, '0')}-${String(nascimento.getDate()).padStart(2, '0')}`
-
-    expect(formatarIdadeDetalhada(iso)).toBe('1 ano, 0 meses, 0 dias')
+  it('devolve vazio sem data válida', () => {
+    expect(formatarIdadePorExtenso('', hoje)).toBe('')
+    expect(formatarIdadePorExtenso('2999-01-01', hoje)).toBe('')
   })
 })

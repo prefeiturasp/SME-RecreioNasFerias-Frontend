@@ -38,6 +38,8 @@ type InformacoesBasicasProps = {
   aoMudarGrupo?: (valor: string) => void
   aoMudarTipoEstudante?: (valor: string) => void
   aoMudarDre?: (valor: string) => void
+  identificacaoBloqueada?: boolean
+  cpfParticipanteDaInscricao?: string
 }
 
 type CampoTipoEstudanteProps = {
@@ -104,8 +106,8 @@ function CamposNascimentoECpf({
         name="dataNascimento"
         label={
           <>
-            <span className="text-destructive">*</span> Data de nascimento
-            do(a) participante
+            <span className="text-destructive">*</span> Data de nascimento do(a)
+            participante
           </>
         }
         placeholder="DD/MM/AAAA"
@@ -153,6 +155,8 @@ export function InformacoesBasicas({
   aoMudarDre,
   eolDesabilitado = false,
   cpfDesabilitado = false,
+  identificacaoBloqueada = false,
+  cpfParticipanteDaInscricao,
 }: Readonly<InformacoesBasicasProps>) {
   const rotuloTipoEstudante = useMemo(
     () =>
@@ -160,23 +164,41 @@ export function InformacoesBasicas({
       '',
     [tipoEstudante, tiposEstudante],
   )
+  const rotuloGrupo = useMemo(
+    () => grupos.find((opcao) => opcao.value === grupo)?.label ?? '',
+    [grupo, grupos],
+  )
   const dataNascimento = useWatch({ control, name: 'dataNascimento' })
 
   return (
     <div className="grid gap-x-4 gap-y-5.5 lg:grid-cols-2">
-      <FormField
-        control={control}
-        name="grupo"
-        label={
-          <>
-            <span className="text-destructive">*</span> Agrupamento
-          </>
-        }
-        type="select"
-        options={grupos}
-        placeholder="Selecione o Agrupamento"
-        onChange={aoMudarGrupo}
-      />
+      {identificacaoBloqueada ? (
+        <FormField
+          control={control}
+          name="grupo"
+          label={
+            <>
+              <span className="text-destructive">*</span> Agrupamento
+            </>
+          }
+          readOnly
+          valorExibicao={rotuloGrupo}
+        />
+      ) : (
+        <FormField
+          control={control}
+          name="grupo"
+          label={
+            <>
+              <span className="text-destructive">*</span> Agrupamento
+            </>
+          }
+          type="select"
+          options={grupos}
+          placeholder="Selecione o Agrupamento"
+          onChange={aoMudarGrupo}
+        />
+      )}
       {grupo ? (
         <CampoTipoEstudante
           control={control}
@@ -204,6 +226,7 @@ export function InformacoesBasicas({
             <CPFParticipanteEstudanteExterno
               control={control}
               setValue={setValue}
+              cpfDaInscricao={cpfParticipanteDaInscricao}
             />
           )}
 

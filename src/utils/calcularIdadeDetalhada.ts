@@ -42,17 +42,16 @@ export function calcularIdadeDetalhada(
   return { anos, meses, dias }
 }
 
-function pluralizar(valor: number, singular: string, plural: string) {
-  return `${valor} ${valor === 1 ? singular : plural}`
-}
-
-export function formatarIdadeDetalhada(dataNascimento: string): string {
-  const idade = calcularIdadeDetalhada(dataNascimento)
+export function formatarIdadePorExtenso(
+  dataNascimento: string,
+  hoje: Date = new Date(),
+): string {
+  const idade = calcularIdadeDetalhada(dataNascimento, hoje)
   if (!idade) return ''
 
-  return [
-    pluralizar(idade.anos, 'ano', 'anos'),
-    pluralizar(idade.meses, 'mês', 'meses'),
-    pluralizar(idade.dias, 'dia', 'dias'),
-  ].join(', ')
+  const { anos, meses, dias } = idade
+  const rotuloAnos = anos === 1 ? 'ano' : 'anos'
+  const rotuloMeses = meses === 1 ? 'mês' : 'meses'
+  const rotuloDias = dias === 1 ? 'dia' : 'dias'
+  return `${anos} ${rotuloAnos}, ${meses} ${rotuloMeses} e ${dias} ${rotuloDias}`
 }

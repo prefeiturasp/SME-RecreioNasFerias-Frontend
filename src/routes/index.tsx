@@ -7,6 +7,7 @@ import PaginaPolosParceiros from '../pages/PaginaPolosParceiros'
 import PaginaCadastrarNovaEdicaoPrograma from '../pages/PaginaCadastrarNovaEdicaoPrograma'
 import PaginaInscricaoParticipantes from '../pages/PaginaInscricaoParticipantes'
 import PaginaCadastrarParticipante from '../pages/PaginaCadastrarParticipante'
+import PaginaEditarParticipante from '../pages/PaginaEditarParticipante'
 import PaginaCadastrarPoloParceiro from '../pages/PaginaCadastrarPoloParceiro'
 import PaginaEditarPoloParceiro from '../pages/PaginaEditarPoloParceiro'
 import PaginaEditarEdicaoPrograma from '../pages/PaginaEditarEdicaoPrograma'
@@ -103,6 +104,14 @@ export function RotasAplicacao() {
         element={
           <RotaProtegida permissao={PERMISSOES.criarInscricoesParticipantes}>
             <PaginaCadastrarParticipante />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/editar-participante/:idInscricao"
+        element={
+          <RotaProtegida permissao={PERMISSOES.editarInscricoesParticipantes}>
+            <PaginaEditarParticipante />
           </RotaProtegida>
         }
       />
