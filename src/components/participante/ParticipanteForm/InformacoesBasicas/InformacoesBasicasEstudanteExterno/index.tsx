@@ -8,7 +8,7 @@ import {
   validarCpf,
 } from '@/utils/mascarasEntrada'
 import { calcularIdadeDetalhada } from '@/utils/calcularIdadeDetalhada'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import {
   Controller,
   useWatch,
@@ -31,23 +31,27 @@ type InformacoesBasicasEstudanteExternoProps = {
 type CPFParticipanteEstudanteExternoProps =
   InformacoesBasicasEstudanteExternoProps & {
     setValue: UseFormSetValue<FormValues>
-    somenteLeitura?: boolean
+    cpfDaInscricao?: string
   }
 
 export const CPFParticipanteEstudanteExterno = ({
   control,
   setValue,
-  somenteLeitura = false,
+  cpfDaInscricao,
 }: Readonly<CPFParticipanteEstudanteExternoProps>) => {
   const cpf = useWatch({ control, name: 'cpf_participante' })
+  const consultaHabilitada = useMemo(
+    () => cpfDaInscricao === undefined || cpf !== cpfDaInscricao,
+    [cpf, cpfDaInscricao],
+  )
   const consultaDuplicidade = useGetDuplicidadeCPFInscricaoExterna(
     cpf,
-    !somenteLeitura,
+    consultaHabilitada,
   )
   const { dismissToast, showToast } = useToast()
 
   useEffect(() => {
-    if (somenteLeitura || !consultaDuplicidade.data) return
+    if (!consultaHabilitada || !consultaDuplicidade.data) return
 
     const possuiInscricao = consultaDuplicidade.data.possui_inscricao === true
     setValue('possuiInscricaoCpfParticipante', possuiInscricao, {
@@ -62,13 +66,12 @@ export const CPFParticipanteEstudanteExterno = ({
         variant: 'destructive',
       })
     }
-  }, [consultaDuplicidade.data, setValue, showToast, somenteLeitura])
+  }, [consultaDuplicidade.data, consultaHabilitada, setValue, showToast])
 
   return (
     <FormFieldEol
       control={control}
       name="cpf_participante"
-      readOnly={somenteLeitura}
       onChange={(valor) => {
         setValue('possuiInscricaoCpfParticipante', false, {
           shouldValidate: false,

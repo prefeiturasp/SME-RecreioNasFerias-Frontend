@@ -319,6 +319,11 @@ function nascimentoComUmAno() {
   return `${hoje.getFullYear() - 1}-${mes}-01`
 }
 
+function digitosNascimentoComUmAno() {
+  const [ano, mes, dia] = nascimentoComUmAno().split('-')
+  return `${dia}${mes}${ano}`
+}
+
 async function escolherEstudanteExterno(
   usuario: ReturnType<typeof userEvent.setup>,
 ) {
@@ -2445,7 +2450,8 @@ describe('ParticipanteForm', () => {
     expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
   })
 
-  it('mantém o CPF do estudante externo somente leitura e não acusa duplicidade', async () => {
+  it('mantém o CPF do estudante externo editável e não acusa a própria inscrição', async () => {
+    const usuario = userEvent.setup()
     checarDuplicidadeInscricaoEstudanteExternoMock.mockResolvedValue({
       possui_inscricao: true,
     })
@@ -2463,7 +2469,7 @@ describe('ParticipanteForm', () => {
       name: /cpf do\(a\) participante/i,
     })
     expect(cpf).toHaveValue('392.007.910-85')
-    expect(cpf).toHaveAttribute('readonly')
+    expect(cpf).not.toHaveAttribute('readonly')
     expect(
       checarDuplicidadeInscricaoEstudanteExternoMock,
     ).not.toHaveBeenCalled()
@@ -2472,6 +2478,44 @@ describe('ParticipanteForm', () => {
         description: MENSAGEM_DUPLICIDADE_CPF_PARTICIPANTE,
       }),
     )
+
+    await usuario.clear(cpf)
+    await usuario.type(cpf, '12345678909')
+
+    await waitFor(() => {
+      expect(
+        checarDuplicidadeInscricaoEstudanteExternoMock,
+      ).toHaveBeenCalledWith('12345678909')
+    })
+  })
+
+  it('mostra a idade do detalhe e recalcula ao alterar a data de nascimento', async () => {
+    const usuario = userEvent.setup()
+    obterInscricaoMock.mockResolvedValue({
+      ...inscricaoDetalheExemplo,
+      tipo_estudante: 'ESTUDANTE_EXTERNO',
+      tipo_estudante_label: 'Estudante externo',
+      codigo_eol: '',
+      cpf_participante: '39200791085',
+    })
+
+    renderFormularioEdicao()
+
+    const secaoGrupo = await screen.findByRole('button', {
+      name: /informações por grupo/i,
+    })
+    await usuario.click(secaoGrupo)
+    expect(screen.getByLabelText(/\bidade\b/i)).toHaveValue(
+      '7 anos, 0 meses e 0 dias',
+    )
+
+    const dataNascimento = screen.getByRole('textbox', {
+      name: /data de nascimento/i,
+    })
+    await usuario.clear(dataNascimento)
+    await usuario.type(dataNascimento, digitosNascimentoComUmAno())
+
+    expect(screen.getByLabelText(/\bidade\b/i)).toHaveValue('1 ano')
   })
 
   it('impede finalizar a edição quando um campo obrigatório está vazio', async () => {

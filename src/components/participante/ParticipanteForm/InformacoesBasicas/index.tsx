@@ -39,6 +39,7 @@ type InformacoesBasicasProps = {
   aoMudarTipoEstudante?: (valor: string) => void
   aoMudarDre?: (valor: string) => void
   identificacaoBloqueada?: boolean
+  cpfParticipanteDaInscricao?: string
 }
 
 type CampoTipoEstudanteProps = {
@@ -155,6 +156,7 @@ export function InformacoesBasicas({
   eolDesabilitado = false,
   cpfDesabilitado = false,
   identificacaoBloqueada = false,
+  cpfParticipanteDaInscricao,
 }: Readonly<InformacoesBasicasProps>) {
   const rotuloTipoEstudante = useMemo(
     () =>
@@ -224,7 +226,7 @@ export function InformacoesBasicas({
             <CPFParticipanteEstudanteExterno
               control={control}
               setValue={setValue}
-              somenteLeitura={identificacaoBloqueada}
+              cpfDaInscricao={cpfParticipanteDaInscricao}
             />
           )}
 

@@ -15,6 +15,7 @@ type InformacoesPorGrupoProps = {
   grupos: OpcaoChoice[]
   tipoEstudante: string
   idadeDetalhada?: string | null
+  dataNascimentoInicial?: string
 }
 
 export function InformacoesPorGrupo({
@@ -22,19 +23,27 @@ export function InformacoesPorGrupo({
   grupos,
   tipoEstudante,
   idadeDetalhada,
+  dataNascimentoInicial,
 }: Readonly<InformacoesPorGrupoProps>) {
   const [dataNascimento, nomeTurma, ano] = useWatch({
     control,
     name: ['dataNascimento', 'nomeTurma', 'ano'],
   })
   const estudanteExterno = tipoEstudante === TIPO_ESTUDANTE_EXTERNO
+  const exibeIdadeDaApi = useMemo(
+    () =>
+      idadeDetalhada !== undefined &&
+      dataNascimentoInicial !== undefined &&
+      dataNascimento === dataNascimentoInicial,
+    [dataNascimento, dataNascimentoInicial, idadeDetalhada],
+  )
   const textoIdade = useMemo(() => {
-    if (idadeDetalhada !== undefined) return idadeDetalhada ?? ''
+    if (exibeIdadeDaApi) return idadeDetalhada ?? ''
 
     const idade = calcularIdadeCheia(dataNascimento)
     if (idade === null) return ''
     return idade === 1 ? '1 ano' : `${idade} anos`
-  }, [dataNascimento, idadeDetalhada])
+  }, [dataNascimento, exibeIdadeDaApi, idadeDetalhada])
   const turmaAno = useMemo(
     () => [nomeTurma, ano].filter((parte) => parte.trim()).join(' / '),
     [nomeTurma, ano],

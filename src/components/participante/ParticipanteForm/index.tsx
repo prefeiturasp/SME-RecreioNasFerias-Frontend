@@ -672,6 +672,9 @@ export function ParticipanteForm({
               eolDesabilitado={eolDesabilitado}
               cpfDesabilitado={cpfDesabilitado}
               identificacaoBloqueada={editando}
+              cpfParticipanteDaInscricao={
+                editando ? inscricaoQuery.data?.cpf_participante : undefined
+              }
             />
           </SecaoFormulario>
 
@@ -687,6 +690,11 @@ export function ParticipanteForm({
                 tipoEstudante={tipoEstudante}
                 idadeDetalhada={
                   editando ? inscricaoQuery.data?.idade_detalhada : undefined
+                }
+                dataNascimentoInicial={
+                  editando
+                    ? (inscricaoQuery.data?.data_nascimento ?? '')
+                    : undefined
                 }
               />
             </SecaoFormulario>
