@@ -41,3 +41,17 @@ export function calcularIdadeDetalhada(
 
   return { anos, meses, dias }
 }
+
+export function formatarIdadePorExtenso(
+  dataNascimento: string,
+  hoje: Date = new Date(),
+): string {
+  const idade = calcularIdadeDetalhada(dataNascimento, hoje)
+  if (!idade) return ''
+
+  const { anos, meses, dias } = idade
+  const rotuloAnos = anos === 1 ? 'ano' : 'anos'
+  const rotuloMeses = meses === 1 ? 'mês' : 'meses'
+  const rotuloDias = dias === 1 ? 'dia' : 'dias'
+  return `${anos} ${rotuloAnos}, ${meses} ${rotuloMeses} e ${dias} ${rotuloDias}`
+}

@@ -324,6 +324,12 @@ function digitosNascimentoComUmAno() {
   return `${dia}${mes}${ano}`
 }
 
+function idadePorExtensoComUmAno() {
+  const dias = new Date().getDate() - 1
+  const rotuloDias = dias === 1 ? 'dia' : 'dias'
+  return `1 ano, 0 meses e ${dias} ${rotuloDias}`
+}
+
 async function escolherEstudanteExterno(
   usuario: ReturnType<typeof userEvent.setup>,
 ) {
@@ -2044,7 +2050,7 @@ describe('ParticipanteForm', () => {
     })
   }, 30_000)
 
-  it('mostra os campos da rede, a idade em um ano e limpa ao sair da consulta', async () => {
+  it('mostra os campos da rede, a idade por extenso e limpa ao sair da consulta', async () => {
     const usuario = userEvent.setup()
     obterParticipanteEolMock.mockResolvedValue({
       ...participanteEolExemplo,
@@ -2085,7 +2091,9 @@ describe('ParticipanteForm', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/\bidade\b/i)).toHaveValue('1 ano')
+      expect(screen.getByLabelText(/\bidade\b/i)).toHaveValue(
+        idadePorExtensoComUmAno(),
+      )
     })
     expect(
       screen.getByLabelText(/unidade educacional do participante/i),
@@ -2515,7 +2523,9 @@ describe('ParticipanteForm', () => {
     await usuario.clear(dataNascimento)
     await usuario.type(dataNascimento, digitosNascimentoComUmAno())
 
-    expect(screen.getByLabelText(/\bidade\b/i)).toHaveValue('1 ano')
+    expect(screen.getByLabelText(/\bidade\b/i)).toHaveValue(
+      idadePorExtensoComUmAno(),
+    )
   })
 
   it('impede finalizar a edição quando um campo obrigatório está vazio', async () => {

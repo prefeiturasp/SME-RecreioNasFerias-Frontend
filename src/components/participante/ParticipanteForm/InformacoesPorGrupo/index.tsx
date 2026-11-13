@@ -8,7 +8,7 @@ import { FormFieldLeitura } from '@/components/ui/form-field-leitura'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import type { OpcaoChoice } from '@/services/inscricao/types'
-import { calcularIdadeCheia } from '@/utils/calcularIdadeCheia'
+import { formatarIdadePorExtenso } from '@/utils/calcularIdadeDetalhada'
 
 type InformacoesPorGrupoProps = {
   control: Control<FormValues>
@@ -39,10 +39,7 @@ export function InformacoesPorGrupo({
   )
   const textoIdade = useMemo(() => {
     if (exibeIdadeDaApi) return idadeDetalhada ?? ''
-
-    const idade = calcularIdadeCheia(dataNascimento)
-    if (idade === null) return ''
-    return idade === 1 ? '1 ano' : `${idade} anos`
+    return formatarIdadePorExtenso(dataNascimento)
   }, [dataNascimento, exibeIdadeDaApi, idadeDetalhada])
   const turmaAno = useMemo(
     () => [nomeTurma, ano].filter((parte) => parte.trim()).join(' / '),
