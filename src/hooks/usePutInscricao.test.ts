@@ -30,7 +30,7 @@ vi.mock('@/services/inscricao/atualizarInscricao', () => ({
 
 type MutationOptions = {
   mutationFn: (dados: DadosCadastroInscricao) => Promise<Inscricao>
-  onSuccess: () => void
+  onSuccess: () => Promise<void>
 }
 
 const dadosInscricao = {
@@ -63,7 +63,9 @@ describe('usePutInscricao', () => {
     )
     expect(atualizarInscricaoMock).toHaveBeenCalledWith(uuid, dadosInscricao)
 
-    act(() => options.onSuccess())
+    await act(async () => {
+      await options.onSuccess()
+    })
 
     expect(invalidateQueriesMock).toHaveBeenNthCalledWith(1, {
       queryKey: ['inscricao', uuid],
@@ -82,10 +84,12 @@ describe('usePutInscricao', () => {
     expect(atualizarInscricaoMock).not.toHaveBeenCalled()
   })
 
-  it('invalida a listagem mesmo quando o UUID não está disponível no sucesso', () => {
+  it('invalida a listagem mesmo quando o UUID não está disponível no sucesso', async () => {
     const options = obterOpcoesDaMutacao(undefined)
 
-    act(() => options.onSuccess())
+    await act(async () => {
+      await options.onSuccess()
+    })
 
     expect(invalidateQueriesMock).toHaveBeenCalledTimes(1)
     expect(invalidateQueriesMock).toHaveBeenCalledWith({

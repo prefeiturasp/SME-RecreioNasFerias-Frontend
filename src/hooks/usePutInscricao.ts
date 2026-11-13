@@ -12,11 +12,11 @@ export function usePutInscricao(uuid: string | undefined) {
 
       return atualizarInscricao(uuid, dados)
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       if (uuid) {
-        void queryClient.invalidateQueries({ queryKey: ['inscricao', uuid] })
+        await queryClient.invalidateQueries({ queryKey: ['inscricao', uuid] })
       }
-      void queryClient.invalidateQueries({ queryKey: ['inscricoes'] })
+      await queryClient.invalidateQueries({ queryKey: ['inscricoes'] })
     },
   })
 }
