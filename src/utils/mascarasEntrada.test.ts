@@ -4,7 +4,25 @@ import {
   aplicarMascaraCep,
   aplicarMascaraCpf,
   aplicarMascaraTelefone,
+  validarCpf,
 } from './mascarasEntrada'
+
+describe('validarCpf', () => {
+  it('aceita CPF válido com ou sem máscara', () => {
+    expect(validarCpf('12345678909')).toBe(true)
+    expect(validarCpf('123.456.789-09')).toBe(true)
+  })
+
+  it('rejeita CPF com quantidade incorreta de dígitos ou formato inválido', () => {
+    expect(validarCpf('1234567890')).toBe(false)
+    expect(validarCpf('123.456.789-0a')).toBe(false)
+  })
+
+  it('rejeita CPFs com dígitos verificadores incorretos ou dígitos repetidos', () => {
+    expect(validarCpf('12345678900')).toBe(false)
+    expect(validarCpf('11111111111')).toBe(false)
+  })
+})
 
 describe('aplicarMascaraCep', () => {
   it('mantém o CEP sem hífen enquanto houver até cinco dígitos', () => {
