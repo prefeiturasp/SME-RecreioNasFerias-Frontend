@@ -52,10 +52,10 @@ const vazio = {
 const externoProntoParaFinalizar = {
   grupo: 'QUATRO_A_14_ANOS',
   tipoEstudante: 'ESTUDANTE_EXTERNO',
-  cpf_participante: '12345678901',
+  cpf_participante: '12345678909',
   nomeCompleto: 'Ana Souza',
   dataNascimento: '2018-01-01',
-  cpf: '12345678901',
+  cpf: '12345678909',
   nomeResponsavel: 'Maria Souza',
   cep: '01001000',
   logradouro: 'Praça da Sé',
@@ -122,10 +122,10 @@ describe('ParticipanteForm schema', () => {
       ...vazio,
       grupo: 'QUATRO_A_14_ANOS',
       tipoEstudante: 'ESTUDANTE_EXTERNO',
-      cpf_participante: '12345678901',
+      cpf_participante: '12345678909',
       nomeCompleto: 'Ana Souza',
       dataNascimento: '2018-01-01',
-      cpf: '12345678901',
+      cpf: '12345678909',
       nomeResponsavel: 'Maria Souza',
       cep: '01001000',
       logradouro: 'Praça da Sé',
@@ -149,7 +149,7 @@ describe('ParticipanteForm schema', () => {
     const resultado = formSchema.safeParse({
       ...vazio,
       tipoEstudante: 'ESTUDANTE_EXTERNO',
-      cpf_participante: '12345678901',
+      cpf_participante: '12345678909',
       possuiInscricaoCpfParticipante: true,
     })
 
@@ -166,6 +166,7 @@ describe('ParticipanteForm schema', () => {
   it.each([
     ['', 'Este campo é obrigatório.'],
     ['123', 'Informe um CPF válido.'],
+    ['12345678900', 'Informe um CPF válido.'],
   ])(
     'mantém os erros de CPF e duplicidade para estudante externo com CPF %s',
     (cpfParticipante, mensagem) => {
@@ -193,7 +194,7 @@ describe('ParticipanteForm schema', () => {
     const resultado = formSchema.safeParse({
       ...vazio,
       tipoEstudante: 'ESTUDANTE_EXTERNO',
-      cpf_participante: '12345678901',
+      cpf_participante: '12345678909',
     })
 
     expect(resultado.success).toBe(false)
@@ -216,6 +217,7 @@ describe('ParticipanteForm schema', () => {
         .map((issue) => [issue.path[0], issue.message]),
     ).toEqual(
       [
+        'cpf',
         'nomeCompleto',
         'dataNascimento',
         'cpf',

@@ -515,7 +515,7 @@ describe('ParticipanteForm', () => {
     )
     await usuario.type(
       screen.getByRole('textbox', { name: /cpf do\(a\) participante/i }),
-      '12345678901',
+      '12345678909',
     )
     await usuario.type(
       screen.getByRole('textbox', { name: /cpf do\(a\) responsável/i }),
@@ -529,7 +529,7 @@ describe('ParticipanteForm', () => {
       expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
         expect.objectContaining({
           tipoEstudante: 'ESTUDANTE_EXTERNO',
-          cpf_participante: '12345678901',
+          cpf_participante: '12345678909',
           cpf: '10987654321',
         }),
         expect.anything(),
@@ -557,13 +557,13 @@ describe('ParticipanteForm', () => {
 
     await usuario.type(
       screen.getByRole('textbox', { name: /cpf do\(a\) participante/i }),
-      '1',
+      '9',
     )
 
     await waitFor(() => {
       expect(
         checarDuplicidadeInscricaoEstudanteExternoMock,
-      ).toHaveBeenCalledWith('12345678901')
+      ).toHaveBeenCalledWith('12345678909')
     })
   })
 
@@ -581,7 +581,7 @@ describe('ParticipanteForm', () => {
     )
     await usuario.type(
       screen.getByRole('textbox', { name: /cpf do\(a\) participante/i }),
-      '12345678901',
+      '12345678909',
     )
 
     await waitFor(() => {
@@ -617,7 +617,7 @@ describe('ParticipanteForm', () => {
     )
     await usuario.type(
       screen.getByRole('textbox', { name: /cpf do\(a\) participante/i }),
-      '12345678901',
+      '12345678909',
     )
     await usuario.type(
       screen.getByRole('textbox', { name: /cpf do\(a\) responsável/i }),
@@ -1683,8 +1683,8 @@ describe('ParticipanteForm', () => {
       name: /cpf do\(a\) participante/i,
     })
     expect(cpfParticipante).toBeInTheDocument()
-    await usuario.type(cpfParticipante, '12345678901')
-    expect(cpfParticipante).toHaveValue('123.456.789-01')
+    await usuario.type(cpfParticipante, '12345678909')
+    expect(cpfParticipante).toHaveValue('123.456.789-09')
     expect(
       screen.queryByRole('textbox', { name: /cpf do responsável/i }),
     ).not.toBeInTheDocument()
