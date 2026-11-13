@@ -2285,14 +2285,25 @@ describe('ParticipanteForm', () => {
     await waitFor(() => {
       expect(secao).toHaveAttribute('aria-expanded', 'true')
     })
-    expect(screen.getAllByText('Este campo é obrigatório.')).toHaveLength(4)
+    expect(screen.getAllByText('Este campo é obrigatório.')).toHaveLength(7)
     expect(
       screen.getByRole('radiogroup', { name: /tipo de escola/i }),
     ).toBeInTheDocument()
     for (const nome of [
+      /pode ir embora sozinho/i,
+      /autoriza uso da piscina/i,
+    ]) {
+      expect(
+        screen
+          .getByRole('radiogroup', { name: nome })
+          .closest('[data-slot="field"]'),
+      ).toHaveTextContent('Este campo é obrigatório.')
+    }
+    for (const nome of [
       /unidade educacional do participante/i,
       '* Turma / Ano',
       '* Ano',
+      /responsável por retirar na saída/i,
     ]) {
       expect(
         screen

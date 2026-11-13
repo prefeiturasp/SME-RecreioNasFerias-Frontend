@@ -160,6 +160,10 @@ const formSchema = formSchemaRascunho.superRefine((dados, contexto) => {
 
   validarIdentificacao(dados, adicionarCampoObrigatorio)
 
+  const exigeRespostasDoGrupo =
+    dados.tipoEstudante === TIPO_ESTUDANTE_REDE ||
+    dados.tipoEstudante === TIPO_ESTUDANTE_EXTERNO
+
   const camposObrigatorios = [
     {
       condicao: !dados.grupo,
@@ -266,21 +270,17 @@ const formSchema = formSchemaRascunho.superRefine((dados, contexto) => {
       caminho: 'outroProblemaSaude',
     },
     {
-      condicao:
-        dados.tipoEstudante === TIPO_ESTUDANTE_REDE &&
-        !dados.podeIrEmboraSozinho,
+      condicao: exigeRespostasDoGrupo && !dados.podeIrEmboraSozinho,
       preenchido: false,
       caminho: 'podeIrEmboraSozinho',
     },
     {
-      condicao: dados.tipoEstudante === TIPO_ESTUDANTE_REDE,
+      condicao: exigeRespostasDoGrupo,
       preenchido: Boolean(dados.responsavelRetirada.trim()),
       caminho: 'responsavelRetirada',
     },
     {
-      condicao:
-        dados.tipoEstudante === TIPO_ESTUDANTE_REDE &&
-        !dados.autorizaUsoPiscina,
+      condicao: exigeRespostasDoGrupo && !dados.autorizaUsoPiscina,
       preenchido: false,
       caminho: 'autorizaUsoPiscina',
     },
