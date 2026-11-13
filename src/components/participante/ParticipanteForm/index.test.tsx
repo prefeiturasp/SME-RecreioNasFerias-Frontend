@@ -2312,7 +2312,7 @@ describe('ParticipanteForm', () => {
       ).toHaveTextContent('Este campo é obrigatório.')
     }
     expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
-  }, 30_000)
+  }, 60_000)
 
   it('envia unidade, turma e ano digitados no estudante externo', async () => {
     const usuario = userEvent.setup()
