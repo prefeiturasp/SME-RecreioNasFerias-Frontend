@@ -108,7 +108,9 @@ const CAMPOS_DE_SAUDE: (keyof FormValues)[] = [
   'qualConvenioMedico',
 ]
 
-export function ParticipanteForm({ inscricaoId }: ParticipanteFormProps) {
+export function ParticipanteForm({
+  inscricaoId,
+}: Readonly<ParticipanteFormProps>) {
   const navigate = useNavigate()
   const { showToast } = useToast()
   const cadastroMutation = usePostInscricao()
