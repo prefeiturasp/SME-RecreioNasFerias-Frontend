@@ -2,7 +2,11 @@ import { FormFieldEol } from '@/components/ui/form-field-eol'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { useGetDuplicidadeCPFInscricaoExterna } from '@/hooks/useGetDuplicidadeCPFInscricaoExterna'
-import { aplicarMascaraCpf, aplicarMascaraData } from '@/utils/mascarasEntrada'
+import {
+  aplicarMascaraCpf,
+  aplicarMascaraData,
+  validarCpf,
+} from '@/utils/mascarasEntrada'
 import { calcularIdadeDetalhada } from '@/utils/calcularIdadeDetalhada'
 import { useEffect } from 'react'
 import {
@@ -59,11 +63,22 @@ export const CPFParticipanteEstudanteExterno = ({
     <FormFieldEol
       control={control}
       name="cpf_participante"
-      onChange={() => {
+      onChange={(valor) => {
         setValue('possuiInscricaoCpfParticipante', false, {
           shouldValidate: false,
         })
         dismissToast('duplicidade-cpf-participante')
+
+        if (valor.length === 11 && !validarCpf(valor)) {
+          showToast({
+            id: 'cpf-participante-invalido',
+            variant: 'destructive',
+            title: 'CPF inválido',
+            description: 'Verifique os dígitos verificadores do CPF informado.',
+          })
+        } else {
+          dismissToast('cpf-participante-invalido')
+        }
       }}
       label={
         <>
@@ -155,18 +170,34 @@ function paraValorDoFormulario(texto: string): string {
 
 export const CPFResponsavelEstudanteExterno = ({
   control,
-}: Readonly<InformacoesBasicasEstudanteExternoProps>) => (
-  <FormFieldEol
-    control={control}
-    name="cpf"
-    label={
-      <>
-        <span className="text-destructive">*</span> CPF do(a) responsável
-      </>
-    }
-    placeholder="Digite o CPF do(a) responsável"
-    maxLength={11}
-    maxLengthExibicao={14}
-    formatarExibicao={aplicarMascaraCpf}
-  />
-)
+}: Readonly<InformacoesBasicasEstudanteExternoProps>) => {
+  const { dismissToast, showToast } = useToast()
+
+  return (
+    <FormFieldEol
+      control={control}
+      name="cpf"
+      label={
+        <>
+          <span className="text-destructive">*</span> CPF do(a) responsável
+        </>
+      }
+      placeholder="Digite o CPF do(a) responsável"
+      maxLength={11}
+      maxLengthExibicao={14}
+      formatarExibicao={aplicarMascaraCpf}
+      onChange={(valor) => {
+        if (valor.length === 11 && !validarCpf(valor)) {
+          showToast({
+            id: 'cpf-participante-invalido',
+            variant: 'destructive',
+            title: 'CPF inválido',
+            description: 'Verifique os dígitos verificadores do CPF informado.',
+          })
+        } else {
+          dismissToast('cpf-participante-invalido')
+        }
+      }}
+    />
+  )
+}
