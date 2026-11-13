@@ -9,18 +9,19 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import type { OpcaoChoice } from '@/services/inscricao/types'
 import { calcularIdadeCheia } from '@/utils/calcularIdadeCheia'
-import { formatarIdadeDetalhada } from '@/utils/calcularIdadeDetalhada'
 
 type InformacoesPorGrupoProps = {
   control: Control<FormValues>
   grupos: OpcaoChoice[]
   tipoEstudante: string
+  idadeDetalhada?: string | null
 }
 
 export function InformacoesPorGrupo({
   control,
   grupos,
   tipoEstudante,
+  idadeDetalhada,
 }: Readonly<InformacoesPorGrupoProps>) {
   const [dataNascimento, nomeTurma, ano] = useWatch({
     control,
@@ -28,14 +29,12 @@ export function InformacoesPorGrupo({
   })
   const estudanteExterno = tipoEstudante === TIPO_ESTUDANTE_EXTERNO
   const textoIdade = useMemo(() => {
-    if (tipoEstudante === TIPO_ESTUDANTE_EXTERNO) {
-      return formatarIdadeDetalhada(dataNascimento)
-    }
+    if (idadeDetalhada !== undefined) return idadeDetalhada ?? ''
 
     const idade = calcularIdadeCheia(dataNascimento)
     if (idade === null) return ''
     return idade === 1 ? '1 ano' : `${idade} anos`
-  }, [dataNascimento, tipoEstudante])
+  }, [dataNascimento, idadeDetalhada])
   const turmaAno = useMemo(
     () => [nomeTurma, ano].filter((parte) => parte.trim()).join(' / '),
     [nomeTurma, ano],

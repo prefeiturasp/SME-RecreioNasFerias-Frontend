@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  calcularIdadeDetalhada,
-  formatarIdadeDetalhada,
-} from './calcularIdadeDetalhada'
+import { calcularIdadeDetalhada } from './calcularIdadeDetalhada'
 
 describe('calcularIdadeDetalhada', () => {
   it('calcula anos, meses e dias completos', () => {
@@ -33,19 +30,5 @@ describe('calcularIdadeDetalhada', () => {
     expect(calcularIdadeDetalhada('')).toBeNull()
     expect(calcularIdadeDetalhada('2021-02-29')).toBeNull()
     expect(calcularIdadeDetalhada('2999-01-01')).toBeNull()
-  })
-})
-
-describe('formatarIdadeDetalhada', () => {
-  it('devolve vazio sem data válida', () => {
-    expect(formatarIdadeDetalhada('')).toBe('')
-  })
-
-  it('formata com singular e plural', () => {
-    const nascimento = new Date()
-    nascimento.setFullYear(nascimento.getFullYear() - 1)
-    const iso = `${nascimento.getFullYear()}-${String(nascimento.getMonth() + 1).padStart(2, '0')}-${String(nascimento.getDate()).padStart(2, '0')}`
-
-    expect(formatarIdadeDetalhada(iso)).toBe('1 ano, 0 meses, 0 dias')
   })
 })

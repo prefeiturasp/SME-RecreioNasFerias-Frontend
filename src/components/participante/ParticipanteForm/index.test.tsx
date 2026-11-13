@@ -2376,7 +2376,8 @@ describe('ParticipanteForm', () => {
     })
   }, 30_000)
 
-  it('preenche a edição e bloqueia agrupamento, tipo, EOL e CPF', async () => {
+  it('preenche a edição, trava agrupamento e tipo e mantém a consulta por EOL e CPF', async () => {
+    const usuario = userEvent.setup()
     renderFormularioEdicao()
 
     expect(
@@ -2392,23 +2393,21 @@ describe('ParticipanteForm', () => {
     expect(screen.getByLabelText(/tipo de estudante/i)).toHaveAttribute(
       'readonly',
     )
-    expect(
-      screen.getByRole('textbox', { name: /consultar por código eol/i }),
-    ).toHaveValue('1234567')
-    expect(
-      screen.getByRole('textbox', { name: /consultar por código eol/i }),
-    ).toHaveAttribute('readonly')
+    const codigoEol = screen.getByRole('textbox', {
+      name: /consultar por código eol/i,
+    })
+    expect(codigoEol).toHaveValue('1234567')
+    expect(codigoEol).not.toHaveAttribute('readonly')
     expect(
       screen.getByRole('button', { name: /consultar código eol/i }),
-    ).toBeDisabled()
-    expect(
-      screen.getByRole('textbox', {
-        name: /consultar por cpf do responsável/i,
-      }),
-    ).toHaveAttribute('readonly')
+    ).toBeEnabled()
+    const cpfResponsavel = screen.getByRole('textbox', {
+      name: /consultar por cpf do responsável/i,
+    })
+    expect(cpfResponsavel).not.toHaveAttribute('readonly')
     expect(
       screen.getByRole('button', { name: /consultar cpf do responsável/i }),
-    ).toBeDisabled()
+    ).toBeEnabled()
     expect(
       screen.getByRole('textbox', {
         name: /nome completo do\(a\) participante/i,
@@ -2417,9 +2416,14 @@ describe('ParticipanteForm', () => {
     expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue(
       'mariafernanda@gmail.com',
     )
-    expect(
-      screen.getByRole('button', { name: /informações por grupo/i }),
-    ).toHaveAttribute('aria-expanded', 'false')
+    const secaoGrupo = screen.getByRole('button', {
+      name: /informações por grupo/i,
+    })
+    expect(secaoGrupo).toHaveAttribute('aria-expanded', 'false')
+    await usuario.click(secaoGrupo)
+    expect(screen.getByLabelText(/\bidade\b/i)).toHaveValue(
+      '7 anos, 0 meses e 0 dias',
+    )
     expect(
       screen.getByRole('button', { name: /informações de saúde/i }),
     ).toHaveAttribute('aria-expanded', 'false')
@@ -2427,6 +2431,17 @@ describe('ParticipanteForm', () => {
       screen.queryByRole('button', { name: /salvar rascunho/i }),
     ).not.toBeInTheDocument()
     expect(obterParticipanteEolMock).not.toHaveBeenCalled()
+    expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
+
+    await usuario.clear(codigoEol)
+    await usuario.type(codigoEol, '123456')
+    await usuario.click(
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    )
+
+    await waitFor(() => {
+      expect(obterParticipanteEolMock).toHaveBeenCalledWith('123456')
+    })
     expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
   })
 
@@ -2516,7 +2531,7 @@ describe('ParticipanteForm', () => {
     expect(showToastMock).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'inscricao-salva',
-        title: 'Inscrição salva com sucesso',
+        title: 'Inscrição alterada com sucesso',
         description: 'Sua inscrição foi salva com o status: Completa',
         variant: 'success',
       }),

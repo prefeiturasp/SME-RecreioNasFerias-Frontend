@@ -41,18 +41,3 @@ export function calcularIdadeDetalhada(
 
   return { anos, meses, dias }
 }
-
-function pluralizar(valor: number, singular: string, plural: string) {
-  return `${valor} ${valor === 1 ? singular : plural}`
-}
-
-export function formatarIdadeDetalhada(dataNascimento: string): string {
-  const idade = calcularIdadeDetalhada(dataNascimento)
-  if (!idade) return ''
-
-  return [
-    pluralizar(idade.anos, 'ano', 'anos'),
-    pluralizar(idade.meses, 'mês', 'meses'),
-    pluralizar(idade.dias, 'dia', 'dias'),
-  ].join(', ')
-}

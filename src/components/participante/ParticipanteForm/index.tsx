@@ -137,12 +137,12 @@ export function ParticipanteForm({
     useState(false)
   const editando = useMemo(() => Boolean(inscricaoId), [inscricaoId])
   const eolDesabilitado = useMemo(
-    () => editando || origemConsulta === 'cpf',
-    [editando, origemConsulta],
+    () => origemConsulta === 'cpf',
+    [origemConsulta],
   )
   const cpfDesabilitado = useMemo(
-    () => editando || origemConsulta === 'codigoEol',
-    [editando, origemConsulta],
+    () => origemConsulta === 'codigoEol',
+    [origemConsulta],
   )
   const form = useForm<FormValues>({
     resolver: (valores, contexto, opcoes) =>
@@ -592,7 +592,9 @@ export function ParticipanteForm({
       onSuccess: (inscricao) => {
         showToast({
           id: 'inscricao-salva',
-          title: 'Inscrição salva com sucesso',
+          title: editando
+            ? 'Inscrição alterada com sucesso'
+            : 'Inscrição salva com sucesso',
           description: `Sua inscrição foi salva com o status: ${inscricao.status_label}`,
           variant: 'success',
         })
@@ -683,6 +685,9 @@ export function ParticipanteForm({
                 control={form.control}
                 grupos={grupos}
                 tipoEstudante={tipoEstudante}
+                idadeDetalhada={
+                  editando ? inscricaoQuery.data?.idade_detalhada : undefined
+                }
               />
             </SecaoFormulario>
           )}
