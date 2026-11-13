@@ -27,18 +27,23 @@ type InformacoesBasicasEstudanteExternoProps = {
 type CPFParticipanteEstudanteExternoProps =
   InformacoesBasicasEstudanteExternoProps & {
     setValue: UseFormSetValue<FormValues>
+    somenteLeitura?: boolean
   }
 
 export const CPFParticipanteEstudanteExterno = ({
   control,
   setValue,
+  somenteLeitura = false,
 }: Readonly<CPFParticipanteEstudanteExternoProps>) => {
   const cpf = useWatch({ control, name: 'cpf_participante' })
-  const consultaDuplicidade = useGetDuplicidadeCPFInscricaoExterna(cpf)
+  const consultaDuplicidade = useGetDuplicidadeCPFInscricaoExterna(
+    cpf,
+    !somenteLeitura,
+  )
   const { dismissToast, showToast } = useToast()
 
   useEffect(() => {
-    if (!consultaDuplicidade.data) return
+    if (somenteLeitura || !consultaDuplicidade.data) return
 
     const possuiInscricao = consultaDuplicidade.data.possui_inscricao === true
     setValue('possuiInscricaoCpfParticipante', possuiInscricao, {
@@ -53,12 +58,13 @@ export const CPFParticipanteEstudanteExterno = ({
         variant: 'destructive',
       })
     }
-  }, [consultaDuplicidade.data, setValue, showToast])
+  }, [consultaDuplicidade.data, setValue, showToast, somenteLeitura])
 
   return (
     <FormFieldEol
       control={control}
       name="cpf_participante"
+      readOnly={somenteLeitura}
       onChange={() => {
         setValue('possuiInscricaoCpfParticipante', false, {
           shouldValidate: false,

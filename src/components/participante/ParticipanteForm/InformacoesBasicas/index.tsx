@@ -224,6 +224,7 @@ export function InformacoesBasicas({
             <CPFParticipanteEstudanteExterno
               control={control}
               setValue={setValue}
+              somenteLeitura={identificacaoBloqueada}
             />
           )}
 

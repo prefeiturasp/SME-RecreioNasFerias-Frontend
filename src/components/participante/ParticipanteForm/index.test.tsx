@@ -2419,6 +2419,35 @@ describe('ParticipanteForm', () => {
     expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
   })
 
+  it('mantém o CPF do estudante externo somente leitura e não acusa duplicidade', async () => {
+    checarDuplicidadeInscricaoEstudanteExternoMock.mockResolvedValue({
+      possui_inscricao: true,
+    })
+    obterInscricaoMock.mockResolvedValue({
+      ...inscricaoDetalheExemplo,
+      tipo_estudante: 'ESTUDANTE_EXTERNO',
+      tipo_estudante_label: 'Estudante externo',
+      codigo_eol: '',
+      cpf_participante: '39200791085',
+    })
+
+    renderFormularioEdicao()
+
+    const cpf = await screen.findByRole('textbox', {
+      name: /cpf do\(a\) participante/i,
+    })
+    expect(cpf).toHaveValue('392.007.910-85')
+    expect(cpf).toHaveAttribute('readonly')
+    expect(
+      checarDuplicidadeInscricaoEstudanteExternoMock,
+    ).not.toHaveBeenCalled()
+    expect(showToastMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: MENSAGEM_DUPLICIDADE_CPF_PARTICIPANTE,
+      }),
+    )
+  })
+
   it('impede finalizar a edição quando um campo obrigatório está vazio', async () => {
     const usuario = userEvent.setup()
     renderFormularioEdicao()
