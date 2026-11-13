@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { extrairDigitos } from '@/utils/mascarasEntrada'
+import { extrairDigitos, validarCpf } from '@/utils/mascarasEntrada'
 import { calcularIdadeDetalhada } from '@/utils/calcularIdadeDetalhada'
 import {
   IDADE_MINIMA_INVALIDA,
@@ -84,8 +84,14 @@ function validarEstudanteExterno(
 ) {
   if (!dados.cpf_participante) {
     adicionarCampoObrigatorio('cpf_participante')
-  } else if (!/^\d{11}$/.test(dados.cpf_participante)) {
+  } else if (!validarCpf(dados.cpf_participante)) {
     adicionarCampoObrigatorio('cpf_participante', 'Informe um CPF válido.')
+  }
+
+  if (!dados.cpf) {
+    adicionarCampoObrigatorio('cpf')
+  } else if (!validarCpf(dados.cpf)) {
+    adicionarCampoObrigatorio('cpf', 'Informe um CPF válido.')
   }
 
   if (dados.possuiInscricaoCpfParticipante) {

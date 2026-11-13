@@ -2,6 +2,28 @@ export function extrairDigitos(valor: string): string {
   return valor.replaceAll(/\D/g, '')
 }
 
+export function validarCpf(cpf: string): boolean {
+  const entradaValida =
+    /^\d{11}$/.test(cpf) || /^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(cpf)
+  if (!entradaValida) return false
+
+  const digitos = extrairDigitos(cpf)
+  if (/^(\d)\1{10}$/.test(digitos)) return false
+
+  for (const tamanhoBase of [9, 10]) {
+    let soma = 0
+    for (let indice = 0; indice < tamanhoBase; indice++) {
+      soma += Number(digitos[indice]) * (tamanhoBase + 1 - indice)
+    }
+
+    const resto = soma % 11
+    const digitoVerificador = resto < 2 ? 0 : 11 - resto
+    if (Number(digitos[tamanhoBase]) !== digitoVerificador) return false
+  }
+
+  return true
+}
+
 export function aplicarMascaraData(valor: string): string {
   const digitos = extrairDigitos(valor).slice(0, 8)
   if (digitos.length <= 2) return digitos
