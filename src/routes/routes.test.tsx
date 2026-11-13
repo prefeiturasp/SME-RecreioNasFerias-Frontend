@@ -416,7 +416,7 @@ describe('RotasAplicacao', () => {
     ).toBeInTheDocument()
   })
 
-  it('renderiza a página Editar Participante na rota /editar-participante/:idInscricao quando autenticado', () => {
+  it('redireciona para /inicio ao editar participante sem a permissão', () => {
     definirSessaoAutenticacao({
       token: 'eyJ-token',
       rf: '1234567',
@@ -424,6 +424,26 @@ describe('RotasAplicacao', () => {
       descricaoCargo: 'CARGO TESTE',
       perfis: [],
       permissoes: [PERMISSOES.visualizarInscricoesParticipantes],
+    })
+
+    renderRotas('/editar-participante/11111111-1111-1111-1111-111111111111')
+
+    const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
+    expect(mapa).toHaveTextContent('Início')
+    expect(mapa).not.toHaveTextContent('Editar Participante')
+    expect(
+      screen.queryByRole('heading', { name: /editar participante/i }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('renderiza a página Editar Participante na rota /editar-participante/:idInscricao quando autenticado', () => {
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [PERMISSOES.editarInscricoesParticipantes],
     })
 
     renderRotas('/editar-participante/11111111-1111-1111-1111-111111111111')

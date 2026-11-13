@@ -9,4 +9,5 @@ export const PERMISSOES = {
   visualizarInscricoesParticipantes:
     'core.visualizar_inscricoes_participantes',
   criarInscricoesParticipantes: 'core.criar_inscricoes_participantes',
+  editarInscricoesParticipantes: 'core.editar_inscricoes_participantes',
 } as const

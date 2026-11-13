@@ -110,7 +110,7 @@ export function RotasAplicacao() {
       <Route
         path="/editar-participante/:idInscricao"
         element={
-          <RotaProtegida>
+          <RotaProtegida permissao={PERMISSOES.editarInscricoesParticipantes}>
             <PaginaEditarParticipante />
           </RotaProtegida>
         }
