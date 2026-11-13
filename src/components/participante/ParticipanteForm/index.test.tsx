@@ -18,6 +18,7 @@ import type {
 } from '@/services/inscricao/types'
 import {
   MENSAGEM_DUPLICIDADE_CPF_PARTICIPANTE,
+  MENSAGEM_INSCRICAO_EOL_EXISTENTE,
   TIPO_ESTUDANTE_EXTERNO,
   TIPO_ESTUDANTE_REDE,
 } from './constantes'
@@ -2453,9 +2454,44 @@ describe('ParticipanteForm', () => {
     )
 
     await waitFor(() => {
-      expect(obterParticipanteEolMock).toHaveBeenCalledWith('123456')
+      expect(obterParticipanteEolMock).toHaveBeenCalledWith(
+        '123456',
+        'inscricao-1',
+      )
     })
     expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
+  })
+
+  it('preenche de novo a edição ao consultar o mesmo código EOL da inscrição', async () => {
+    const usuario = userEvent.setup()
+    obterParticipanteEolMock.mockResolvedValue(participanteEolExemplo)
+    renderFormularioEdicao()
+
+    const codigoEol = await screen.findByRole('textbox', {
+      name: /consultar por código eol/i,
+    })
+    expect(codigoEol).toHaveValue('1234567')
+
+    await usuario.click(
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    )
+
+    await waitFor(() => {
+      expect(obterParticipanteEolMock).toHaveBeenCalledWith(
+        '1234567',
+        'inscricao-1',
+      )
+      expect(
+        screen.getByRole('textbox', {
+          name: /nome completo do\(a\) participante/i,
+        }),
+      ).toHaveValue('ANNA JULIA ARAUJO SA')
+    })
+    expect(showToastMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: MENSAGEM_INSCRICAO_EOL_EXISTENTE,
+      }),
+    )
   })
 
   it('mantém o CPF do estudante externo editável e não acusa a própria inscrição', async () => {

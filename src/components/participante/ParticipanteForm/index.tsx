@@ -121,7 +121,10 @@ export function ParticipanteForm({
   const buscaVigente = useRef<'codigoEol' | 'cpf' | null>(null)
   const [codigoEolConsulta, setCodigoEolConsulta] = useState<string>()
   const [cpfConsulta, setCpfConsulta] = useState<string>()
-  const consultaParticipante = useGetParticipanteEol(codigoEolConsulta)
+  const consultaParticipante = useGetParticipanteEol(
+    codigoEolConsulta,
+    inscricaoId,
+  )
   const consultaCpf = useGetParticipanteCpf(cpfConsulta)
   const [origemConsulta, setOrigemConsulta] = useState<
     'codigoEol' | 'cpf' | null

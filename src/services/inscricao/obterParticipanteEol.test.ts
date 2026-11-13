@@ -54,6 +54,19 @@ describe('obterParticipanteEol', () => {
     )
   })
 
+  it('informa a inscrição em edição para a consulta ignorar a própria duplicidade', async () => {
+    apiGetMock.mockResolvedValue({ data: participanteEolExemplo })
+
+    await obterParticipanteEol('6034178', 'inscricao-1')
+
+    expect(apiGetMock).toHaveBeenCalledWith(
+      '/api/v1/inscricoes/participante-eol/',
+      {
+        params: { codigo_eol: '6034178', inscricao: 'inscricao-1' },
+      },
+    )
+  })
+
   it('lança erro quando a API retorna falha na consulta', async () => {
     apiGetMock.mockRejectedValue({
       response: {
