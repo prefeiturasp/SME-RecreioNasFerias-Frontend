@@ -416,6 +416,15 @@ describe('RotasAplicacao', () => {
     ).toBeInTheDocument()
   })
 
+  it('redireciona para login ao editar participante sem autenticação', async () => {
+    renderRotas('/editar-participante/11111111-1111-1111-1111-111111111111')
+
+    expect(await screen.findByText(/bem-vindo\(a\) ao/i)).toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: /editar participante/i }),
+    ).not.toBeInTheDocument()
+  })
+
   it('redireciona para /inicio ao editar participante sem a permissão', () => {
     definirSessaoAutenticacao({
       token: 'eyJ-token',

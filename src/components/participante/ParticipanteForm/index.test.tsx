@@ -12,6 +12,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type {
+  InscricaoDetalhe,
   ParticipanteEol,
   ValoresChoicesInscricao,
 } from '@/services/inscricao/types'
@@ -108,6 +109,8 @@ const {
   listarPolosElegiveisMock,
   listarValoresChoicesMock,
   cadastrarInscricaoMock,
+  obterInscricaoMock,
+  atualizarInscricaoMock,
   obterParticipanteEolMock,
   obterParticipanteCpfMock,
   checarDuplicidadeInscricaoEstudanteExternoMock,
@@ -117,6 +120,8 @@ const {
   listarPolosElegiveisMock: vi.fn(),
   listarValoresChoicesMock: vi.fn(),
   cadastrarInscricaoMock: vi.fn(),
+  obterInscricaoMock: vi.fn(),
+  atualizarInscricaoMock: vi.fn(),
   obterParticipanteEolMock: vi.fn(),
   obterParticipanteCpfMock: vi.fn(),
   checarDuplicidadeInscricaoEstudanteExternoMock: vi.fn(),
@@ -139,6 +144,14 @@ vi.mock('@/services/inscricao/cadastrarInscricao', () => ({
   cadastrarInscricao: cadastrarInscricaoMock,
 }))
 
+vi.mock('@/services/inscricao/obterInscricao', () => ({
+  obterInscricao: obterInscricaoMock,
+}))
+
+vi.mock('@/services/inscricao/atualizarInscricao', () => ({
+  atualizarInscricao: atualizarInscricaoMock,
+}))
+
 vi.mock('@/services/inscricao/obterParticipanteEol', () => ({
   obterParticipanteEol: obterParticipanteEolMock,
 }))
@@ -159,6 +172,61 @@ vi.mock('@/hooks/useToast', () => ({
   useToast: () => ({ showToast: showToastMock, dismissToast: vi.fn() }),
 }))
 
+const inscricaoDetalheExemplo: InscricaoDetalhe = {
+  uuid: 'inscricao-1',
+  edicao: { uuid: 'edicao-1', nome: '2026' },
+  polo: { uuid: 'polo-1', nome_polo: 'Polo Cidade de Genebra' },
+  tipo_estudante: 'ESTUDANTE_DA_REDE',
+  tipo_estudante_label: 'Estudante da rede',
+  grupo: 'QUATRO_A_14_ANOS',
+  grupo_label: '4 a 14 anos',
+  codigo_eol: '1234567',
+  cpf: '12345678901',
+  cpf_participante: '',
+  nome_participante: 'Kauan José Santos da Silva',
+  data_nascimento: '2019-05-16',
+  responsavel_nome: 'Maria Fernanda Santos',
+  responsavel_nome_social: '',
+  cep: '11111111',
+  tipo_logradouro: 'Rua',
+  logradouro: 'das Flores',
+  numero: '25',
+  complemento: '',
+  bairro: 'Jardim das Rosas',
+  cidade: 'São Paulo',
+  telefone_contato_1: '11911111111',
+  telefone_contato_2: '',
+  email: 'mariafernanda@gmail.com',
+  dre_codigo_eol: '108100',
+  dre_nome: 'DIRETORIA REGIONAL DE EDUCACAO BUTANTA',
+  status: 'COMPLETA',
+  status_label: 'Completa',
+  ativo: true,
+  possui_deficiencia: false,
+  deficiencias: [],
+  outra_deficiencia: '',
+  possui_problema_saude: false,
+  problemas_saude: [],
+  outro_problema_saude: '',
+  usuario_medicacao_ou_tratamento_continuo: false,
+  medicacao_ou_tratamento_continuo: '',
+  possui_restricao_medicamento_pronto_atendimento: false,
+  restricao_medicamento_pronto_atendimento: '',
+  possui_convenio_medico: false,
+  convenio_medico: '',
+  tipo_escola: '',
+  tipo_escola_label: '',
+  unidade_educacional: 'EMEF Teste',
+  unidade_educacional_codigo_eol: '094633',
+  unidade_educacional_tipo: 'EMEF',
+  nome_turma: '7C',
+  ano: '7',
+  pode_ir_embora_sozinho: false,
+  responsavel_retirada: 'Maria Fernanda Santos',
+  autoriza_uso_piscina: true,
+  idade_detalhada: '7 anos, 0 meses e 0 dias',
+}
+
 function renderFormulario() {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -174,6 +242,32 @@ function renderFormulario() {
           <Route
             path="/cadastrar-participante"
             element={<ParticipanteForm />}
+          />
+          <Route
+            path="/inscricoes-participantes"
+            element={<div>Inscrições de Participantes</div>}
+          />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  )
+}
+
+function renderFormularioEdicao() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  })
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={['/editar-participante/inscricao-1']}>
+        <Routes>
+          <Route
+            path="/editar-participante/:idInscricao"
+            element={<ParticipanteForm inscricaoId="inscricao-1" />}
           />
           <Route
             path="/inscricoes-participantes"
@@ -269,6 +363,8 @@ describe('ParticipanteForm', () => {
     listarPolosElegiveisMock.mockReset()
     listarValoresChoicesMock.mockReset()
     cadastrarInscricaoMock.mockReset()
+    obterInscricaoMock.mockReset()
+    atualizarInscricaoMock.mockReset()
     obterParticipanteEolMock.mockReset()
     obterParticipanteCpfMock.mockReset()
     checarDuplicidadeInscricaoEstudanteExternoMock.mockReset()
@@ -282,6 +378,11 @@ describe('ParticipanteForm', () => {
     cadastrarInscricaoMock.mockResolvedValue({
       status: 'RASCUNHO',
       status_label: 'Rascunho',
+    })
+    obterInscricaoMock.mockResolvedValue(inscricaoDetalheExemplo)
+    atualizarInscricaoMock.mockResolvedValue({
+      status: 'COMPLETA',
+      status_label: 'Completa',
     })
   })
 
@@ -2263,4 +2364,123 @@ describe('ParticipanteForm', () => {
       )
     })
   }, 30_000)
+
+  it('preenche a edição e bloqueia agrupamento, tipo, EOL e CPF', async () => {
+    renderFormularioEdicao()
+
+    expect(
+      await screen.findByRole('form', {
+        name: /formulário de edição de participante/i,
+      }),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText(/agrupamento/i)).toHaveValue('4 a 14 anos')
+    expect(screen.getByLabelText(/agrupamento/i)).toHaveAttribute('readonly')
+    expect(screen.getByLabelText(/tipo de estudante/i)).toHaveValue(
+      'Estudante da rede',
+    )
+    expect(screen.getByLabelText(/tipo de estudante/i)).toHaveAttribute(
+      'readonly',
+    )
+    expect(
+      screen.getByRole('textbox', { name: /consultar por código eol/i }),
+    ).toHaveValue('1234567')
+    expect(
+      screen.getByRole('textbox', { name: /consultar por código eol/i }),
+    ).toHaveAttribute('readonly')
+    expect(
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    ).toBeDisabled()
+    expect(
+      screen.getByRole('textbox', {
+        name: /consultar por cpf do responsável/i,
+      }),
+    ).toHaveAttribute('readonly')
+    expect(
+      screen.getByRole('button', { name: /consultar cpf do responsável/i }),
+    ).toBeDisabled()
+    expect(
+      screen.getByRole('textbox', {
+        name: /nome completo do\(a\) participante/i,
+      }),
+    ).toHaveValue('Kauan José Santos da Silva')
+    expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue(
+      'mariafernanda@gmail.com',
+    )
+    expect(
+      screen.getByRole('button', { name: /informações por grupo/i }),
+    ).toHaveAttribute('aria-expanded', 'false')
+    expect(
+      screen.getByRole('button', { name: /informações de saúde/i }),
+    ).toHaveAttribute('aria-expanded', 'false')
+    expect(
+      screen.queryByRole('button', { name: /salvar rascunho/i }),
+    ).not.toBeInTheDocument()
+    expect(obterParticipanteEolMock).not.toHaveBeenCalled()
+    expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
+  })
+
+  it('impede finalizar a edição quando um campo obrigatório está vazio', async () => {
+    const usuario = userEvent.setup()
+    renderFormularioEdicao()
+
+    const email = await screen.findByLabelText(/\be-mail\b/i)
+    await usuario.clear(email)
+    await usuario.click(
+      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
+    )
+
+    expect(
+      await screen.findByText('Este campo é obrigatório.'),
+    ).toBeInTheDocument()
+    expect(atualizarInscricaoMock).not.toHaveBeenCalled()
+    expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
+  })
+
+  it('cancela a edição sem gravar e volta para a consulta', async () => {
+    const usuario = userEvent.setup()
+    renderFormularioEdicao()
+
+    await screen.findByLabelText(/\be-mail\b/i)
+    await usuario.click(screen.getByRole('button', { name: /cancelar/i }))
+
+    expect(screen.getByText(/inscrições de participantes/i)).toBeInTheDocument()
+    expect(atualizarInscricaoMock).not.toHaveBeenCalled()
+  })
+
+  it('grava a edição e confirma o status retornado', async () => {
+    const usuario = userEvent.setup()
+    renderFormularioEdicao()
+
+    await screen.findByLabelText(/\be-mail\b/i)
+    await usuario.click(
+      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
+    )
+
+    await waitFor(() => {
+      expect(atualizarInscricaoMock).toHaveBeenCalledWith(
+        'inscricao-1',
+        expect.objectContaining({
+          codigoEol: '1234567',
+          cpf: '12345678901',
+          polo: 'polo-1',
+          unidadeEducacional: 'EMEF Teste',
+          unidadeEducacionalCodigoEol: '094633',
+          unidadeEducacionalTipo: 'EMEF',
+          email: 'mariafernanda@gmail.com',
+        }),
+      )
+      expect(
+        screen.getByText(/inscrições de participantes/i),
+      ).toBeInTheDocument()
+    })
+    expect(showToastMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'inscricao-salva',
+        title: 'Inscrição salva com sucesso',
+        description: 'Sua inscrição foi salva com o status: Completa',
+        variant: 'success',
+      }),
+    )
+    expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
+  })
 })
