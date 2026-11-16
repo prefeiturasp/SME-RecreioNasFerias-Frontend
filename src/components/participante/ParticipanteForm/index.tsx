@@ -278,13 +278,15 @@ export function ParticipanteForm({
     participante: ParticipanteEol,
     cpf = form.getValues('cpf'),
   ) {
+    const valoresAtuais = form.getValues()
     const codigoEol =
       origemConsulta === 'cpf'
         ? participante.codigo_eol
-        : form.getValues('codigoEol')
+        : valoresAtuais.codigoEol
+    const manterContato = editando && buscaVigente.current === 'codigoEol'
 
     form.reset({
-      ...form.getValues(),
+      ...valoresAtuais,
       codigoEol,
       cpf,
       nomeCompleto: participante.nome_participante,
@@ -298,9 +300,13 @@ export function ParticipanteForm({
       complemento: participante.complemento,
       bairro: participante.bairro,
       cidade: participante.cidade,
-      telefone1: participante.telefone_contato_1,
-      telefone2: participante.telefone_contato_2,
-      email: participante.email,
+      telefone1: manterContato
+        ? valoresAtuais.telefone1
+        : participante.telefone_contato_1,
+      telefone2: manterContato
+        ? valoresAtuais.telefone2
+        : participante.telefone_contato_2,
+      email: manterContato ? valoresAtuais.email : participante.email,
       unidadeEducacional: participante.unidade_educacional,
       unidadeEducacionalCodigoEol: participante.unidade_educacional_codigo_eol,
       unidadeEducacionalTipo: participante.unidade_educacional_tipo,

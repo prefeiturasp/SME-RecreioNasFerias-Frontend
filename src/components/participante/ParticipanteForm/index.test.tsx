@@ -1055,6 +1055,48 @@ describe('ParticipanteForm', () => {
     expect(screen.getByLabelText(/\bdre\b/i)).toHaveTextContent('DRE Butantã')
   })
 
+  it('substitui telefone e e-mail digitados pelo retorno vazio da consulta EOL', async () => {
+    const usuario = userEvent.setup()
+    obterParticipanteEolMock.mockResolvedValue({
+      ...participanteEolExemplo,
+      telefone_contato_1: '',
+      telefone_contato_2: '',
+      email: '',
+    })
+    renderFormulario()
+
+    await escolherGrupo(usuario, 'Berçário I')
+    await usuario.type(
+      screen.getByLabelText(/telefone de contato\/emergência 1/i),
+      '11911111111',
+    )
+    await usuario.type(
+      screen.getByLabelText(/telefone de contato\/emergência 2/i),
+      '1133334444',
+    )
+    await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'ana@email.com')
+    await usuario.type(
+      screen.getByRole('textbox', { name: /código eol/i }),
+      '123456',
+    )
+    await usuario.click(
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    )
+
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText(/nome completo do\(a\) participante/i),
+      ).toHaveValue('ANNA JULIA ARAUJO SA')
+    })
+    expect(
+      screen.getByLabelText(/telefone de contato\/emergência 1/i),
+    ).toHaveValue('')
+    expect(
+      screen.getByLabelText(/telefone de contato\/emergência 2/i),
+    ).toHaveValue('')
+    expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue('')
+  })
+
   it('consulta o código EOL ao sair do campo', async () => {
     const usuario = userEvent.setup()
     obterParticipanteEolMock.mockResolvedValue(participanteEolExemplo)
@@ -2491,6 +2533,50 @@ describe('ParticipanteForm', () => {
       expect.objectContaining({
         description: MENSAGEM_INSCRICAO_EOL_EXISTENTE,
       }),
+    )
+  })
+
+  it('mantém telefone e e-mail da edição ao consultar de novo o código EOL', async () => {
+    const usuario = userEvent.setup()
+    obterParticipanteEolMock.mockResolvedValue({
+      ...participanteEolExemplo,
+      codigo_eol: '1234567',
+      telefone_contato_1: '',
+      telefone_contato_2: '11900000000',
+      email: '',
+    })
+    renderFormularioEdicao()
+
+    expect(await screen.findByLabelText(/\be-mail\b/i)).toHaveValue(
+      'mariafernanda@gmail.com',
+    )
+    expect(
+      screen.getByLabelText(/telefone de contato\/emergência 1/i),
+    ).toHaveValue('11911111111')
+
+    await usuario.click(
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    )
+
+    await waitFor(() => {
+      expect(obterParticipanteEolMock).toHaveBeenCalledWith(
+        '1234567',
+        'inscricao-1',
+      )
+      expect(
+        screen.getByRole('textbox', {
+          name: /nome completo do\(a\) participante/i,
+        }),
+      ).toHaveValue('ANNA JULIA ARAUJO SA')
+    })
+    expect(
+      screen.getByLabelText(/telefone de contato\/emergência 1/i),
+    ).toHaveValue('11911111111')
+    expect(
+      screen.getByLabelText(/telefone de contato\/emergência 2/i),
+    ).toHaveValue('')
+    expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue(
+      'mariafernanda@gmail.com',
     )
   })
 
