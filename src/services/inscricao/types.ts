@@ -171,6 +171,17 @@ export type PoloElegivel = {
   dre_nome: string
 }
 
+export type PoloResumoInscricao = {
+  uuid: string
+  nome_polo: string
+}
+
+export type InscricaoDetalhe = Omit<Inscricao, 'polo' | 'edicao'> & {
+  polo: PoloResumoInscricao | null
+  edicao: EdicaoResumoInscricao | null
+  idade_detalhada: string | null
+}
+
 export type ParticipanteEol = {
   codigo_eol: string
   nome_participante: string

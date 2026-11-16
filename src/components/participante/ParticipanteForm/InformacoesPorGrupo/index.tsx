@@ -8,34 +8,39 @@ import { FormFieldLeitura } from '@/components/ui/form-field-leitura'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import type { OpcaoChoice } from '@/services/inscricao/types'
-import { calcularIdadeCheia } from '@/utils/calcularIdadeCheia'
-import { formatarIdadeDetalhada } from '@/utils/calcularIdadeDetalhada'
+import { formatarIdadePorExtenso } from '@/utils/calcularIdadeDetalhada'
 
 type InformacoesPorGrupoProps = {
   control: Control<FormValues>
   grupos: OpcaoChoice[]
   tipoEstudante: string
+  idadeDetalhada?: string | null
+  dataNascimentoInicial?: string
 }
 
 export function InformacoesPorGrupo({
   control,
   grupos,
   tipoEstudante,
+  idadeDetalhada,
+  dataNascimentoInicial,
 }: Readonly<InformacoesPorGrupoProps>) {
   const [dataNascimento, nomeTurma, ano] = useWatch({
     control,
     name: ['dataNascimento', 'nomeTurma', 'ano'],
   })
   const estudanteExterno = tipoEstudante === TIPO_ESTUDANTE_EXTERNO
+  const exibeIdadeDaApi = useMemo(
+    () =>
+      idadeDetalhada !== undefined &&
+      dataNascimentoInicial !== undefined &&
+      dataNascimento === dataNascimentoInicial,
+    [dataNascimento, dataNascimentoInicial, idadeDetalhada],
+  )
   const textoIdade = useMemo(() => {
-    if (tipoEstudante === TIPO_ESTUDANTE_EXTERNO) {
-      return formatarIdadeDetalhada(dataNascimento)
-    }
-
-    const idade = calcularIdadeCheia(dataNascimento)
-    if (idade === null) return ''
-    return idade === 1 ? '1 ano' : `${idade} anos`
-  }, [dataNascimento, tipoEstudante])
+    if (exibeIdadeDaApi) return idadeDetalhada ?? ''
+    return formatarIdadePorExtenso(dataNascimento)
+  }, [dataNascimento, exibeIdadeDaApi, idadeDetalhada])
   const turmaAno = useMemo(
     () => [nomeTurma, ano].filter((parte) => parte.trim()).join(' / '),
     [nomeTurma, ano],

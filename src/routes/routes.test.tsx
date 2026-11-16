@@ -415,4 +415,58 @@ describe('RotasAplicacao', () => {
       screen.getByRole('button', { name: /voltar para o início/i }),
     ).toBeInTheDocument()
   })
+
+  it('redireciona para login ao editar participante sem autenticação', async () => {
+    renderRotas('/editar-participante/11111111-1111-1111-1111-111111111111')
+
+    expect(await screen.findByText(/bem-vindo\(a\) ao/i)).toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: /editar participante/i }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('redireciona para /inicio ao editar participante sem a permissão', () => {
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [PERMISSOES.visualizarInscricoesParticipantes],
+    })
+
+    renderRotas('/editar-participante/11111111-1111-1111-1111-111111111111')
+
+    const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
+    expect(mapa).toHaveTextContent('Início')
+    expect(mapa).not.toHaveTextContent('Editar Participante')
+    expect(
+      screen.queryByRole('heading', { name: /editar participante/i }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('renderiza a página Editar Participante na rota /editar-participante/:idInscricao quando autenticado', () => {
+    definirSessaoAutenticacao({
+      token: 'eyJ-token',
+      rf: '1234567',
+      nome: 'USUARIO TESTE',
+      descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [PERMISSOES.editarInscricoesParticipantes],
+    })
+
+    renderRotas('/editar-participante/11111111-1111-1111-1111-111111111111')
+
+    const mapa = screen.getByRole('navigation', { name: /mapa do site/i })
+    expect(mapa).toHaveTextContent('Início')
+    expect(mapa).toHaveTextContent('Inscrições')
+    expect(mapa).toHaveTextContent('Inscrições de Participantes')
+    expect(mapa).toHaveTextContent('Editar Participante')
+    expect(
+      screen.getByRole('heading', { name: /editar participante/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /voltar para o início/i }),
+    ).toBeInTheDocument()
+  })
 })
