@@ -1,5 +1,7 @@
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
+import { ToastProvider } from '@/contexts/ToastContext'
 import PaginaInicial from './index'
 
 vi.mock('@/components/MenuLateral', () => ({
@@ -16,7 +18,13 @@ vi.mock('@/components/MapaVisual', () => ({
 
 describe('PaginaInicial', () => {
   it('renderiza MenuLateral, Cabecalho e mapa visual', () => {
-    render(<PaginaInicial />)
+    render(
+      <ToastProvider>
+        <MemoryRouter>
+          <PaginaInicial />
+        </MemoryRouter>
+      </ToastProvider>,
+    )
 
     expect(screen.getByRole('main')).toBeInTheDocument()
     expect(screen.getByLabelText(/menu lateral/i)).toBeInTheDocument()

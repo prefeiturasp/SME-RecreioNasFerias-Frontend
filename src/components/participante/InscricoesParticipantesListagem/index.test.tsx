@@ -96,7 +96,30 @@ describe('InscricoesParticipantesListagem', () => {
       name: /editar inscrição joão da silva/i,
     })
     expect(botaoEditar).toBeInTheDocument()
-    expect(botaoEditar).toHaveAttribute('href', '/')
+    expect(botaoEditar).toHaveAttribute('href', '/editar-participante/1')
+  })
+
+  it('aponta a edição do estudante externo para a rota do participante', () => {
+    vi.mocked(useGetInscricoes).mockReturnValue({
+      data: {
+        count: 1,
+        results: [
+          {
+            ...dadosMock.results[0],
+            uuid: 'inscricao-externa',
+            tipo_estudante: 'ESTUDANTE_EXTERNO',
+            nome_participante: 'Lorem Ipsum',
+          },
+        ],
+      },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useGetInscricoes>)
+
+    renderInscricoesParticipantesListagem()
+
+    expect(
+      screen.getByRole('link', { name: /editar inscrição lorem ipsum/i }),
+    ).toHaveAttribute('href', '/editar-participante/inscricao-externa')
   })
 
   it('deve chamar a função de alterar página ao interagir com a paginação', async () => {

@@ -30,6 +30,8 @@ const respostaLoginValida = {
       descricaoCargo: 'CARGO TESTE',
     },
   ],
+  perfis: ['USUARIO_UE'],
+  permissoes: ['core.visualizar_inscricoes_participantes'],
   token: 'eyJ-token-exemplo',
 }
 
@@ -56,6 +58,8 @@ describe('login', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: ['USUARIO_UE'],
+      permissoes: ['core.visualizar_inscricoes_participantes'],
     })
   })
 
@@ -65,6 +69,8 @@ describe('login', () => {
       rf: '7654321',
       nome: 'USUARIO ANTERIOR',
       descricaoCargo: 'CARGO ANTERIOR',
+      perfis: [],
+      permissoes: [],
     })
     axiosPostMock.mockResolvedValue({ data: { token: 'token-sem-perfil' } })
 
@@ -80,6 +86,8 @@ describe('login', () => {
       rf: '7654321',
       nome: 'USUARIO ANTERIOR',
       descricaoCargo: 'CARGO ANTERIOR',
+      perfis: [],
+      permissoes: [],
     })
   })
 

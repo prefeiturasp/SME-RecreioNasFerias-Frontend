@@ -15,6 +15,7 @@ const dadosInscricaoExemplo: DadosCadastroInscricao = {
   grupo: 'BERCARIO_I',
   codigoEol: '1234567',
   cpf: '12345678901',
+  cpf_participante: '',
   nomeCompleto: 'Ana Souza',
   dataNascimento: '2020-03-15',
   nomeResponsavel: 'Maria Souza',
@@ -51,6 +52,7 @@ const dadosInscricaoExemplo: DadosCadastroInscricao = {
   podeIrEmboraSozinho: 'nao',
   responsavelRetirada: 'Maria Fernanda Santos',
   autorizaUsoPiscina: 'sim',
+  tipoEscola: '',
 }
 
 const payloadEsperado = {
@@ -60,6 +62,7 @@ const payloadEsperado = {
   grupo: 'BERCARIO_I',
   codigo_eol: '1234567',
   cpf: '12345678901',
+  cpf_participante: '',
   nome_participante: 'Ana Souza',
   data_nascimento: '2020-03-15',
   responsavel_nome: 'Maria Souza',
@@ -96,6 +99,7 @@ const payloadEsperado = {
   pode_ir_embora_sozinho: false,
   responsavel_retirada: 'Maria Fernanda Santos',
   autoriza_uso_piscina: true,
+  tipo_escola: '',
 } as const
 
 const respostaCadastroExemplo: Inscricao = {
@@ -103,6 +107,7 @@ const respostaCadastroExemplo: Inscricao = {
   ...payloadEsperado,
   tipo_logradouro: 'Rua',
   tipo_estudante_label: 'Estudante da rede',
+  tipo_escola_label: '',
   grupo_label: 'Berçário I',
   status: 'RASCUNHO',
   status_label: 'Rascunho',
@@ -146,6 +151,7 @@ describe('cadastrarInscricao', () => {
       grupo: 'MINI_GRUPO_I',
       podeIrEmboraSozinho: '',
       autorizaUsoPiscina: '',
+      tipoEscola: 'ESTADUAL',
     })
 
     expect(apiPostMock).toHaveBeenCalledWith(
@@ -157,6 +163,25 @@ describe('cadastrarInscricao', () => {
         grupo: 'MINI_GRUPO_I',
         pode_ir_embora_sozinho: null,
         autoriza_uso_piscina: null,
+        tipo_escola: 'ESTADUAL',
+      }),
+    )
+  })
+
+  it('envia o CPF do participante externo', async () => {
+    apiPostMock.mockResolvedValue({ data: respostaCadastroExemplo })
+
+    await cadastrarInscricao({
+      ...dadosInscricaoExemplo,
+      tipoEstudante: 'ESTUDANTE_EXTERNO',
+      cpf_participante: '12345678901',
+    })
+
+    expect(apiPostMock).toHaveBeenCalledWith(
+      '/api/v1/inscricoes/',
+      expect.objectContaining({
+        cpf_participante: '12345678901',
+        cpf: '12345678901',
       }),
     )
   })

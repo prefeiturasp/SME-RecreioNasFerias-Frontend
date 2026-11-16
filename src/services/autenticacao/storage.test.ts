@@ -21,6 +21,8 @@ describe('storage de autenticação', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
 
     expect(obterSessaoAutenticacao()).toEqual({
@@ -28,6 +30,8 @@ describe('storage de autenticação', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
     expect(obterTokenAutenticacao()).toBe('eyJ-token')
     expect(estaAutenticado()).toBe(true)
@@ -39,6 +43,8 @@ describe('storage de autenticação', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
 
     const armazenado = localStorage.getItem('sme-recreio-auth-session')
@@ -48,6 +54,8 @@ describe('storage de autenticação', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
   })
 
@@ -57,6 +65,8 @@ describe('storage de autenticação', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
 
     limparSessaoAutenticacao()
@@ -73,6 +83,8 @@ describe('storage de autenticação', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
 
     definirTokenAutenticacao('eyJ-token-renovado')
@@ -83,6 +95,8 @@ describe('storage de autenticação', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
   })
 
@@ -91,12 +105,16 @@ describe('storage de autenticação', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
 
     expect(obterPerfilUsuario()).toEqual({
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
     expect(obterTokenAutenticacao()).toBeNull()
     expect(estaAutenticado()).toBe(false)
@@ -115,6 +133,8 @@ describe('storage de autenticação', () => {
         rf: '',
         nome: 'USUARIO TESTE',
         descricaoCargo: 'CARGO TESTE',
+        perfis: [],
+        permissoes: [],
       }),
     )
 
@@ -128,6 +148,8 @@ describe('storage de autenticação', () => {
         rf: '1234567',
         nome: 'USUARIO TESTE',
         descricaoCargo: 'CARGO TESTE',
+        perfis: [],
+        permissoes: [],
       }),
     )
 
@@ -135,6 +157,8 @@ describe('storage de autenticação', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: [],
+      permissoes: [],
     })
     expect(obterSessaoAutenticacao()).toBeNull()
   })

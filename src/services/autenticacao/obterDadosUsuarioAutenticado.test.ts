@@ -21,6 +21,8 @@ const respostaMeExemplo = {
       descricaoCargo: 'CARGO TESTE',
     },
   ],
+  perfis: ['USUARIO_UE'],
+  permissoes: ['core.visualizar_inscricoes_participantes'],
 }
 
 describe('obterDadosUsuarioAutenticado', () => {
@@ -35,6 +37,8 @@ describe('obterDadosUsuarioAutenticado', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO',
+      perfis: [],
+      permissoes: [],
     })
     apiGetMock.mockResolvedValue({ data: respostaMeExemplo })
 
@@ -42,6 +46,8 @@ describe('obterDadosUsuarioAutenticado', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO TESTE',
+      perfis: ['USUARIO_UE'],
+      permissoes: ['core.visualizar_inscricoes_participantes'],
     })
     expect(apiGetMock).toHaveBeenCalledWith('/api/v1/auth/me/')
   })
@@ -57,6 +63,8 @@ describe('obterDadosUsuarioAutenticado', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO',
+      perfis: [],
+      permissoes: [],
     })
     apiGetMock.mockRejectedValue({ response: { status: 401 } })
 
@@ -69,6 +77,8 @@ describe('obterDadosUsuarioAutenticado', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO',
+      perfis: [],
+      permissoes: [],
     })
     apiGetMock.mockResolvedValue({ data: { rf: '1' } })
 
@@ -81,6 +91,8 @@ describe('obterDadosUsuarioAutenticado', () => {
       rf: '1234567',
       nome: 'USUARIO TESTE',
       descricaoCargo: 'CARGO',
+      perfis: [],
+      permissoes: [],
     })
     apiGetMock.mockRejectedValue(new Error('network error'))
 

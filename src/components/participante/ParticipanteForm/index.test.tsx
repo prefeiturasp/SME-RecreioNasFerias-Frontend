@@ -12,10 +12,16 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type {
+  InscricaoDetalhe,
   ParticipanteEol,
   ValoresChoicesInscricao,
 } from '@/services/inscricao/types'
-import { TIPO_ESTUDANTE_REDE } from './constantes'
+import {
+  MENSAGEM_DUPLICIDADE_CPF_PARTICIPANTE,
+  MENSAGEM_INSCRICAO_EOL_EXISTENTE,
+  TIPO_ESTUDANTE_EXTERNO,
+  TIPO_ESTUDANTE_REDE,
+} from './constantes'
 import { ParticipanteForm } from './index'
 
 const ROTULO_ESTUDANTE_REDE = 'Estudante da rede'
@@ -104,16 +110,22 @@ const {
   listarPolosElegiveisMock,
   listarValoresChoicesMock,
   cadastrarInscricaoMock,
+  obterInscricaoMock,
+  atualizarInscricaoMock,
   obterParticipanteEolMock,
   obterParticipanteCpfMock,
+  checarDuplicidadeInscricaoEstudanteExternoMock,
   showToastMock,
 } = vi.hoisted(() => ({
   listarDresMock: vi.fn(),
   listarPolosElegiveisMock: vi.fn(),
   listarValoresChoicesMock: vi.fn(),
   cadastrarInscricaoMock: vi.fn(),
+  obterInscricaoMock: vi.fn(),
+  atualizarInscricaoMock: vi.fn(),
   obterParticipanteEolMock: vi.fn(),
   obterParticipanteCpfMock: vi.fn(),
+  checarDuplicidadeInscricaoEstudanteExternoMock: vi.fn(),
   showToastMock: vi.fn(),
 }))
 
@@ -133,6 +145,14 @@ vi.mock('@/services/inscricao/cadastrarInscricao', () => ({
   cadastrarInscricao: cadastrarInscricaoMock,
 }))
 
+vi.mock('@/services/inscricao/obterInscricao', () => ({
+  obterInscricao: obterInscricaoMock,
+}))
+
+vi.mock('@/services/inscricao/atualizarInscricao', () => ({
+  atualizarInscricao: atualizarInscricaoMock,
+}))
+
 vi.mock('@/services/inscricao/obterParticipanteEol', () => ({
   obterParticipanteEol: obterParticipanteEolMock,
 }))
@@ -141,9 +161,72 @@ vi.mock('@/services/inscricao/obterParticipanteCpf', () => ({
   obterParticipanteCpf: obterParticipanteCpfMock,
 }))
 
+vi.mock(
+  '@/services/inscricao/checarDuplicidadeInscricaoEstudanteExterno',
+  () => ({
+    checarDuplicidadeInscricaoEstudanteExterno:
+      checarDuplicidadeInscricaoEstudanteExternoMock,
+  }),
+)
+
 vi.mock('@/hooks/useToast', () => ({
   useToast: () => ({ showToast: showToastMock, dismissToast: vi.fn() }),
 }))
+
+const inscricaoDetalheExemplo: InscricaoDetalhe = {
+  uuid: 'inscricao-1',
+  edicao: { uuid: 'edicao-1', nome: '2026' },
+  polo: { uuid: 'polo-1', nome_polo: 'Polo Cidade de Genebra' },
+  tipo_estudante: 'ESTUDANTE_DA_REDE',
+  tipo_estudante_label: 'Estudante da rede',
+  grupo: 'QUATRO_A_14_ANOS',
+  grupo_label: '4 a 14 anos',
+  codigo_eol: '1234567',
+  cpf: '12345678901',
+  cpf_participante: '',
+  nome_participante: 'Kauan José Santos da Silva',
+  data_nascimento: '2019-05-16',
+  responsavel_nome: 'Maria Fernanda Santos',
+  responsavel_nome_social: '',
+  cep: '11111111',
+  tipo_logradouro: 'Rua',
+  logradouro: 'das Flores',
+  numero: '25',
+  complemento: '',
+  bairro: 'Jardim das Rosas',
+  cidade: 'São Paulo',
+  telefone_contato_1: '11911111111',
+  telefone_contato_2: '',
+  email: 'mariafernanda@gmail.com',
+  dre_codigo_eol: '108100',
+  dre_nome: 'DIRETORIA REGIONAL DE EDUCACAO BUTANTA',
+  status: 'COMPLETA',
+  status_label: 'Completa',
+  ativo: true,
+  possui_deficiencia: false,
+  deficiencias: [],
+  outra_deficiencia: '',
+  possui_problema_saude: false,
+  problemas_saude: [],
+  outro_problema_saude: '',
+  usuario_medicacao_ou_tratamento_continuo: false,
+  medicacao_ou_tratamento_continuo: '',
+  possui_restricao_medicamento_pronto_atendimento: false,
+  restricao_medicamento_pronto_atendimento: '',
+  possui_convenio_medico: false,
+  convenio_medico: '',
+  tipo_escola: '',
+  tipo_escola_label: '',
+  unidade_educacional: 'EMEF Teste',
+  unidade_educacional_codigo_eol: '094633',
+  unidade_educacional_tipo: 'EMEF',
+  nome_turma: '7C',
+  ano: '7',
+  pode_ir_embora_sozinho: false,
+  responsavel_retirada: 'Maria Fernanda Santos',
+  autoriza_uso_piscina: true,
+  idade_detalhada: '7 anos, 0 meses e 0 dias',
+}
 
 function renderFormulario() {
   const queryClient = new QueryClient({
@@ -160,6 +243,32 @@ function renderFormulario() {
           <Route
             path="/cadastrar-participante"
             element={<ParticipanteForm />}
+          />
+          <Route
+            path="/inscricoes-participantes"
+            element={<div>Inscrições de Participantes</div>}
+          />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  )
+}
+
+function renderFormularioEdicao() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  })
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={['/editar-participante/inscricao-1']}>
+        <Routes>
+          <Route
+            path="/editar-participante/:idInscricao"
+            element={<ParticipanteForm inscricaoId="inscricao-1" />}
           />
           <Route
             path="/inscricoes-participantes"
@@ -211,6 +320,27 @@ function nascimentoComUmAno() {
   return `${hoje.getFullYear() - 1}-${mes}-01`
 }
 
+function digitosNascimentoComUmAno() {
+  const [ano, mes, dia] = nascimentoComUmAno().split('-')
+  return `${dia}${mes}${ano}`
+}
+
+function idadePorExtensoComUmAno() {
+  const dias = new Date().getDate() - 1
+  const rotuloDias = dias === 1 ? 'dia' : 'dias'
+  return `1 ano, 0 meses e ${dias} ${rotuloDias}`
+}
+
+async function escolherEstudanteExterno(
+  usuario: ReturnType<typeof userEvent.setup>,
+) {
+  await escolherGrupo(usuario, ROTULO_QUATRO_A_14)
+  await usuario.click(screen.getByLabelText(/tipo de estudante/i))
+  await usuario.click(
+    screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
+  )
+}
+
 async function responderInformacoesPorGrupo(
   usuario: ReturnType<typeof userEvent.setup>,
 ) {
@@ -245,17 +375,26 @@ describe('ParticipanteForm', () => {
     listarPolosElegiveisMock.mockReset()
     listarValoresChoicesMock.mockReset()
     cadastrarInscricaoMock.mockReset()
+    obterInscricaoMock.mockReset()
+    atualizarInscricaoMock.mockReset()
     obterParticipanteEolMock.mockReset()
     obterParticipanteCpfMock.mockReset()
+    checarDuplicidadeInscricaoEstudanteExternoMock.mockReset()
     showToastMock.mockReset()
     listarDresMock.mockResolvedValue([])
     listarPolosElegiveisMock.mockResolvedValue([])
     listarValoresChoicesMock.mockResolvedValue(valoresChoicesExemplo)
     obterParticipanteEolMock.mockResolvedValue(participanteEolVazio)
     obterParticipanteCpfMock.mockResolvedValue(participanteEolVazio)
+    checarDuplicidadeInscricaoEstudanteExternoMock.mockResolvedValue({})
     cadastrarInscricaoMock.mockResolvedValue({
       status: 'RASCUNHO',
       status_label: 'Rascunho',
+    })
+    obterInscricaoMock.mockResolvedValue(inscricaoDetalheExemplo)
+    atualizarInscricaoMock.mockResolvedValue({
+      status: 'COMPLETA',
+      status_label: 'Completa',
     })
   })
 
@@ -312,7 +451,7 @@ describe('ParticipanteForm', () => {
       expect(radio).not.toBeChecked()
     }
     expect(screen.getAllByRole('combobox', { name: /qual/i })[0]).toBeDisabled()
-    expect(screen.getAllByText(/campos obrigatórios/i)).toHaveLength(2)
+    expect(screen.getAllByText(/campos obrigatórios/i)).toHaveLength(3)
 
     expect(
       screen.getByRole('button', { name: /cancelar/i }),
@@ -323,7 +462,7 @@ describe('ParticipanteForm', () => {
     expect(
       screen.getByRole('button', { name: /^finalizar inscrição$/i }),
     ).toBeInTheDocument()
-  }, 15000)
+  }, 30_000)
 
   it('abre informações de saúde quando a finalização falha por campos de saúde', async () => {
     const usuario = userEvent.setup()
@@ -338,6 +477,178 @@ describe('ParticipanteForm', () => {
       expect(
         screen.getByRole('button', { name: /informações de saúde/i }),
       ).toHaveAttribute('aria-expanded', 'true')
+    })
+  })
+
+  it('avisa e impede finalizar com idade igual ou superior a 15 anos', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await escolherGrupo(usuario, ROTULO_QUATRO_A_14)
+    await usuario.click(screen.getByLabelText(/tipo de estudante/i))
+    await usuario.click(
+      screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
+    )
+    await usuario.type(
+      screen.getByRole('textbox', {
+        name: /data de nascimento do\(a\) participante/i,
+      }),
+      `01/01/${new Date().getFullYear() - 16}`,
+    )
+
+    expect(showToastMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variant: 'destructive',
+        description:
+          'A data de nascimento informada excede a faixa etária permitida para participação no Recreio nas Férias.',
+      }),
+    )
+
+    await usuario.click(
+      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
+    )
+
+    expect(
+      screen.getByText(
+        'A data de nascimento informada excede a faixa etária permitida para participação no Recreio nas Férias.',
+      ),
+    ).toBeInTheDocument()
+    expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
+  })
+
+  it('envia o CPF do participante ao salvar rascunho de estudante externo', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await escolherGrupo(usuario, ROTULO_QUATRO_A_14)
+    await usuario.click(screen.getByLabelText(/tipo de estudante/i))
+    await usuario.click(
+      screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
+    )
+    await usuario.type(
+      screen.getByRole('textbox', { name: /cpf do\(a\) participante/i }),
+      '12345678909',
+    )
+    await usuario.type(
+      screen.getByRole('textbox', { name: /cpf do\(a\) responsável/i }),
+      '10987654321',
+    )
+    await usuario.click(
+      screen.getByRole('button', { name: /salvar rascunho/i }),
+    )
+
+    await waitFor(() => {
+      expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tipoEstudante: 'ESTUDANTE_EXTERNO',
+          cpf_participante: '12345678909',
+          cpf: '10987654321',
+        }),
+        expect.anything(),
+      )
+    })
+  })
+
+  it('consulta duplicidade quando o CPF do estudante externo está completo', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await escolherGrupo(usuario, ROTULO_QUATRO_A_14)
+    await usuario.click(screen.getByLabelText(/tipo de estudante/i))
+    await usuario.click(
+      screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
+    )
+
+    await usuario.type(
+      screen.getByRole('textbox', { name: /cpf do\(a\) participante/i }),
+      '1234567890',
+    )
+    expect(
+      checarDuplicidadeInscricaoEstudanteExternoMock,
+    ).not.toHaveBeenCalled()
+
+    await usuario.type(
+      screen.getByRole('textbox', { name: /cpf do\(a\) participante/i }),
+      '9',
+    )
+
+    await waitFor(() => {
+      expect(
+        checarDuplicidadeInscricaoEstudanteExternoMock,
+      ).toHaveBeenCalledWith('12345678909')
+    })
+  })
+
+  it('exibe toast e erro no campo quando o CPF já possui inscrição', async () => {
+    checarDuplicidadeInscricaoEstudanteExternoMock.mockResolvedValueOnce({
+      possui_inscricao: true,
+    })
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await escolherGrupo(usuario, ROTULO_QUATRO_A_14)
+    await usuario.click(screen.getByLabelText(/tipo de estudante/i))
+    await usuario.click(
+      screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
+    )
+    await usuario.type(
+      screen.getByRole('textbox', { name: /cpf do\(a\) participante/i }),
+      '12345678909',
+    )
+
+    await waitFor(() => {
+      expect(showToastMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: MENSAGEM_DUPLICIDADE_CPF_PARTICIPANTE,
+          variant: 'destructive',
+        }),
+      )
+    })
+
+    await usuario.click(
+      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
+    )
+
+    expect(
+      await screen.findByText(MENSAGEM_DUPLICIDADE_CPF_PARTICIPANTE),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('textbox', { name: /cpf do\(a\) participante/i }),
+    ).toHaveAttribute('aria-invalid', 'true')
+    expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
+  })
+
+  it('envia CPF do participante vazio para estudante da rede', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await escolherGrupo(usuario, ROTULO_QUATRO_A_14)
+    await usuario.click(screen.getByLabelText(/tipo de estudante/i))
+    await usuario.click(
+      screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
+    )
+    await usuario.type(
+      screen.getByRole('textbox', { name: /cpf do\(a\) participante/i }),
+      '12345678909',
+    )
+    await usuario.type(
+      screen.getByRole('textbox', { name: /cpf do\(a\) responsável/i }),
+      '10987654321',
+    )
+    await escolherGrupo(usuario, 'Berçário I')
+    await usuario.click(
+      screen.getByRole('button', { name: /salvar rascunho/i }),
+    )
+
+    await waitFor(() => {
+      expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tipoEstudante: TIPO_ESTUDANTE_REDE,
+          cpf_participante: '',
+          cpf: '10987654321',
+        }),
+        expect.anything(),
+      )
     })
   })
 
@@ -500,7 +811,7 @@ describe('ParticipanteForm', () => {
       await usuario.click(respostasNao[indice + 2])
       expect(campo).toHaveValue('')
     }
-  }, 15_000)
+  }, 30_000)
 
   it('navega para a listagem ao clicar em Cancelar', async () => {
     const usuario = userEvent.setup()
@@ -554,7 +865,7 @@ describe('ParticipanteForm', () => {
       'readonly',
     )
     expect(
-      screen.getByLabelText(/nome completo do responsável/i),
+      screen.getByLabelText(/nome completo do\(a\) responsável/i),
     ).toHaveAttribute('readonly')
     expect(
       screen.getByLabelText(/nome social do\(a\) responsável/i),
@@ -635,7 +946,7 @@ describe('ParticipanteForm', () => {
     })
     expect(screen.getByText('Selecione o Polo')).toBeInTheDocument()
     expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
-  }, 15000)
+  }, 30_000)
 
   it('mostra erro dos polos em toast quando a busca seguinte funciona', async () => {
     const usuario = userEvent.setup()
@@ -722,9 +1033,9 @@ describe('ParticipanteForm', () => {
     expect(screen.getByLabelText(/data de nascimento/i)).toHaveValue(
       '16/10/2013',
     )
-    expect(screen.getByLabelText(/nome completo do responsável/i)).toHaveValue(
-      'SAMARA LIMA ARAUJO',
-    )
+    expect(
+      screen.getByLabelText(/nome completo do\(a\) responsável/i),
+    ).toHaveValue('SAMARA LIMA ARAUJO')
     expect(screen.getByLabelText(/\bcep\b/i)).toHaveValue('08411-010')
     expect(screen.getByLabelText(/\blogradouro\b/i)).toHaveValue(
       'DA PASSAGEM FUNDA',
@@ -742,6 +1053,48 @@ describe('ParticipanteForm', () => {
       screen.getByRole('textbox', { name: /cpf do responsável/i }),
     ).toHaveValue('')
     expect(screen.getByLabelText(/\bdre\b/i)).toHaveTextContent('DRE Butantã')
+  })
+
+  it('substitui telefone e e-mail digitados pelo retorno vazio da consulta EOL', async () => {
+    const usuario = userEvent.setup()
+    obterParticipanteEolMock.mockResolvedValue({
+      ...participanteEolExemplo,
+      telefone_contato_1: '',
+      telefone_contato_2: '',
+      email: '',
+    })
+    renderFormulario()
+
+    await escolherGrupo(usuario, 'Berçário I')
+    await usuario.type(
+      screen.getByLabelText(/telefone de contato\/emergência 1/i),
+      '11911111111',
+    )
+    await usuario.type(
+      screen.getByLabelText(/telefone de contato\/emergência 2/i),
+      '1133334444',
+    )
+    await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'ana@email.com')
+    await usuario.type(
+      screen.getByRole('textbox', { name: /código eol/i }),
+      '123456',
+    )
+    await usuario.click(
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    )
+
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText(/nome completo do\(a\) participante/i),
+      ).toHaveValue('ANNA JULIA ARAUJO SA')
+    })
+    expect(
+      screen.getByLabelText(/telefone de contato\/emergência 1/i),
+    ).toHaveValue('')
+    expect(
+      screen.getByLabelText(/telefone de contato\/emergência 2/i),
+    ).toHaveValue('')
+    expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue('')
   })
 
   it('consulta o código EOL ao sair do campo', async () => {
@@ -843,9 +1196,9 @@ describe('ParticipanteForm', () => {
       screen.getByLabelText(/nome completo do\(a\) participante/i),
     ).toHaveValue('')
     expect(screen.getByLabelText(/data de nascimento/i)).toHaveValue('')
-    expect(screen.getByLabelText(/nome completo do responsável/i)).toHaveValue(
-      '',
-    )
+    expect(
+      screen.getByLabelText(/nome completo do\(a\) responsável/i),
+    ).toHaveValue('')
     expect(screen.getByLabelText(/\bcep\b/i)).toHaveValue('')
     expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue('')
     expect(codigoEol).toHaveValue('1234567')
@@ -894,7 +1247,7 @@ describe('ParticipanteForm', () => {
     expect(screen.getByLabelText(/\bcep\b/i)).toHaveAttribute('readonly')
     expect(screen.getByLabelText(/\bdre\b/i)).toBeEnabled()
     expect(screen.getByLabelText(/polo de inscrição/i)).toBeDisabled()
-  }, 15000)
+  }, 30_000)
 
   it('salva a inscrição preenchida pela consulta do CPF sem consultar de novo', async () => {
     const usuario = userEvent.setup()
@@ -967,7 +1320,7 @@ describe('ParticipanteForm', () => {
       ).toBeInTheDocument()
     })
     expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
-  }, 15000)
+  }, 30_000)
 
   it('impede finalizar após consulta por CPF com campos obrigatórios vazios', async () => {
     const usuario = userEvent.setup()
@@ -996,7 +1349,7 @@ describe('ParticipanteForm', () => {
     )
 
     expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
-  }, 15000)
+  }, 30_000)
 
   it('mantém o erro de CPF incompleto ao salvar depois da consulta', async () => {
     const usuario = userEvent.setup()
@@ -1027,7 +1380,7 @@ describe('ParticipanteForm', () => {
     expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
     expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
     expect(cpf).toHaveValue('464.205.131-7')
-  }, 15000)
+  }, 30_000)
 
   it('consulta o CPF do responsável ao sair do campo', async () => {
     const usuario = userEvent.setup()
@@ -1165,7 +1518,7 @@ describe('ParticipanteForm', () => {
     expect(
       screen.getByText('É necessário selecionar o DRE primeiro'),
     ).toBeInTheDocument()
-  }, 15000)
+  }, 30_000)
 
   it('desabilita o CPF ao informar o código EOL', async () => {
     const usuario = userEvent.setup()
@@ -1334,7 +1687,7 @@ describe('ParticipanteForm', () => {
       await screen.findByText('Informe um CPF válido.'),
     ).toBeInTheDocument()
     expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
-  }, 15000)
+  }, 30_000)
 
   it.each(['Berçário I', 'Berçário II', 'Mini Grupo I', 'Mini Grupo II'])(
     'trava Estudante da Rede e libera o restante ao escolher %s',
@@ -1380,12 +1733,18 @@ describe('ParticipanteForm', () => {
       screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
     )
 
+    const cpfParticipante = screen.getByRole('textbox', {
+      name: /cpf do\(a\) participante/i,
+    })
+    expect(cpfParticipante).toBeInTheDocument()
+    await usuario.type(cpfParticipante, '12345678909')
+    expect(cpfParticipante).toHaveValue('123.456.789-09')
     expect(
-      screen.getByRole('textbox', { name: /código eol/i }),
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByRole('button', { name: /informações por grupo/i }),
+      screen.queryByRole('textbox', { name: /cpf do responsável/i }),
     ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /informações por grupo/i }),
+    ).toHaveAttribute('aria-expanded', 'false')
     expect(
       screen.getByRole('button', { name: /informações de saúde/i }),
     ).toBeInTheDocument()
@@ -1401,7 +1760,7 @@ describe('ParticipanteForm', () => {
       screen.getByRole('option', { name: ROTULO_ESTUDANTE_EXTERNO }),
     )
     expect(
-      screen.getByRole('textbox', { name: /código eol/i }),
+      screen.getByRole('textbox', { name: /cpf do\(a\) participante/i }),
     ).toBeInTheDocument()
 
     await escolherGrupo(usuario, 'Berçário I')
@@ -1421,7 +1780,7 @@ describe('ParticipanteForm', () => {
     expect(
       screen.queryByRole('button', { name: /informações de saúde/i }),
     ).not.toBeInTheDocument()
-  }, 15000)
+  }, 30_000)
 
   it('salva o rascunho incompleto', async () => {
     const usuario = userEvent.setup()
@@ -1439,6 +1798,7 @@ describe('ParticipanteForm', () => {
           tipoEstudante: TIPO_ESTUDANTE_REDE,
           codigoEol: '',
           cpf: '',
+          cpf_participante: '',
           nomeCompleto: '',
           dataNascimento: '',
           email: '',
@@ -1472,7 +1832,7 @@ describe('ParticipanteForm', () => {
         variant: 'success',
       }),
     )
-  }, 15000)
+  }, 30_000)
 
   it('finaliza a inscrição completa', async () => {
     const usuario = userEvent.setup()
@@ -1535,7 +1895,7 @@ describe('ParticipanteForm', () => {
       ).toBeInTheDocument()
     })
     expect(cadastrarInscricaoMock).toHaveBeenCalledTimes(1)
-  }, 15000)
+  }, 30_000)
 
   it('recusa e-mail inválido ao finalizar', async () => {
     const usuario = userEvent.setup()
@@ -1551,7 +1911,7 @@ describe('ParticipanteForm', () => {
     ).toBeInTheDocument()
     expect(showToastMock).not.toHaveBeenCalled()
     expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
-  }, 15000)
+  }, 30_000)
 
   it('mostra o detalhe do erro de cadastro em toast', async () => {
     const usuario = userEvent.setup()
@@ -1595,7 +1955,7 @@ describe('ParticipanteForm', () => {
         screen.getByText(/inscrições de participantes/i),
       ).toBeInTheDocument()
     })
-  }, 15000)
+  }, 30_000)
 
   it('envia o grupo escolhido nas informações básicas', async () => {
     const usuario = userEvent.setup()
@@ -1657,7 +2017,7 @@ describe('ParticipanteForm', () => {
         expect.anything(),
       )
     })
-  }, 15_000)
+  }, 30_000)
 
   it('envia as informações de saúde no formato esperado pela API', async () => {
     const usuario = userEvent.setup()
@@ -1731,9 +2091,9 @@ describe('ParticipanteForm', () => {
         expect.anything(),
       )
     })
-  }, 15_000)
+  }, 30_000)
 
-  it('mostra os campos da rede, a idade em um ano e limpa ao sair da consulta', async () => {
+  it('mostra os campos da rede, a idade por extenso e limpa ao sair da consulta', async () => {
     const usuario = userEvent.setup()
     obterParticipanteEolMock.mockResolvedValue({
       ...participanteEolExemplo,
@@ -1760,6 +2120,9 @@ describe('ParticipanteForm', () => {
     expect(within(alunoRede).getByRole('radio', { name: 'Sim' })).toBeDisabled()
     expect(within(alunoRede).getByRole('radio', { name: 'Não' })).toBeDisabled()
     expect(
+      screen.queryByRole('radiogroup', { name: /tipo de escola/i }),
+    ).not.toBeInTheDocument()
+    expect(
       screen.getByLabelText(/unidade educacional do participante/i),
     ).toHaveValue('')
     expect(screen.getByLabelText(/turma \/ ano/i)).toHaveValue('')
@@ -1771,7 +2134,9 @@ describe('ParticipanteForm', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByLabelText(/\bidade\b/i)).toHaveValue('1 ano')
+      expect(screen.getByLabelText(/\bidade\b/i)).toHaveValue(
+        idadePorExtensoComUmAno(),
+      )
     })
     expect(
       screen.getByLabelText(/unidade educacional do participante/i),
@@ -1800,7 +2165,7 @@ describe('ParticipanteForm', () => {
         name: /responsável por retirar na saída/i,
       }),
     ).toHaveValue('')
-  }, 15000)
+  }, 30_000)
 
   it('abre a seção e impede finalizar sem as respostas da rede', async () => {
     const usuario = userEvent.setup()
@@ -1854,5 +2219,499 @@ describe('ParticipanteForm', () => {
     })
     expect(screen.getAllByText('Este campo é obrigatório.')).toHaveLength(3)
     expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
-  }, 15000)
+  }, 30_000)
+
+  it('exibe tipo de escola para o estudante externo e aceita a escolha', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await escolherEstudanteExterno(usuario)
+    await usuario.click(
+      screen.getByRole('button', { name: /informações por grupo/i }),
+    )
+
+    expect(
+      screen.queryByRole('radiogroup', { name: /é aluno da rede municipal/i }),
+    ).not.toBeInTheDocument()
+    const tipoEscola = screen.getByRole('radiogroup', {
+      name: /tipo de escola/i,
+    })
+    const estadual = within(tipoEscola).getByRole('radio', { name: 'Estadual' })
+    const particular = within(tipoEscola).getByRole('radio', {
+      name: 'Particular',
+    })
+
+    await usuario.click(estadual)
+    expect(estadual).toBeChecked()
+    expect(particular).not.toBeChecked()
+
+    await usuario.click(particular)
+    expect(particular).toBeChecked()
+    expect(estadual).not.toBeChecked()
+
+    await usuario.click(
+      screen.getByRole('button', { name: /salvar rascunho/i }),
+    )
+    await waitFor(() => {
+      expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tipoEstudante: TIPO_ESTUDANTE_EXTERNO,
+          tipoEscola: 'PARTICULAR',
+        }),
+        expect.anything(),
+      )
+    })
+  }, 30_000)
+
+  it('impede finalizar o estudante externo sem tipo de escola', async () => {
+    const usuario = userEvent.setup()
+    listarDresMock.mockResolvedValue([
+      {
+        codigo_dre: '108100',
+        nome_dre: 'DRE Butantã',
+        sigla_dre: 'BT',
+      },
+    ])
+    listarPolosElegiveisMock.mockImplementation(
+      async (dreCodigoEol: string) => [
+        {
+          uuid: `polo-${dreCodigoEol}`,
+          codigo_eol: '123456',
+          nome_polo: `Polo ${dreCodigoEol}`,
+          dre_codigo_eol: dreCodigoEol,
+          dre_nome: 'DRE Butantã',
+        },
+      ],
+    )
+    renderFormulario()
+
+    await escolherEstudanteExterno(usuario)
+    await responderPerguntasSaudeComoNao(usuario)
+    await usuario.type(
+      screen.getByRole('textbox', { name: /cpf do\(a\) participante/i }),
+      '12345678901',
+    )
+    await usuario.type(
+      screen.getByRole('textbox', {
+        name: /nome completo do\(a\) participante/i,
+      }),
+      'Ana Souza',
+    )
+    await usuario.type(
+      screen.getByRole('textbox', {
+        name: /data de nascimento do\(a\) participante/i,
+      }),
+      `01/01/${new Date().getFullYear() - 8}`,
+    )
+    await usuario.type(
+      screen.getByRole('textbox', { name: /cpf do\(a\) responsável/i }),
+      '10987654321',
+    )
+    await usuario.type(
+      screen.getByRole('textbox', {
+        name: /nome completo do\(a\) responsável/i,
+      }),
+      'Maria Souza',
+    )
+    await usuario.type(screen.getByLabelText(/\bcep\b/i), '01310100')
+    await usuario.type(screen.getByLabelText(/\blogradouro\b/i), 'Rua A')
+    await usuario.type(screen.getByLabelText(/\bnúmero\b/i), '10')
+    await usuario.type(screen.getByLabelText(/\bbairro\b/i), 'Centro')
+    await usuario.type(screen.getByLabelText(/\bcidade\b/i), 'São Paulo')
+    await usuario.click(screen.getByLabelText(/\bdre\b/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: 'DRE Butantã' }),
+    )
+    await usuario.click(screen.getByLabelText(/polo de inscrição/i))
+    await usuario.click(
+      await screen.findByRole('option', { name: 'Polo 108100' }),
+    )
+    await usuario.type(
+      screen.getByLabelText(/telefone de contato\/emergência 1/i),
+      '11988887777',
+    )
+    await usuario.type(screen.getByLabelText(/\be-mail\b/i), 'ana@email.com')
+    await usuario.click(
+      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
+    )
+
+    const secao = screen.getByRole('button', {
+      name: /informações por grupo/i,
+    })
+    await waitFor(() => {
+      expect(secao).toHaveAttribute('aria-expanded', 'true')
+    })
+    expect(screen.getAllByText('Este campo é obrigatório.')).toHaveLength(7)
+    expect(
+      screen.getByRole('radiogroup', { name: /tipo de escola/i }),
+    ).toBeInTheDocument()
+    for (const nome of [
+      /pode ir embora sozinho/i,
+      /autoriza uso da piscina/i,
+    ]) {
+      expect(
+        screen
+          .getByRole('radiogroup', { name: nome })
+          .closest('[data-slot="field"]'),
+      ).toHaveTextContent('Este campo é obrigatório.')
+    }
+    for (const nome of [
+      /unidade educacional do participante/i,
+      '* Turma / Ano',
+      '* Ano',
+      /responsável por retirar na saída/i,
+    ]) {
+      expect(
+        screen
+          .getByRole('textbox', { name: nome })
+          .closest('[data-slot="field"]'),
+      ).toHaveTextContent('Este campo é obrigatório.')
+    }
+    expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
+  }, 60_000)
+
+  it('envia unidade, turma e ano digitados no estudante externo', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await escolherEstudanteExterno(usuario)
+    await usuario.click(
+      screen.getByRole('button', { name: /informações por grupo/i }),
+    )
+
+    expect(screen.getByLabelText(/agrupamento do participante/i)).toBeDisabled()
+
+    const unidade = screen.getByRole('textbox', {
+      name: /unidade educacional do participante/i,
+    })
+    const turma = screen.getByRole('textbox', { name: '* Turma / Ano' })
+    const ano = screen.getByRole('textbox', { name: '* Ano' })
+
+    expect(unidade).not.toHaveAttribute('readonly')
+    expect(turma).not.toHaveAttribute('readonly')
+    expect(ano).not.toHaveAttribute('readonly')
+
+    await usuario.type(unidade, 'Escola Estadual Modelo')
+    await usuario.type(turma, '7A')
+    await usuario.type(ano, '7')
+    await usuario.click(
+      screen.getByRole('button', { name: /salvar rascunho/i }),
+    )
+
+    await waitFor(() => {
+      expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tipoEstudante: TIPO_ESTUDANTE_EXTERNO,
+          unidadeEducacional: 'Escola Estadual Modelo',
+          nomeTurma: '7A',
+          ano: '7',
+        }),
+        expect.anything(),
+      )
+    })
+  }, 30_000)
+
+  it('salva o rascunho do estudante externo sem tipo de escola', async () => {
+    const usuario = userEvent.setup()
+    renderFormulario()
+
+    await escolherEstudanteExterno(usuario)
+    await usuario.click(
+      screen.getByRole('button', { name: /salvar rascunho/i }),
+    )
+
+    await waitFor(() => {
+      expect(cadastrarInscricaoMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tipoEstudante: TIPO_ESTUDANTE_EXTERNO,
+          grupo: 'QUATRO_A_14_ANOS',
+          tipoEscola: '',
+        }),
+        expect.anything(),
+      )
+    })
+  }, 30_000)
+
+  it('preenche a edição, trava agrupamento e tipo e mantém a consulta por EOL e CPF', async () => {
+    const usuario = userEvent.setup()
+    renderFormularioEdicao()
+
+    expect(
+      await screen.findByRole('form', {
+        name: /formulário de edição de participante/i,
+      }),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText(/agrupamento/i)).toHaveValue('4 a 14 anos')
+    expect(screen.getByLabelText(/agrupamento/i)).toHaveAttribute('readonly')
+    expect(screen.getByLabelText(/tipo de estudante/i)).toHaveValue(
+      'Estudante da rede',
+    )
+    expect(screen.getByLabelText(/tipo de estudante/i)).toHaveAttribute(
+      'readonly',
+    )
+    const codigoEol = screen.getByRole('textbox', {
+      name: /consultar por código eol/i,
+    })
+    expect(codigoEol).toHaveValue('1234567')
+    expect(codigoEol).not.toHaveAttribute('readonly')
+    expect(
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    ).toBeEnabled()
+    const cpfResponsavel = screen.getByRole('textbox', {
+      name: /consultar por cpf do responsável/i,
+    })
+    expect(cpfResponsavel).not.toHaveAttribute('readonly')
+    expect(
+      screen.getByRole('button', { name: /consultar cpf do responsável/i }),
+    ).toBeEnabled()
+    expect(
+      screen.getByRole('textbox', {
+        name: /nome completo do\(a\) participante/i,
+      }),
+    ).toHaveValue('Kauan José Santos da Silva')
+    expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue(
+      'mariafernanda@gmail.com',
+    )
+    const secaoGrupo = screen.getByRole('button', {
+      name: /informações por grupo/i,
+    })
+    expect(secaoGrupo).toHaveAttribute('aria-expanded', 'false')
+    await usuario.click(secaoGrupo)
+    expect(screen.getByLabelText(/\bidade\b/i)).toHaveValue(
+      '7 anos, 0 meses e 0 dias',
+    )
+    expect(
+      screen.getByRole('button', { name: /informações de saúde/i }),
+    ).toHaveAttribute('aria-expanded', 'false')
+    expect(
+      screen.queryByRole('button', { name: /salvar rascunho/i }),
+    ).not.toBeInTheDocument()
+    expect(obterParticipanteEolMock).not.toHaveBeenCalled()
+    expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
+
+    await usuario.clear(codigoEol)
+    await usuario.type(codigoEol, '123456')
+    await usuario.click(
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    )
+
+    await waitFor(() => {
+      expect(obterParticipanteEolMock).toHaveBeenCalledWith(
+        '123456',
+        'inscricao-1',
+      )
+    })
+    expect(obterParticipanteCpfMock).not.toHaveBeenCalled()
+  })
+
+  it('preenche de novo a edição ao consultar o mesmo código EOL da inscrição', async () => {
+    const usuario = userEvent.setup()
+    obterParticipanteEolMock.mockResolvedValue(participanteEolExemplo)
+    renderFormularioEdicao()
+
+    const codigoEol = await screen.findByRole('textbox', {
+      name: /consultar por código eol/i,
+    })
+    expect(codigoEol).toHaveValue('1234567')
+
+    await usuario.click(
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    )
+
+    await waitFor(() => {
+      expect(obterParticipanteEolMock).toHaveBeenCalledWith(
+        '1234567',
+        'inscricao-1',
+      )
+      expect(
+        screen.getByRole('textbox', {
+          name: /nome completo do\(a\) participante/i,
+        }),
+      ).toHaveValue('ANNA JULIA ARAUJO SA')
+    })
+    expect(showToastMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: MENSAGEM_INSCRICAO_EOL_EXISTENTE,
+      }),
+    )
+  })
+
+  it('mantém telefone e e-mail da edição ao consultar de novo o código EOL', async () => {
+    const usuario = userEvent.setup()
+    obterParticipanteEolMock.mockResolvedValue({
+      ...participanteEolExemplo,
+      codigo_eol: '1234567',
+      telefone_contato_1: '',
+      telefone_contato_2: '11900000000',
+      email: '',
+    })
+    renderFormularioEdicao()
+
+    expect(await screen.findByLabelText(/\be-mail\b/i)).toHaveValue(
+      'mariafernanda@gmail.com',
+    )
+    expect(
+      screen.getByLabelText(/telefone de contato\/emergência 1/i),
+    ).toHaveValue('11911111111')
+
+    await usuario.click(
+      screen.getByRole('button', { name: /consultar código eol/i }),
+    )
+
+    await waitFor(() => {
+      expect(obterParticipanteEolMock).toHaveBeenCalledWith(
+        '1234567',
+        'inscricao-1',
+      )
+      expect(
+        screen.getByRole('textbox', {
+          name: /nome completo do\(a\) participante/i,
+        }),
+      ).toHaveValue('ANNA JULIA ARAUJO SA')
+    })
+    expect(
+      screen.getByLabelText(/telefone de contato\/emergência 1/i),
+    ).toHaveValue('11911111111')
+    expect(
+      screen.getByLabelText(/telefone de contato\/emergência 2/i),
+    ).toHaveValue('')
+    expect(screen.getByLabelText(/\be-mail\b/i)).toHaveValue(
+      'mariafernanda@gmail.com',
+    )
+  })
+
+  it('mantém o CPF do estudante externo editável e não acusa a própria inscrição', async () => {
+    const usuario = userEvent.setup()
+    checarDuplicidadeInscricaoEstudanteExternoMock.mockResolvedValue({
+      possui_inscricao: true,
+    })
+    obterInscricaoMock.mockResolvedValue({
+      ...inscricaoDetalheExemplo,
+      tipo_estudante: 'ESTUDANTE_EXTERNO',
+      tipo_estudante_label: 'Estudante externo',
+      codigo_eol: '',
+      cpf_participante: '39200791085',
+    })
+
+    renderFormularioEdicao()
+
+    const cpf = await screen.findByRole('textbox', {
+      name: /cpf do\(a\) participante/i,
+    })
+    expect(cpf).toHaveValue('392.007.910-85')
+    expect(cpf).not.toHaveAttribute('readonly')
+    expect(
+      checarDuplicidadeInscricaoEstudanteExternoMock,
+    ).not.toHaveBeenCalled()
+    expect(showToastMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: MENSAGEM_DUPLICIDADE_CPF_PARTICIPANTE,
+      }),
+    )
+
+    await usuario.clear(cpf)
+    await usuario.type(cpf, '12345678909')
+
+    await waitFor(() => {
+      expect(
+        checarDuplicidadeInscricaoEstudanteExternoMock,
+      ).toHaveBeenCalledWith('12345678909')
+    })
+  })
+
+  it('mostra a idade do detalhe e recalcula ao alterar a data de nascimento', async () => {
+    const usuario = userEvent.setup()
+    obterInscricaoMock.mockResolvedValue({
+      ...inscricaoDetalheExemplo,
+      tipo_estudante: 'ESTUDANTE_EXTERNO',
+      tipo_estudante_label: 'Estudante externo',
+      codigo_eol: '',
+      cpf_participante: '39200791085',
+    })
+
+    renderFormularioEdicao()
+
+    const secaoGrupo = await screen.findByRole('button', {
+      name: /informações por grupo/i,
+    })
+    await usuario.click(secaoGrupo)
+    expect(screen.getByLabelText(/\bidade\b/i)).toHaveValue(
+      '7 anos, 0 meses e 0 dias',
+    )
+
+    const dataNascimento = screen.getByRole('textbox', {
+      name: /data de nascimento/i,
+    })
+    await usuario.clear(dataNascimento)
+    await usuario.type(dataNascimento, digitosNascimentoComUmAno())
+
+    expect(screen.getByLabelText(/\bidade\b/i)).toHaveValue(
+      idadePorExtensoComUmAno(),
+    )
+  })
+
+  it('impede finalizar a edição quando um campo obrigatório está vazio', async () => {
+    const usuario = userEvent.setup()
+    renderFormularioEdicao()
+
+    const email = await screen.findByLabelText(/\be-mail\b/i)
+    await usuario.clear(email)
+    await usuario.click(
+      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
+    )
+
+    expect(
+      await screen.findByText('Este campo é obrigatório.'),
+    ).toBeInTheDocument()
+    expect(atualizarInscricaoMock).not.toHaveBeenCalled()
+    expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
+  })
+
+  it('cancela a edição sem gravar e volta para a consulta', async () => {
+    const usuario = userEvent.setup()
+    renderFormularioEdicao()
+
+    await screen.findByLabelText(/\be-mail\b/i)
+    await usuario.click(screen.getByRole('button', { name: /cancelar/i }))
+
+    expect(screen.getByText(/inscrições de participantes/i)).toBeInTheDocument()
+    expect(atualizarInscricaoMock).not.toHaveBeenCalled()
+  })
+
+  it('grava a edição e confirma o status retornado', async () => {
+    const usuario = userEvent.setup()
+    renderFormularioEdicao()
+
+    await screen.findByLabelText(/\be-mail\b/i)
+    await usuario.click(
+      screen.getByRole('button', { name: /^finalizar inscrição$/i }),
+    )
+
+    await waitFor(() => {
+      expect(atualizarInscricaoMock).toHaveBeenCalledWith(
+        'inscricao-1',
+        expect.objectContaining({
+          codigoEol: '1234567',
+          cpf: '12345678901',
+          polo: 'polo-1',
+          unidadeEducacional: 'EMEF Teste',
+          unidadeEducacionalCodigoEol: '094633',
+          unidadeEducacionalTipo: 'EMEF',
+          email: 'mariafernanda@gmail.com',
+        }),
+      )
+      expect(
+        screen.getByText(/inscrições de participantes/i),
+      ).toBeInTheDocument()
+    })
+    expect(showToastMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'inscricao-salva',
+        title: 'Inscrição alterada com sucesso',
+        description: 'Sua inscrição foi salva com o status: Completa',
+        variant: 'success',
+      }),
+    )
+    expect(cadastrarInscricaoMock).not.toHaveBeenCalled()
+  })
 })

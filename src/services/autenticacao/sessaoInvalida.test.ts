@@ -60,6 +60,8 @@ describe('notificarSessaoInvalida', () => {
       rf: '1234567',
       nome: 'Usuário Teste',
       descricaoCargo: 'Cargo Teste',
+      perfis: [],
+      permissoes: [],
     })
 
     const removerOuvinte = registrarOuvinteSessaoInvalida(ouvinte)

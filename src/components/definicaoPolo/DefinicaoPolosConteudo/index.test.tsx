@@ -661,22 +661,29 @@ describe('DefinicaoPolosConteudo', () => {
   })
 
   it('remove automaticamente a mensagem de sucesso após três segundos', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
     const usuario = userEvent.setup()
 
-    renderConteudo()
-    await esperarConteudoPronto()
+    try {
+      renderConteudo()
+      await esperarConteudoPronto()
 
-    await usuario.click(
-      screen.getByRole('button', { name: /^simular alterar edição$/i }),
-    )
-    await usuario.selectOptions(
-      screen.getByLabelText(/selecione o nome da edição/i),
-      'Janeiro 2025',
-    )
-    await usuario.click(screen.getByRole('button', { name: /^alterar$/i }))
+      await usuario.click(
+        screen.getByRole('button', { name: /^simular alterar edição$/i }),
+      )
+      await usuario.selectOptions(
+        screen.getByLabelText(/selecione o nome da edição/i),
+        'Janeiro 2025',
+      )
+      await usuario.click(screen.getByRole('button', { name: /^alterar$/i }))
 
-    expect(await screen.findByRole('status')).toBeInTheDocument()
-    await new Promise((resolve) => setTimeout(resolve, 3100))
-    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+      expect(await screen.findByRole('status')).toBeInTheDocument()
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(3000)
+      })
+      expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

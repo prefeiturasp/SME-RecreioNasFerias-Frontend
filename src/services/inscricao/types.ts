@@ -15,6 +15,7 @@ export type DadosCadastroInscricao = {
   grupo: string
   codigoEol: string
   cpf: string
+  cpf_participante: string
   nomeCompleto: string
   dataNascimento: string
   nomeResponsavel: string
@@ -51,6 +52,7 @@ export type DadosCadastroInscricao = {
   podeIrEmboraSozinho: '' | 'sim' | 'nao'
   responsavelRetirada: string
   autorizaUsoPiscina: '' | 'sim' | 'nao'
+  tipoEscola: '' | 'ESTADUAL' | 'PARTICULAR'
 }
 
 export type Inscricao = {
@@ -63,6 +65,7 @@ export type Inscricao = {
   grupo_label: string
   codigo_eol: string
   cpf: string
+  cpf_participante: string
   nome_participante: string
   data_nascimento: string | null
   responsavel_nome: string
@@ -94,6 +97,8 @@ export type Inscricao = {
   restricao_medicamento_pronto_atendimento: string
   possui_convenio_medico: boolean
   convenio_medico: string
+  tipo_escola: '' | 'ESTADUAL' | 'PARTICULAR'
+  tipo_escola_label: string
   unidade_educacional: string
   unidade_educacional_codigo_eol: string
   unidade_educacional_tipo: string
@@ -164,6 +169,17 @@ export type PoloElegivel = {
   nome_polo: string
   dre_codigo_eol: string
   dre_nome: string
+}
+
+export type PoloResumoInscricao = {
+  uuid: string
+  nome_polo: string
+}
+
+export type InscricaoDetalhe = Omit<Inscricao, 'polo' | 'edicao'> & {
+  polo: PoloResumoInscricao | null
+  edicao: EdicaoResumoInscricao | null
+  idade_detalhada: string | null
 }
 
 export type ParticipanteEol = {

@@ -2,7 +2,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
-import { grupoExigeEstudanteDaRede, TIPO_ESTUDANTE_REDE } from './constantes'
+import {
+  grupoExigeEstudanteDaRede,
+  TIPO_ESTUDANTE_EXTERNO,
+  TIPO_ESTUDANTE_REDE,
+  MENSAGEM_INSCRICAO_EOL_EXISTENTE,
+} from './constantes'
 import { InformacoesBasicas } from './InformacoesBasicas'
 import { InformacoesPorGrupo } from './InformacoesPorGrupo'
 import { SecaoFormulario } from './SecaoFormulario'
@@ -10,14 +15,17 @@ import type { FormValues } from './schema'
 import formSchema, { formSchemaRascunho } from './schema'
 
 import { BlocoTexto } from '@/components/BlocoTexto'
+import { IndicadorCarregamento } from '@/components/IndicadorCarregamento'
 import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
 import { useGetDres } from '@/hooks/useGetDres'
+import { useGetInscricao } from '@/hooks/useGetInscricao'
 import { useGetParticipanteCpf } from '@/hooks/useGetParticipanteCpf'
 import { useGetParticipanteEol } from '@/hooks/useGetParticipanteEol'
 import { useGetPolosElegiveis } from '@/hooks/useGetPolosElegiveis'
 import { useGetValoresChoices } from '@/hooks/useGetValoresChoices'
 import { usePostInscricao } from '@/hooks/usePostInscricao'
+import { usePutInscricao } from '@/hooks/usePutInscricao'
 import { useToast } from '@/hooks/useToast'
 import { extrairMensagemDeErro } from '@/services/api/extrairMensagemDeErro'
 import type {
@@ -25,6 +33,11 @@ import type {
   ParticipanteEol,
 } from '@/services/inscricao/types'
 import { InformacoesSaude } from './InformacoesSaude/index'
+import { valoresFormularioDaInscricao } from './valoresFormulario'
+
+type ParticipanteFormProps = {
+  inscricaoId?: string
+}
 
 function impedirBlurAntesDoClique(evento: MouseEvent<HTMLButtonElement>) {
   evento.preventDefault()
@@ -45,6 +58,8 @@ const CAMPOS_DO_PARTICIPANTE_VAZIOS: Partial<FormValues> = {
   telefone1: '',
   telefone2: '',
   email: '',
+  cpf_participante: '',
+  possuiInscricaoCpfParticipante: false,
   criancaComDeficiencia: '',
   qualDeficiencia: [],
   outraDeficiencia: '',
@@ -65,12 +80,17 @@ const CAMPOS_DO_PARTICIPANTE_VAZIOS: Partial<FormValues> = {
   podeIrEmboraSozinho: '',
   responsavelRetirada: '',
   autorizaUsoPiscina: '',
+  tipoEscola: '',
 }
 
 const CAMPOS_DO_GRUPO: (keyof FormValues)[] = [
   'podeIrEmboraSozinho',
   'responsavelRetirada',
   'autorizaUsoPiscina',
+  'tipoEscola',
+  'unidadeEducacional',
+  'nomeTurma',
+  'ano',
 ]
 
 const CAMPOS_DE_SAUDE: (keyof FormValues)[] = [
@@ -88,15 +108,23 @@ const CAMPOS_DE_SAUDE: (keyof FormValues)[] = [
   'qualConvenioMedico',
 ]
 
-export function ParticipanteForm() {
+export function ParticipanteForm({
+  inscricaoId,
+}: Readonly<ParticipanteFormProps>) {
   const navigate = useNavigate()
   const { showToast } = useToast()
   const cadastroMutation = usePostInscricao()
+  const atualizacaoMutation = usePutInscricao(inscricaoId)
+  const inscricaoQuery = useGetInscricao(inscricaoId)
+  const [uuidAplicado, setUuidAplicado] = useState<string | null>(null)
   const schemaEnvio = useRef(formSchema)
   const buscaVigente = useRef<'codigoEol' | 'cpf' | null>(null)
   const [codigoEolConsulta, setCodigoEolConsulta] = useState<string>()
   const [cpfConsulta, setCpfConsulta] = useState<string>()
-  const consultaParticipante = useGetParticipanteEol(codigoEolConsulta)
+  const consultaParticipante = useGetParticipanteEol(
+    codigoEolConsulta,
+    inscricaoId,
+  )
   const consultaCpf = useGetParticipanteCpf(cpfConsulta)
   const [origemConsulta, setOrigemConsulta] = useState<
     'codigoEol' | 'cpf' | null
@@ -108,6 +136,9 @@ export function ParticipanteForm() {
   const [informacoesPorGrupoAberta, setInformacoesPorGrupoAberta] =
     useState(false)
   const [informacoesSaudeAberta, setInformacoesSaudeAberta] = useState(false)
+  const [temErroInscricaoEolDuplicada, setTemErroInscricaoEolDuplicada] =
+    useState(false)
+  const editando = useMemo(() => Boolean(inscricaoId), [inscricaoId])
   const eolDesabilitado = useMemo(
     () => origemConsulta === 'cpf',
     [origemConsulta],
@@ -124,6 +155,9 @@ export function ParticipanteForm() {
       tipoEstudante: '',
       codigoEol: '',
       cpf: '',
+      cpf_participante: '',
+      possuiInscricaoCpfParticipante: false,
+      possuiInscricaoEolParticipante: false,
       nomeCompleto: '',
       dataNascimento: '',
       nomeResponsavel: '',
@@ -160,6 +194,7 @@ export function ParticipanteForm() {
       podeIrEmboraSozinho: '',
       responsavelRetirada: '',
       autorizaUsoPiscina: '',
+      tipoEscola: '',
     },
   })
   const [grupo, tipoEstudante, dreCodigoEol] = useWatch({
@@ -179,7 +214,17 @@ export function ParticipanteForm() {
     () => choicesQuery.data?.grupo_inscricao ?? [],
     [choicesQuery.data?.grupo_inscricao],
   )
-  const tipoTravado = useMemo(() => grupoExigeEstudanteDaRede(grupo), [grupo])
+  const tipoTravado = useMemo(
+    () => editando || grupoExigeEstudanteDaRede(grupo),
+    [editando, grupo],
+  )
+  const aguardandoEdicao = useMemo(
+    () =>
+      editando &&
+      !inscricaoQuery.isError &&
+      uuidAplicado !== inscricaoQuery.data?.uuid,
+    [editando, inscricaoQuery.data?.uuid, inscricaoQuery.isError, uuidAplicado],
+  )
   const camposLiberados = useMemo(
     () => Boolean(grupo) && Boolean(tipoEstudante),
     [grupo, tipoEstudante],
@@ -194,6 +239,25 @@ export function ParticipanteForm() {
 
   function aoMudarDre() {
     form.setValue('polo', '')
+  }
+
+  function aoMudarTipoEstudante(valor: string) {
+    form.reset({
+      ...CAMPOS_DO_PARTICIPANTE_VAZIOS,
+      grupo: form.getValues('grupo'),
+      tipoEstudante: valor,
+      codigoEol: '',
+      cpf: '',
+      dreCodigoEol: '',
+      polo: '',
+      possuiInscricaoEolParticipante: false,
+    })
+    setOrigemConsulta(null)
+    setCodigoEolConsulta(undefined)
+    setCpfConsulta(undefined)
+    setCodigoEolSincronizado(null)
+    setCpfSincronizado(null)
+    buscaVigente.current = null
   }
 
   function limparCamposDoParticipante(
@@ -214,13 +278,15 @@ export function ParticipanteForm() {
     participante: ParticipanteEol,
     cpf = form.getValues('cpf'),
   ) {
+    const valoresAtuais = form.getValues()
     const codigoEol =
       origemConsulta === 'cpf'
         ? participante.codigo_eol
-        : form.getValues('codigoEol')
+        : valoresAtuais.codigoEol
+    const manterContato = editando && buscaVigente.current === 'codigoEol'
 
     form.reset({
-      ...form.getValues(),
+      ...valoresAtuais,
       codigoEol,
       cpf,
       nomeCompleto: participante.nome_participante,
@@ -234,9 +300,13 @@ export function ParticipanteForm() {
       complemento: participante.complemento,
       bairro: participante.bairro,
       cidade: participante.cidade,
-      telefone1: participante.telefone_contato_1,
-      telefone2: participante.telefone_contato_2,
-      email: participante.email,
+      telefone1: manterContato
+        ? valoresAtuais.telefone1
+        : participante.telefone_contato_1,
+      telefone2: manterContato
+        ? valoresAtuais.telefone2
+        : participante.telefone_contato_2,
+      email: manterContato ? valoresAtuais.email : participante.email,
       unidadeEducacional: participante.unidade_educacional,
       unidadeEducacionalCodigoEol: participante.unidade_educacional_codigo_eol,
       unidadeEducacionalTipo: participante.unidade_educacional_tipo,
@@ -284,6 +354,9 @@ export function ParticipanteForm() {
 
   function aoMudarCodigoEol(valor: string) {
     if (origemConsulta === 'cpf') return
+
+    // Limpa o erro de inscrição duplicada quando o usuário modifica o código EOL
+    setTemErroInscricaoEolDuplicada(false)
 
     if (valor) {
       setOrigemConsulta('codigoEol')
@@ -337,7 +410,9 @@ export function ParticipanteForm() {
       dresQuery.error ??
       polosQuery.error ??
       choicesQuery.error ??
-      cadastroMutation.error
+      inscricaoQuery.error ??
+      cadastroMutation.error ??
+      atualizacaoMutation.error
     )
   }, [
     consultaCpf.error,
@@ -345,12 +420,26 @@ export function ParticipanteForm() {
     dresQuery.error,
     polosQuery.error,
     choicesQuery.error,
+    inscricaoQuery.error,
     cadastroMutation.error,
+    atualizacaoMutation.error,
   ])
 
   useEffect(() => {
     if (erroApi && extrairMensagemDeErro(erroApi)) {
       const mensagem = extrairMensagemDeErro(erroApi)
+
+      if (mensagem === MENSAGEM_INSCRICAO_EOL_EXISTENTE) {
+        setTemErroInscricaoEolDuplicada(true)
+        showToast({
+          id: 'erro-api',
+          title: 'Erro ao processar a inscrição',
+          variant: 'destructive',
+          description: mensagem,
+        })
+        return
+      }
+
       showToast({
         id: 'erro-api',
         title: 'Erro ao processar a inscrição',
@@ -359,6 +448,32 @@ export function ParticipanteForm() {
       })
     }
   }, [erroApi, showToast])
+
+  useEffect(() => {
+    form.setValue(
+      'possuiInscricaoEolParticipante',
+      temErroInscricaoEolDuplicada,
+      {
+        shouldValidate: false,
+      },
+    )
+  }, [temErroInscricaoEolDuplicada, form])
+
+  useEffect(() => {
+    if (!inscricaoQuery.data || choicesQuery.isPending) return
+    if (uuidAplicado === inscricaoQuery.data.uuid) return
+
+    form.reset(
+      valoresFormularioDaInscricao(inscricaoQuery.data, choicesQuery.data),
+    )
+    setUuidAplicado(inscricaoQuery.data.uuid)
+  }, [
+    choicesQuery.data,
+    choicesQuery.isPending,
+    form,
+    inscricaoQuery.data,
+    uuidAplicado,
+  ])
 
   useEffect(() => {
     if (!codigoEolConsulta || buscaVigente.current !== 'codigoEol') return
@@ -409,12 +524,20 @@ export function ParticipanteForm() {
   ])
 
   function salvar(dados: FormValues) {
-    if (cadastroMutation.isError) {
-      cadastroMutation.reset()
+    const gravacaoMutation = inscricaoId
+      ? atualizacaoMutation
+      : cadastroMutation
+    if (gravacaoMutation.isError) {
+      gravacaoMutation.reset()
     }
 
     const dreNome =
       dres.find((dre) => dre.codigo_dre === dados.dreCodigoEol)?.nome_dre ?? ''
+    const dadosSemInscricaoCpfParticipante = { ...dados }
+    Reflect.deleteProperty(
+      dadosSemInscricaoCpfParticipante,
+      'possuiInscricaoCpfParticipante',
+    )
     const {
       criancaComDeficiencia,
       qualDeficiencia,
@@ -429,10 +552,15 @@ export function ParticipanteForm() {
       temConvenioMedico,
       qualConvenioMedico,
       ...dadosInscricao
-    } = dados
+    } = dadosSemInscricaoCpfParticipante
     const textoOuVazio = (valor: string) => valor.trim() || ''
     const dadosCadastro: DadosCadastroInscricao = {
       ...dadosInscricao,
+      cpf: dados.cpf,
+      cpf_participante:
+        dados.tipoEstudante === TIPO_ESTUDANTE_EXTERNO
+          ? dados.cpf_participante
+          : '',
       dreNome,
       possui_deficiencia: criancaComDeficiencia === 'sim',
       deficiencias:
@@ -465,13 +593,17 @@ export function ParticipanteForm() {
       possui_convenio_medico: temConvenioMedico === 'sim',
       convenio_medico:
         temConvenioMedico === 'sim' ? textoOuVazio(qualConvenioMedico) : '',
+      tipoEscola:
+        dados.tipoEstudante === TIPO_ESTUDANTE_EXTERNO ? dados.tipoEscola : '',
     }
 
-    cadastroMutation.mutate(dadosCadastro, {
+    gravacaoMutation.mutate(dadosCadastro, {
       onSuccess: (inscricao) => {
         showToast({
           id: 'inscricao-salva',
-          title: 'Inscrição salva com sucesso',
+          title: editando
+            ? 'Inscrição alterada com sucesso'
+            : 'Inscrição salva com sucesso',
           description: `Sua inscrição foi salva com o status: ${inscricao.status_label}`,
           variant: 'success',
         })
@@ -480,17 +612,32 @@ export function ParticipanteForm() {
     })
   }
 
+  if (inscricaoId && inscricaoQuery.isError) {
+    return null
+  }
+
+  if (aguardandoEdicao) {
+    return <IndicadorCarregamento mensagem="Carregando inscrição..." />
+  }
+
   return (
     <form
       noValidate
-      aria-label="Formulário de cadastro de participante"
+      aria-label={
+        inscricaoId
+          ? 'Formulário de edição de participante'
+          : 'Formulário de cadastro de participante'
+      }
       onSubmit={(evento) => {
         const submitter = evento.nativeEvent.submitter
         schemaEnvio.current =
-          submitter instanceof HTMLElement &&
-          submitter.dataset.acao === 'rascunho'
-            ? formSchemaRascunho
-            : formSchema
+          inscricaoId ||
+          !(
+            submitter instanceof HTMLElement &&
+            submitter.dataset.acao === 'rascunho'
+          )
+            ? formSchema
+            : formSchemaRascunho
         void form.handleSubmit(salvar, (erros) => {
           if (CAMPOS_DO_GRUPO.some((campo) => erros[campo])) {
             setInformacoesPorGrupoAberta(true)
@@ -512,6 +659,7 @@ export function ParticipanteForm() {
           <SecaoFormulario titulo="Informações Básicas" aberta>
             <InformacoesBasicas
               control={form.control}
+              setValue={form.setValue}
               grupo={grupo}
               tipoTravado={tipoTravado}
               camposLiberados={camposLiberados}
@@ -528,19 +676,36 @@ export function ParticipanteForm() {
               onBuscarCpf={consultarPorCpf}
               aoMudarCpf={aoMudarCpf}
               aoMudarGrupo={aoMudarGrupo}
+              aoMudarTipoEstudante={aoMudarTipoEstudante}
               aoMudarDre={aoMudarDre}
               eolDesabilitado={eolDesabilitado}
               cpfDesabilitado={cpfDesabilitado}
+              identificacaoBloqueada={editando}
+              cpfParticipanteDaInscricao={
+                editando ? inscricaoQuery.data?.cpf_participante : undefined
+              }
             />
           </SecaoFormulario>
 
-          {camposLiberados && tipoEstudante === TIPO_ESTUDANTE_REDE && (
+          {camposLiberados && (
             <SecaoFormulario
               titulo="Informações por Grupo"
               aberta={informacoesPorGrupoAberta}
               aoMudarAbertura={setInformacoesPorGrupoAberta}
             >
-              <InformacoesPorGrupo control={form.control} grupos={grupos} />
+              <InformacoesPorGrupo
+                control={form.control}
+                grupos={grupos}
+                tipoEstudante={tipoEstudante}
+                idadeDetalhada={
+                  editando ? inscricaoQuery.data?.idade_detalhada : undefined
+                }
+                dataNascimentoInicial={
+                  editando
+                    ? (inscricaoQuery.data?.data_nascimento ?? '')
+                    : undefined
+                }
+              />
             </SecaoFormulario>
           )}
 
@@ -567,19 +732,25 @@ export function ParticipanteForm() {
           >
             Cancelar
           </Button>
+          {editando ? null : (
+            <Button
+              type="submit"
+              variant="outline"
+              disabled={
+                cadastroMutation.isPending || atualizacaoMutation.isPending
+              }
+              className="h-9.5 rounded-sm border-brand-dark px-4 font-bold text-brand-dark hover:bg-accent hover:text-brand-dark"
+              data-acao="rascunho"
+              onMouseDown={impedirBlurAntesDoClique}
+            >
+              Salvar Rascunho
+            </Button>
+          )}
           <Button
             type="submit"
-            variant="outline"
-            disabled={cadastroMutation.isPending}
-            className="h-9.5 rounded-sm border-brand-dark px-4 font-bold text-brand-dark hover:bg-accent hover:text-brand-dark"
-            data-acao="rascunho"
-            onMouseDown={impedirBlurAntesDoClique}
-          >
-            Salvar Rascunho
-          </Button>
-          <Button
-            type="submit"
-            disabled={cadastroMutation.isPending}
+            disabled={
+              cadastroMutation.isPending || atualizacaoMutation.isPending
+            }
             className="h-9.5 rounded-sm bg-brand-dark px-4 font-bold text-background hover:bg-brand-dark-hover disabled:bg-button-primary-disabled-bg disabled:opacity-100"
             onMouseDown={impedirBlurAntesDoClique}
           >

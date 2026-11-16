@@ -1,0 +1,57 @@
+export type IdadeDetalhada = {
+  anos: number
+  meses: number
+  dias: number
+}
+
+export function calcularIdadeDetalhada(
+  dataNascimento: string,
+  hoje: Date = new Date(),
+): IdadeDetalhada | null {
+  const correspondencia = /^(\d{4})-(\d{2})-(\d{2})/.exec(
+    dataNascimento.trim(),
+  )
+  if (!correspondencia) return null
+
+  const ano = Number(correspondencia[1])
+  const mes = Number(correspondencia[2])
+  const dia = Number(correspondencia[3])
+  const nascimento = new Date(ano, mes - 1, dia)
+  if (
+    nascimento.getFullYear() !== ano ||
+    nascimento.getMonth() !== mes - 1 ||
+    nascimento.getDate() !== dia
+  ) {
+    return null
+  }
+
+  let anos = hoje.getFullYear() - ano
+  let meses = hoje.getMonth() + 1 - mes
+  let dias = hoje.getDate() - dia
+
+  if (dias < 0) {
+    meses -= 1
+    dias += new Date(hoje.getFullYear(), hoje.getMonth(), 0).getDate()
+  }
+  if (meses < 0) {
+    anos -= 1
+    meses += 12
+  }
+  if (anos < 0) return null
+
+  return { anos, meses, dias }
+}
+
+export function formatarIdadePorExtenso(
+  dataNascimento: string,
+  hoje: Date = new Date(),
+): string {
+  const idade = calcularIdadeDetalhada(dataNascimento, hoje)
+  if (!idade) return ''
+
+  const { anos, meses, dias } = idade
+  const rotuloAnos = anos === 1 ? 'ano' : 'anos'
+  const rotuloMeses = meses === 1 ? 'mês' : 'meses'
+  const rotuloDias = dias === 1 ? 'dia' : 'dias'
+  return `${anos} ${rotuloAnos}, ${meses} ${rotuloMeses} e ${dias} ${rotuloDias}`
+}

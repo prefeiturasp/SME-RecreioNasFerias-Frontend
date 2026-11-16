@@ -33,4 +33,5 @@ export {
   ROTA_LISTAGEM_EDICOES_PROGRAMA,
   verificarSessaoAtiva,
 } from './verificarSessaoAtiva'
+export { PERMISSOES } from './permissoes'
 export type { PerfilUsuario, SessaoAutenticacao } from './types'

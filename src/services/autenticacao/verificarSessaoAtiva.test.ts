@@ -23,6 +23,8 @@ function definirSessaoComToken(token = 'eyJ-token') {
     rf: '1234567',
     nome: 'Usuário Teste',
     descricaoCargo: 'Cargo Teste',
+    perfis: [],
+    permissoes: [],
   })
 }
 

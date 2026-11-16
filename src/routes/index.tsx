@@ -1,11 +1,13 @@
 import { Route, Routes } from 'react-router-dom'
 import { RotaProtegida } from '../components/RotaProtegida'
+import { PERMISSOES } from '../services/autenticacao'
 import PaginaDefinicoesPolo from '../pages/PaginaDefinicoesPolo'
 import PaginaDetalhamentoDefinicaoPolo from '../pages/PaginaDetalhamentoDefinicaoPolo'
 import PaginaPolosParceiros from '../pages/PaginaPolosParceiros'
 import PaginaCadastrarNovaEdicaoPrograma from '../pages/PaginaCadastrarNovaEdicaoPrograma'
 import PaginaInscricaoParticipantes from '../pages/PaginaInscricaoParticipantes'
 import PaginaCadastrarParticipante from '../pages/PaginaCadastrarParticipante'
+import PaginaEditarParticipante from '../pages/PaginaEditarParticipante'
 import PaginaCadastrarPoloParceiro from '../pages/PaginaCadastrarPoloParceiro'
 import PaginaEditarPoloParceiro from '../pages/PaginaEditarPoloParceiro'
 import PaginaEditarEdicaoPrograma from '../pages/PaginaEditarEdicaoPrograma'
@@ -28,7 +30,7 @@ export function RotasAplicacao() {
       <Route
         path="/edicoes-programa"
         element={
-          <RotaProtegida>
+          <RotaProtegida permissao={PERMISSOES.visualizarEdicoes}>
             <PaginaEdicoesPrograma />
           </RotaProtegida>
         }
@@ -36,7 +38,7 @@ export function RotasAplicacao() {
       <Route
         path="/definicoes-polo"
         element={
-          <RotaProtegida>
+          <RotaProtegida permissao={PERMISSOES.visualizarDefinicoesPolos}>
             <PaginaDefinicoesPolo />
           </RotaProtegida>
         }
@@ -44,7 +46,7 @@ export function RotasAplicacao() {
       <Route
         path="/definicoes-polo/polo/:poloUuid"
         element={
-          <RotaProtegida>
+          <RotaProtegida permissao={PERMISSOES.visualizarDefinicoesPolos}>
             <PaginaDetalhamentoDefinicaoPolo />
           </RotaProtegida>
         }
@@ -52,7 +54,7 @@ export function RotasAplicacao() {
       <Route
         path="/definicoes-polo/:idDefinicao"
         element={
-          <RotaProtegida>
+          <RotaProtegida permissao={PERMISSOES.visualizarDefinicoesPolos}>
             <PaginaDetalhamentoDefinicaoPolo />
           </RotaProtegida>
         }
@@ -60,7 +62,7 @@ export function RotasAplicacao() {
       <Route
         path="/polos-parceiros"
         element={
-          <RotaProtegida>
+          <RotaProtegida permissao={PERMISSOES.visualizarPolos}>
             <PaginaPolosParceiros />
           </RotaProtegida>
         }
@@ -68,7 +70,7 @@ export function RotasAplicacao() {
       <Route
         path="/cadastrar-polo-parceiro"
         element={
-          <RotaProtegida>
+          <RotaProtegida permissao={PERMISSOES.criarPolos}>
             <PaginaCadastrarPoloParceiro />
           </RotaProtegida>
         }
@@ -76,7 +78,7 @@ export function RotasAplicacao() {
       <Route
         path="/editar-polo-parceiro/:idPolo"
         element={
-          <RotaProtegida>
+          <RotaProtegida permissao={PERMISSOES.editarPolos}>
             <PaginaEditarPoloParceiro />
           </RotaProtegida>
         }
@@ -84,7 +86,7 @@ export function RotasAplicacao() {
       <Route
         path="/cadastrar-nova-edicao-programa"
         element={
-          <RotaProtegida>
+          <RotaProtegida permissao={PERMISSOES.criarEdicoes}>
             <PaginaCadastrarNovaEdicaoPrograma />
           </RotaProtegida>
         }
@@ -92,7 +94,7 @@ export function RotasAplicacao() {
       <Route
         path="/editar-edicao-programa/:idEdicao"
         element={
-          <RotaProtegida>
+          <RotaProtegida permissao={PERMISSOES.editarEdicoes}>
             <PaginaEditarEdicaoPrograma />
           </RotaProtegida>
         }
@@ -100,15 +102,25 @@ export function RotasAplicacao() {
       <Route
         path="/cadastrar-participante"
         element={
-          <RotaProtegida>
+          <RotaProtegida permissao={PERMISSOES.criarInscricoesParticipantes}>
             <PaginaCadastrarParticipante />
+          </RotaProtegida>
+        }
+      />
+      <Route
+        path="/editar-participante/:idInscricao"
+        element={
+          <RotaProtegida permissao={PERMISSOES.editarInscricoesParticipantes}>
+            <PaginaEditarParticipante />
           </RotaProtegida>
         }
       />
       <Route
         path="/inscricoes-participantes"
         element={
-          <RotaProtegida>
+          <RotaProtegida
+            permissao={PERMISSOES.visualizarInscricoesParticipantes}
+          >
             <PaginaInscricaoParticipantes />
           </RotaProtegida>
         }

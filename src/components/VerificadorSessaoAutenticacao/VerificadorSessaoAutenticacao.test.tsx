@@ -69,6 +69,8 @@ describe('VerificadorSessaoAutenticacao', () => {
       rf: '1234567',
       nome: 'Usuário Teste',
       descricaoCargo: 'Cargo Teste',
+      perfis: [],
+      permissoes: [],
     })
 
     render(
@@ -91,6 +93,8 @@ describe('VerificadorSessaoAutenticacao', () => {
       rf: '1234567',
       nome: 'Usuário Teste',
       descricaoCargo: 'Cargo Teste',
+      perfis: [],
+      permissoes: [],
     })
 
     render(
@@ -114,6 +118,8 @@ describe('VerificadorSessaoAutenticacao', () => {
       rf: '1234567',
       nome: 'Usuário Teste',
       descricaoCargo: 'Cargo Teste',
+      perfis: [],
+      permissoes: [],
     })
     verificarSessaoAtivaMock.mockResolvedValue(false)
 
@@ -141,6 +147,8 @@ describe('VerificadorSessaoAutenticacao', () => {
       rf: '1234567',
       nome: 'Usuário Teste',
       descricaoCargo: 'Cargo Teste',
+      perfis: [],
+      permissoes: [],
     })
 
     render(
